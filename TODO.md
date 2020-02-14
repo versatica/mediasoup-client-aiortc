@@ -4,6 +4,8 @@
 
 * Do DataChannel.
 
+* Use `sourceType` for files and URLs.
+
 ## aiortc
 
 Things that must be verified, asked or even reported in aiortc project.
