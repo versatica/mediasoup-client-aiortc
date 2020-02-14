@@ -2,8 +2,6 @@
 
 ## mediasoup-client-aiortc
 
-* `new Worker({ logLevel: 'none' })` or `new Worker()` (which is the **same**) makes the Python process not start. Something is super wrong with 'none' here.
-
 * Remove `Logger`, `errors`, etc and use those from mediasoup-client.
 
 * Fix `Logger` names.
