@@ -461,7 +461,6 @@ async def run(channel, handler) -> None:
         elif request.method == "createOffer":
             try:
                 offer = await handler.createOffer()
-
                 result = {}
                 result["type"] = offer.type
                 result["sdp"] = offer.sdp
@@ -517,7 +516,7 @@ async def run(channel, handler) -> None:
                 return
 
             try:
-                stats = await handler.getSenderStats(trackId)
+                stats = await handler.getSenderStats(data["trackId"])
                 await request.succeed(stats)
             except Exception as error:
                 await request.failed(error)
@@ -536,7 +535,7 @@ async def run(channel, handler) -> None:
                 return
 
             try:
-                stats = await handler.getReceiverStats(trackId)
+                stats = await handler.getReceiverStats(data["trackId"])
                 await request.succeed(stats)
             except Exception as error:
                 await request.failed(error)

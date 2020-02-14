@@ -105,6 +105,34 @@ test('worker.setRemoteDescription() succeeds', async () =>
 	await worker.setRemoteDescription({ type: 'answer', sdp: localDescription.sdp });
 }, 3000);
 
+test('worker.getTransportStats() succeeds', async () =>
+{
+	const stats = await worker.getTransportStats();
+
+	expect(stats).toBeType('object');
+	for (const report of stats.values())
+	{
+		expect(report).toBeType('object');
+		expect(report.timestamp).toBeType('number');
+		expect(report.type).toBeType('string');
+		expect(report.id).toBeType('string');
+	}
+}, 3000);
+
+test('worker.getSenderStats() succeeds', async () =>
+{
+	const stats = await worker.getSenderStats(audioTrackId);
+
+	expect(stats).toBeType('object');
+	for (const report of stats.values())
+	{
+		expect(report).toBeType('object');
+		expect(report.timestamp).toBeType('number');
+		expect(report.type).toBeType('string');
+		expect(report.id).toBeType('string');
+	}
+}, 3000);
+
 test('worker.removeTrack() with an invalid trackId throws', async () =>
 {
 	await expect(worker.removeTrack('justbecause'))
