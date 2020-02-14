@@ -32,7 +32,8 @@
   "jest": {
     "verbose": true,
     "testEnvironment": "node",
-    "testRegex": "test/test.*\\.js"
+    "testRegex": "test/test.*\\.js",
+    "transformIgnorePatterns": []
   },
   "dependencies": {
     "debug": "^4.1.1",
@@ -42,10 +43,14 @@
     "sdp-transform": "^2.14.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "@babel/preset-typescript": "^7.8.3",
     "@types/node": "^13.7.1",
     "@types/sdp-transform": "^2.4.1",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
+    "babel-jest": "^25.1.0",
     "eslint": "^6.8.0",
     "eslint-plugin-jest": "^23.6.0",
     "jest": "^25.1.0",

@@ -1,4 +1,4 @@
-import { EnhancedEventEmitter } from './EnhancedEventEmitter';
+import { EnhancedEventEmitter } from 'mediasoup-client/src/EnhancedEventEmitter';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 export declare type WorkerLogLevel = 'debug' | 'warn' | 'error' | 'none';
 export declare type WorkerSettings = {

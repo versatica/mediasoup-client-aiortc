@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
-import { Logger } from './Logger';
-import { EnhancedEventEmitter } from './EnhancedEventEmitter';
+import { Logger } from 'mediasoup-client/src/Logger';
+import { EnhancedEventEmitter } from 'mediasoup-client/src/EnhancedEventEmitter';
 import { Channel } from './Channel';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 
@@ -39,8 +39,8 @@ type WorkerSendResult =
 // TODO.
 const workerBin = '/usr/local/bin/python3';
 
-const logger = new Logger('Worker');
-const workerLogger = new Logger('Worker');
+const logger = new Logger('aiortc:Worker');
+const workerLogger = new Logger('aiortc:Worker');
 
 export class Worker extends EnhancedEventEmitter
 {
@@ -58,7 +58,7 @@ export class Worker extends EnhancedEventEmitter
 	 * @emits failed - (error: Error)
 	 * @emits error - (error: Error)
 	 */
-	constructor({ rtcConfiguration, logLevel = 'none' }: WorkerSettings = {})
+	constructor({ rtcConfiguration, logLevel = 'error' }: WorkerSettings = {})
 	{
 		super();
 

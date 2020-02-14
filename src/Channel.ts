@@ -1,9 +1,9 @@
 import { Duplex } from 'stream';
 // @ts-ignore
 import * as netstring from 'netstring';
-import { Logger } from './Logger';
-import { EnhancedEventEmitter } from './EnhancedEventEmitter';
-import { InvalidStateError } from './errors';
+import { Logger } from 'mediasoup-client/src/Logger';
+import { EnhancedEventEmitter } from 'mediasoup-client/src/EnhancedEventEmitter';
+import { InvalidStateError } from 'mediasoup-client/src/errors';
 
 interface Sent
 {
@@ -19,7 +19,7 @@ interface Sent
 const NS_MESSAGE_MAX_LEN = 4194313;
 const NS_PAYLOAD_MAX_LEN = 4194304;
 
-const logger = new Logger('Channel');
+const logger = new Logger('aiortc:Channel');
 
 export class Channel extends EnhancedEventEmitter
 {
