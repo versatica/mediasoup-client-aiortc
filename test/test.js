@@ -37,7 +37,7 @@ test('create a worker with wrong settings and emits "failed"', async () =>
 
 test('create a worker and emits "open" once connected', async () =>
 {
-	worker = new Worker({});
+	worker = new Worker();
 
 	await new Promise((resolve) => worker.once('open', resolve));
 
