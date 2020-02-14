@@ -13,8 +13,5 @@
 
 # Python cache
 /.mypy_cache/
-worker/__pycache__/
-worker/.mypy_cache/
-
-# compiled javascript
-/lib/
+/worker/__pycache__/
+/worker/.mypy_cache/

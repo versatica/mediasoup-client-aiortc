@@ -1,7 +1,7 @@
 const { toBeType } = require('jest-tobetype');
 const pkg = require('../package.json');
-const aiortc = require('../');
-const { version, Worker } = aiortc;
+const { version } = require('../');
+const { Worker } = require('../lib/Worker');
 
 expect.extend({ toBeType });
 
@@ -17,108 +17,79 @@ test('mediasoup-client-aiortc exposes a version property', () =>
 
 test('create a worker and getState() returns "connecting" right away', () =>
 {
-	const workerSettings = {};
-
 	// eslint-disable-next-line no-shadow
-	const worker = new Worker(workerSettings);
+	const worker = new Worker();
 
 	expect(worker.getState()).toBe('connecting');
 	worker.close();
 });
 
-test('create a worker with wrong settings and emits "failure"', async () =>
+test('create a worker with wrong settings and emits "failed"', async () =>
 {
-	const workerSettings = { rtcConfiguration: 'justbecause' };
-
 	// eslint-disable-next-line no-shadow
-	const worker = new Worker(workerSettings);
+	const worker = new Worker({ rtcConfiguration: 'justbecause' });
 
-	async function waitForWorkerToBeReady()
-	{
-		await new Promise((resolve) =>
-		{
-			worker.once('failure', () => resolve);
-		});
-		expect(worker.getState()).toBe('closed');
-	}
+	await new Promise((resolve, reject) => worker.once('failed', reject));
 
-	waitForWorkerToBeReady();
+	expect(worker.getState()).toBe('closed');
 	worker.close();
-});
+}, 3000);
 
 test('create a worker and emits "open" once connected', async () =>
 {
-	const workerSettings = {};
+	worker = new Worker();
 
-	worker = new Worker(workerSettings);
+	await new Promise((resolve) => worker.once('open', resolve));
 
-	async function waitForWorkerToBeReady()
-	{
-		await new Promise((resolve) =>
-		{
-			worker.once('open', resolve);
-		});
-	}
-
-	await waitForWorkerToBeReady();
 	expect(worker.getState()).toBe('open');
-});
+}, 3000);
 
 test('worker.getRtpCapabilities() returns a string', async () =>
 {
 	const capabilities = await worker.getRtpCapabilities();
 
 	expect(capabilities).toBeType('string');
-});
+}, 3000);
 
-test('worker.getLocalDescription() returns "undefined" right away', async () =>
+test('worker.getLocalDescription() returns undefined right away', async () =>
 {
 	// eslint-disable-next-line no-shadow
 	const localDescription = await worker.getLocalDescription();
 
 	expect(localDescription).toBeType('undefined');
-});
+}, 3000);
 
 test('worker.addTrack() with wrong SendOptions throws', async () =>
 {
-	const sendOptions = {};
-
-	try
-	{
-		await worker.addTrack(sendOptions);
-	}
-	catch (e)
-	{
-		expect(e).toBeType('object');
-	}
-});
+	await expect(worker.addTrack({}))
+		.rejects
+		.toThrow(TypeError);
+}, 3000);
 
 test('worker.addTrack() with correct SendOptions returns string', async () =>
 {
-	const sendOptions = { kind: 'audio', sourceType: 'device' };
-
-	const result = await worker.addTrack(sendOptions);
+	const result =
+		await worker.addTrack({ kind: 'audio', sourceType: 'device' });
 
 	expect(result).toBeType('object');
 	expect(result.trackId).toBeType('string');
 
 	audioTrackId = result.trackId;
-
-}, 10000);
+}, 3000);
 
 test('worker.createOffer() returns a RTCSessionDescription', async () =>
 {
-	localDescription = await worker.createOffer({ iceRestart: false });
+	localDescription = await worker.createOffer();
 
 	expect(localDescription).toBeType('object');
 	expect(localDescription.type).toBe('offer');
 	expect(localDescription.sdp).toBeType('string');
-});
+}, 3000);
 
 test('worker.setLocalDescription() succeeds', async () =>
 {
 	await worker.setLocalDescription(localDescription);
-}, 10000);
+}, 3000);
 
 test('worker.getLocalDescription() returns a RTCSessionDescription', async () =>
 {
@@ -127,26 +98,26 @@ test('worker.getLocalDescription() returns a RTCSessionDescription', async () =>
 	expect(localDescription).toBeType('object');
 	expect(localDescription.type).toBeType('string');
 	expect(localDescription.sdp).toBeType('string');
-}, 10000);
+}, 3000);
 
 test('worker.setRemoteDescription() succeeds', async () =>
 {
 	await worker.setRemoteDescription({ type: 'answer', sdp: localDescription.sdp });
-}, 10000);
+}, 3000);
 
-test('worker.removeTrack() with an invalid "trackId" throws', async () =>
+test('worker.removeTrack() with an invalid trackId throws', async () =>
 {
 	await expect(worker.removeTrack('justbecause'))
 		.rejects
 		.toThrow(Error);
-}, 10000);
+}, 3000);
 
-test('worker.removeTrack() with a valid "trackId" does not throw', async () =>
+test('worker.removeTrack() with a valid trackId does not throw', async () =>
 {
 	await worker.removeTrack(audioTrackId);
-});
+}, 3000);
 
-test('worker.close() succeeds', async () =>
+test('worker.close() succeeds', () =>
 {
 	worker.close();
 

@@ -1,7 +1,7 @@
 import { Duplex } from 'stream';
 // @ts-ignore
 import * as netstring from 'netstring';
-import Logger from './Logger';
+import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import { InvalidStateError } from './errors';
 
@@ -19,29 +19,23 @@ interface Sent
 const NS_MESSAGE_MAX_LEN = 4194313;
 const NS_PAYLOAD_MAX_LEN = 4194304;
 
-export default class Channel extends EnhancedEventEmitter
+const logger = new Logger('Channel');
+
+export class Channel extends EnhancedEventEmitter
 {
 	// Closed flag.
 	private _closed = false;
-
 	// Unix Socket instance for sending messages to the worker process.
 	private readonly _sendSocket: Duplex;
-
 	// Unix Socket instance for receiving messages to the worker process.
 	private readonly _recvSocket: Duplex;
-
 	// Next id for messages sent to the worker process.
 	private _nextId = 0;
-
 	// Map of pending sent requests.
 	private readonly _sents: Map<number, Sent> = new Map();
-
 	// Buffer for reading messages from the worker.
 	private _recvBuffer?: Buffer;
 
-	/**
-	 * @private
-	 */
 	constructor(
 		{
 			sendSocket,
@@ -54,9 +48,9 @@ export default class Channel extends EnhancedEventEmitter
 			pid: number;
 		})
 	{
-		super(new Logger(`Channel[pid:${pid}]`));
+		super();
 
-		this._logger.debug('constructor()');
+		logger.debug('constructor()');
 
 		this._sendSocket = sendSocket as Duplex;
 		this._recvSocket = recvSocket as Duplex;
@@ -77,7 +71,7 @@ export default class Channel extends EnhancedEventEmitter
 
 			if (this._recvBuffer.length > NS_PAYLOAD_MAX_LEN)
 			{
-				this._logger.error('receiving buffer is full, discarding all data into it');
+				logger.error('receiving buffer is full, discarding all data into it');
 
 				// Reset the buffer and exit.
 				this._recvBuffer = null;
@@ -95,7 +89,7 @@ export default class Channel extends EnhancedEventEmitter
 				}
 				catch (error)
 				{
-					this._logger.error(
+					logger.error(
 						'invalid netstring data received from the worker process: %s', String(error));
 
 					// Reset the buffer and exit.
@@ -134,22 +128,19 @@ export default class Channel extends EnhancedEventEmitter
 			}
 		});
 
-		this._recvSocket.on('end', () => this._logger.debug('Receive Channel ended by the worker process'));
-		this._recvSocket.on('error', (error) => this._logger.error('Receive Channel error: %s', String(error)));
+		this._recvSocket.on('end', () => logger.debug('Receive Channel ended by the worker process'));
+		this._recvSocket.on('error', (error) => logger.error('Receive Channel error: %s', String(error)));
 
-		this._sendSocket.on('end', () => this._logger.debug('Send Channel ended by the worker process'));
-		this._sendSocket.on('error', (error) => this._logger.error('Send Channel error: %s', String(error)));
+		this._sendSocket.on('end', () => logger.debug('Send Channel ended by the worker process'));
+		this._sendSocket.on('error', (error) => logger.error('Send Channel error: %s', String(error)));
 	}
 
-	/**
-	 * @private
-	 */
 	close(): void
 	{
+		logger.debug('close()');
+
 		if (this._closed)
 			return;
-
-		this._logger.debug('close()');
 
 		this._closed = true;
 
@@ -187,7 +178,7 @@ export default class Channel extends EnhancedEventEmitter
 
 		const id = this._nextId;
 
-		this._logger.debug('request() [method:%s, id:%s]', method, id);
+		logger.debug('request() [method:%s, id:%s]', method, id);
 
 		if (this._closed)
 			throw new InvalidStateError('Channel closed');
@@ -246,7 +237,7 @@ export default class Channel extends EnhancedEventEmitter
 
 	async notify(event: string, data?: any): Promise<any>
 	{
-		this._logger.debug('notify() [event:%s]', event);
+		logger.debug('notify() [event:%s]', event);
 
 		if (this._closed)
 			throw new InvalidStateError('Channel closed');
@@ -271,7 +262,7 @@ export default class Channel extends EnhancedEventEmitter
 
 			if (!sent)
 			{
-				this._logger.error(
+				logger.error(
 					'received response does not match any sent request [id:%s]', msg.id);
 
 				return;
@@ -279,14 +270,14 @@ export default class Channel extends EnhancedEventEmitter
 
 			if (msg.accepted)
 			{
-				this._logger.debug(
+				logger.debug(
 					'request succeeded [method:%s, id:%s]', sent.method, sent.id);
 
 				sent.resolve(msg.data);
 			}
 			else if (msg.error)
 			{
-				this._logger.warn(
+				logger.warn(
 					'request failed [method:%s, id:%s]: %s',
 					sent.method, sent.id, msg.reason);
 
@@ -302,7 +293,7 @@ export default class Channel extends EnhancedEventEmitter
 			}
 			else
 			{
-				this._logger.error(
+				logger.error(
 					'received response is not accepted nor rejected [method:%s, id:%s]',
 					sent.method, sent.id);
 			}
@@ -315,7 +306,7 @@ export default class Channel extends EnhancedEventEmitter
 		// Otherwise unexpected message.
 		else
 		{
-			this._logger.error(
+			logger.error(
 				'received message is not a response nor a notification');
 		}
 	}

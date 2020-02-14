@@ -1,17 +1,15 @@
-import { Worker } from './Worker';
-import * as types from './types';
+// import { Aiortc } from './Aiortc';
+import { WorkerLogLevel } from './Worker';
+
+// const createFactory = Aiortc.createFactory;
 
 /**
- * Expose all types.
+ * Expose createFactory() and WorkerLogLevel.
  */
-export { types };
+// export { createFactory, WorkerLogLevel };
+export { WorkerLogLevel };
 
 /**
  * Expose version.
  */
 export const version = '__VERSION__';
-
-/**
- * Expose Worker class.
- */
-export { Worker };
