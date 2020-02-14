@@ -86,9 +86,9 @@ class Channel:
 
         self._writer.write(data)
 
-    async def notify(self, event, data=None):
+    async def notify(self, targetId: str, event: str, data=None):
         if data:
-            await self.send(json.dumps({"event": event, "data": data}))
+            await self.send(json.dumps({"targetId": targetId, "event": event, "data": data}))
 
         else:
-            await self.send(json.dumps({"event": event}))
+            await self.send(json.dumps({"targetId": targetId, "event": event}))

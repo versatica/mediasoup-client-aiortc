@@ -51,6 +51,7 @@ export declare class Worker extends EnhancedEventEmitter {
     getTransportStats(): Promise<FakeRTCStatsReport>;
     getSenderStats(trackId: string): Promise<FakeRTCStatsReport>;
     getReceiverStats(trackId: string): Promise<FakeRTCStatsReport>;
+    private _handleWorkerNotifications;
 }
 export {};
 //# sourceMappingURL=Worker.d.ts.map

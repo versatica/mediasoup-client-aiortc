@@ -111,13 +111,9 @@ export class Worker extends EnhancedEventEmitter
 
 		let spawnDone = false;
 
-		// Listen for iceconnectionstatechange event.
-		this._channel.on('iceconnectionstatechange', (iceConnectionState: string) =>
-		{
-			this.emit('iceconnectionstatechange', iceConnectionState);
-		});
+		this._handleWorkerNotifications();
 
-		// Listen for 'open' notification.
+		// Listen for 'running' notification.
 		this._channel.once(String(pid), (event: string) =>
 		{
 			if (!spawnDone && event === 'running')
@@ -360,5 +356,20 @@ export class Worker extends EnhancedEventEmitter
 		const data = await this._channel.request('getReceiverStats', { trackId });
 
 		return new FakeRTCStatsReport(data);
+	}
+
+	private _handleWorkerNotifications(): void
+	{
+		this._channel.on(String(this._child.pid), (event, data?: any) =>
+		{
+			switch (event)
+			{
+				case 'iceconnectionstatechange':
+				{
+
+					this.emit('iceconnectionstatechange', data as string);
+				}
+			}
+		});
 	}
 }

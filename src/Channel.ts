@@ -299,7 +299,7 @@ export class Channel extends EnhancedEventEmitter
 		// If a notification emit it to the corresponding entity.
 		else if (msg.event)
 		{
-			this.emit(msg.event, msg.data);
+			this.emit(msg.targetId, msg.event, msg.data);
 		}
 		// Otherwise unexpected message.
 		else
