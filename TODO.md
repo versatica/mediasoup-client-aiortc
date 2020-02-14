@@ -16,12 +16,4 @@ Things that must be verified, asked or even reported in aiortc project.
 
 * Must report lack of `track.enabled = xxx` to pause sending RTP (or generate silence or black video with less bitrate).
   - Reported: https://github.com/aiortc/aiortc/issues/264
-
-* `pc.setLocalDescription()` should not wait for ICE gathering to complete.
-  - This is not a problem It's just gathering and not ICE checks.
-  - It ends calling this method which just lists the local IPs:
-    https://github.com/aiortc/aioice/blob/master/src/aioice/ice.py#L371
-
-* Whether it supports `a=extmap-allow-mixed`.
-  - I don't think see it in the code.
-
+  - Store the legit track and replace the track `replaceTrack` with the base audio or video track.
