@@ -1,7 +1,7 @@
 const { toBeType } = require('jest-tobetype');
 const pkg = require('../package.json');
 const { version } = require('../');
-const { Worker } = require('../src/Worker');
+const { Worker } = require('../lib/Worker');
 
 expect.extend({ toBeType });
 
