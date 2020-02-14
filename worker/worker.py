@@ -613,6 +613,8 @@ if __name__ == "__main__":
     Argument handling
     """
     if args.logLevel:
+        if args.logLevel == "none":
+            args.logLevel = "notset"
         logging.basicConfig(level=args.logLevel.upper())
 
     # check RTCConfiguration if given
