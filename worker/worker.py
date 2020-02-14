@@ -622,7 +622,7 @@ if __name__ == "__main__":
     rtcConfiguration = None
     if args.rtcConfiguration:
         try:
-            rtcConfiguration = json.loads(args.rtcConfiguration)
+            rtcConfiguration = args.rtcConfiguration
             if "iceServers" not in rtcConfiguration:
                 raise TypeError("missing 'iceServers' list")
 
