@@ -41,6 +41,14 @@ switch (task)
 		break;
 	}
 
+	case 'lint:fix':
+	{
+		execute('MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --fix --ext=ts src/');
+		execute('MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --fix --ext=js --ignore-pattern \'!.eslintrc.js\' .eslintrc.js npm-scripts.js test/');
+
+		break;
+	}
+
 	case 'test':
 	{
 		taskReplaceVersion();

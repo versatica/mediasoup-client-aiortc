@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
-import { SctpCapabilities } from 'mediasoup-client/src/types'
+import { SctpCapabilities } from 'mediasoup-client/src/types';
 import Logger from './Logger';
 import { EnhancedEventEmitter } from './EnhancedEventEmitter';
 import Channel from './Channel';
@@ -171,7 +171,7 @@ export class Worker extends EnhancedEventEmitter
 						'worker process failed unexpectedly [pid:%s, code:%s, signal:%s]',
 						this._pid, code, signal);
 
-					this._state = 'closed'
+					this._state = 'closed';
 					this.emit(
 						'failure',
 						new Error(`[pid:${this._pid}, code:${code}, signal:${signal}]`));
@@ -271,7 +271,7 @@ export class Worker extends EnhancedEventEmitter
 		logger.debug('getSctpCapabilities()');
 
 		return {
-			numStreams: { OS: 0, MIS: 0 }
+			numStreams : { OS: 0, MIS: 0 }
 		};
 	}
 

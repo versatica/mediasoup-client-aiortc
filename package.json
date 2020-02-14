@@ -25,6 +25,7 @@
     "typescript:build": "node npm-scripts.js typescript:build",
     "typescript:watch": "node npm-scripts.js typescript:watch",
     "lint": "node npm-scripts.js lint",
+    "lint:fix": "node npm-scripts.js lint:fix",
     "test": "node npm-scripts.js test",
     "coverage": "node npm-scripts.js coverage"
   },

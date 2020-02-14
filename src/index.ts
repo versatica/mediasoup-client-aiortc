@@ -1,11 +1,10 @@
 import { Worker } from './Worker';
-import * as types from './types'
+import * as types from './types';
 
 /**
  * Expose all types.
  */
 export { types };
-
 
 /**
  * Expose version.
