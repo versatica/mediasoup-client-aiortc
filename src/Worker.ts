@@ -45,8 +45,6 @@ export class Worker extends EnhancedEventEmitter
 {
 	// mediasoup-worker child process.
 	private _child?: ChildProcess;
-	// Worker process PID.
-	private readonly _pid: number;
 	// Channel instance.
 	private readonly _channel: Channel;
 	// State.
@@ -103,13 +101,12 @@ export class Worker extends EnhancedEventEmitter
 				stdio : [ 'ignore', 'pipe', 'pipe', 'pipe', 'pipe' ]
 			});
 
-		this._pid = this._child.pid;
+		const pid = this._child.pid;
 
 		this._channel = new Channel(
 			{
 				sendSocket : this._child.stdio[3],
-				recvSocket : this._child.stdio[4],
-				pid        : this._pid
+				recvSocket : this._child.stdio[4]
 			});
 
 		let spawnDone = false;
@@ -121,13 +118,13 @@ export class Worker extends EnhancedEventEmitter
 		});
 
 		// Listen for 'open' notification.
-		this._channel.once(String(this._pid), (event: string) =>
+		this._channel.once(String(pid), (event: string) =>
 		{
 			if (!spawnDone && event === 'running')
 			{
 				spawnDone = true;
 
-				logger.debug('worker process running [pid:%s]', this._pid);
+				logger.debug('worker process running [pid:%s]', pid);
 
 				this._state = 'open';
 				this.emit('open');
@@ -146,7 +143,7 @@ export class Worker extends EnhancedEventEmitter
 				if (code === 42)
 				{
 					logger.error(
-						'worker process failed due to wrong settings [pid:%s]', this._pid);
+						'worker process failed due to wrong settings [pid:%s]', pid);
 
 					this.emit('failed', new TypeError('wrong settings'));
 				}
@@ -154,24 +151,24 @@ export class Worker extends EnhancedEventEmitter
 				{
 					logger.error(
 						'worker process failed unexpectedly [pid:%s, code:%s, signal:%s]',
-						this._pid, code, signal);
+						pid, code, signal);
 
 					this._state = 'closed';
 					this.emit(
 						'failed',
-						new Error(`[pid:${this._pid}, code:${code}, signal:${signal}]`));
+						new Error(`[pid:${pid}, code:${code}, signal:${signal}]`));
 				}
 			}
 			else
 			{
 				logger.error(
 					'worker process died unexpectedly [pid:%s, code:%s, signal:%s]',
-					this._pid, code, signal);
+					pid, code, signal);
 
 				this._state = 'closed';
 				this.emit(
 					'error',
-					new Error(`[pid:${this._pid}, code:${code}, signal:${signal}]`));
+					new Error(`[pid:${pid}, code:${code}, signal:${signal}]`));
 			}
 		});
 
@@ -185,7 +182,7 @@ export class Worker extends EnhancedEventEmitter
 				spawnDone = true;
 
 				logger.error(
-					'worker process failed [pid:%s]: %s', this._pid, error.message);
+					'worker process failed [pid:%s]: %s', pid, error.message);
 
 				this._state = 'closed';
 				this.emit('failed', error);
@@ -193,7 +190,7 @@ export class Worker extends EnhancedEventEmitter
 			else
 			{
 				logger.error(
-					'worker process error [pid:%s]: %s', this._pid, error.message);
+					'worker process error [pid:%s]: %s', pid, error.message);
 
 				this._state = 'closed';
 				this.emit('error', error);
@@ -219,14 +216,6 @@ export class Worker extends EnhancedEventEmitter
 					logger.error(`(stderr) ${line}`);
 			}
 		});
-	}
-
-	/**
-	 * Worker process identifier (PID).
-	 */
-	get pid(): number
-	{
-		return this._pid;
 	}
 
 	/**
@@ -256,16 +245,6 @@ export class Worker extends EnhancedEventEmitter
 
 		// Close the Channel instance.
 		this._channel.close();
-	}
-
-	/**
-	 * Dump Worker.
-	 */
-	async dump(): Promise<any>
-	{
-		logger.debug('dump()');
-
-		// TODO.
 	}
 
 	getState(): WorkerState

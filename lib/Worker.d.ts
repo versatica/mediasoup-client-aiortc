@@ -24,7 +24,6 @@ declare type WorkerSendResult = {
 };
 export declare class Worker extends EnhancedEventEmitter {
     private _child?;
-    private readonly _pid;
     private readonly _channel;
     private _state;
     /**
@@ -34,17 +33,9 @@ export declare class Worker extends EnhancedEventEmitter {
      */
     constructor({ rtcConfiguration, logLevel }?: WorkerSettings);
     /**
-     * Worker process identifier (PID).
-     */
-    readonly pid: number;
-    /**
      * Close the Worker.
      */
     close(): void;
-    /**
-     * Dump Worker.
-     */
-    dump(): Promise<any>;
     getState(): WorkerState;
     getRtpCapabilities(): Promise<string>;
     getLocalDescription(): Promise<RTCSessionDescription>;

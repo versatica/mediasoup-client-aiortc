@@ -39,13 +39,11 @@ export class Channel extends EnhancedEventEmitter
 	constructor(
 		{
 			sendSocket,
-			recvSocket,
-			pid
+			recvSocket
 		}:
 		{
 			sendSocket: any;
 			recvSocket: any;
-			pid: number;
 		})
 	{
 		super();
@@ -112,7 +110,7 @@ export class Channel extends EnhancedEventEmitter
 				{
 					// eslint-disable-next-line no-console
 					console.warn(
-						`worker[pid:${pid}] unexpected data: %s`, nsPayload.toString('utf8', 1));
+						'unexpected data received via Channel: %s', nsPayload.toString('utf8', 1));
 				}
 
 				// Remove the read payload from the buffer.

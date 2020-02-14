@@ -6,10 +6,9 @@ export declare class Channel extends EnhancedEventEmitter {
     private _nextId;
     private readonly _sents;
     private _recvBuffer?;
-    constructor({ sendSocket, recvSocket, pid }: {
+    constructor({ sendSocket, recvSocket }: {
         sendSocket: any;
         recvSocket: any;
-        pid: number;
     });
     close(): void;
     request(method: string, data?: any): Promise<any>;
