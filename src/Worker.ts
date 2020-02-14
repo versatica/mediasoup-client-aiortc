@@ -40,7 +40,6 @@ type WorkerSendResult =
 const workerBin = '/usr/local/bin/python3';
 
 const logger = new Logger('aiortc:Worker');
-const workerLogger = new Logger('aiortc:Worker');
 
 export class Worker extends EnhancedEventEmitter
 {
@@ -207,7 +206,7 @@ export class Worker extends EnhancedEventEmitter
 			for (const line of buffer.toString('utf8').split('\n'))
 			{
 				if (line)
-					workerLogger.debug(`(stdout) ${line}`);
+					logger.debug(`(stdout) ${line}`);
 			}
 		});
 
@@ -217,7 +216,7 @@ export class Worker extends EnhancedEventEmitter
 			for (const line of buffer.toString('utf8').split('\n'))
 			{
 				if (line)
-					workerLogger.error(`(stderr) ${line}`);
+					logger.error(`(stderr) ${line}`);
 			}
 		});
 	}
