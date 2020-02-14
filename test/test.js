@@ -29,7 +29,7 @@ test('create a worker with wrong settings and emits "failed"', async () =>
 	// eslint-disable-next-line no-shadow
 	const worker = new Worker({ rtcConfiguration: 'justbecause' });
 
-	await new Promise((resolve, reject) => worker.once('failed', reject));
+	await new Promise((resolve) => worker.once('failed', resolve));
 
 	expect(worker.getState()).toBe('closed');
 	worker.close();
@@ -42,14 +42,14 @@ test('create a worker and emits "open" once connected', async () =>
 	await new Promise((resolve) => worker.once('open', resolve));
 
 	expect(worker.getState()).toBe('open');
-}, 3000);
+}, 10000);
 
 test('worker.getRtpCapabilities() returns a string', async () =>
 {
 	const capabilities = await worker.getRtpCapabilities();
 
 	expect(capabilities).toBeType('string');
-}, 3000);
+}, 10000);
 
 test('worker.getLocalDescription() returns undefined right away', async () =>
 {
