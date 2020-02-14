@@ -1,12 +1,12 @@
 import { Aiortc } from './Aiortc';
-import { WorkerLogLevel, Worker } from './Worker';
+import { WorkerLogLevel } from './Worker';
 
 const createFactory = Aiortc.createFactory;
 
 /**
  * Expose createFactory() and WorkerLogLevel.
  */
-export { createFactory, WorkerLogLevel, Worker };
+export { createFactory, WorkerLogLevel };
 
 /**
  * Expose version.

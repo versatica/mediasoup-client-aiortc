@@ -58,7 +58,7 @@ export class Worker extends EnhancedEventEmitter
 	 * @emits failed - (error: Error)
 	 * @emits error - (error: Error)
 	 */
-	constructor({ rtcConfiguration, logLevel = 'error' }: WorkerSettings = {})
+	constructor({ rtcConfiguration, logLevel = 'none' }: WorkerSettings = {})
 	{
 		super();
 
@@ -81,6 +81,7 @@ export class Worker extends EnhancedEventEmitter
 			'spawning worker process: %s %s', spawnBin, spawnArgs.join(' '));
 
 		this._state = 'connecting';
+
 		this._child = spawn(
 			// command
 			spawnBin,
