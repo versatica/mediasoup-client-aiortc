@@ -473,8 +473,12 @@ async def run(channel, handler) -> None:
 
         elif request.method == "createAnswer":
             try:
-                anwer = await handler.createAnswer()
-                await request.succeed(anwer)
+                answer = await handler.createAnswer()
+                result = {}
+                result["type"] = answer.type
+                result["sdp"] = answer.sdp
+
+                await request.succeed(result)
             except Exception as error:
                 await request.failed(error)
 
