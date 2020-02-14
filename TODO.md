@@ -2,8 +2,6 @@
 
 ## mediasoup-client-aiortc
 
-* Remove `Logger`, `errors`, etc and use those from mediasoup-client.
-
 * Fix `Logger` names.
 
 * So fix Jest and TS stuff. We may need an extra jest + TS dep or maybe browserify TS transpiled code into a single JS file and run the test with it, but if so we'd need to also export `Worker` class in `index.ts`, which should not be needed at all.
