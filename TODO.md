@@ -2,6 +2,10 @@
 
 ## mediasoup-client-aiortc
 
+* Unusable from .js due to files being imported directly from `mediasoup-client` sources.
+	* From Node console, do: `const { Worker } = require('./lib/Aiortc')`
+
+
 * Do DataChannel.
 
 * Use `sourceType` for files and URLs.
