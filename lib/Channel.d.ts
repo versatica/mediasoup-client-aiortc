@@ -1,4 +1,4 @@
-import { EnhancedEventEmitter } from 'mediasoup-client/src/EnhancedEventEmitter';
+import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
 export declare class Channel extends EnhancedEventEmitter {
     private _closed;
     private readonly _sendSocket;

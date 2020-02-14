@@ -1,5 +1,5 @@
-import { EnhancedEventEmitter } from 'mediasoup-client/src/EnhancedEventEmitter';
-import { MediaKind } from 'mediasoup-client/src/RtpParameters';
+import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
+import { MediaKind } from 'mediasoup-client/lib/RtpParameters';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 export declare type WorkerLogLevel = 'debug' | 'warn' | 'error' | 'none';
 export declare type WorkerSettings = {

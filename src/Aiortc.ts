@@ -1,11 +1,11 @@
 import * as sdpTransform from 'sdp-transform';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
-import { Logger } from 'mediasoup-client/src/Logger';
-import { UnsupportedError } from 'mediasoup-client/src/errors';
-import * as utils from 'mediasoup-client/src/utils';
-import * as ortc from 'mediasoup-client/src/ortc';
-import * as sdpCommonUtils from 'mediasoup-client/src/handlers/sdp/commonUtils';
-import * as sdpUnifiedPlanUtils from 'mediasoup-client/src/handlers/sdp/unifiedPlanUtils';
+import { Logger } from 'mediasoup-client/lib/Logger';
+import { UnsupportedError } from 'mediasoup-client/lib/errors';
+import * as utils from 'mediasoup-client/lib/utils';
+import * as ortc from 'mediasoup-client/lib/ortc';
+import * as sdpCommonUtils from 'mediasoup-client/lib/handlers/sdp/commonUtils';
+import * as sdpUnifiedPlanUtils from 'mediasoup-client/lib/handlers/sdp/unifiedPlanUtils';
 import {
 	HandlerFactory,
 	HandlerInterface,
@@ -18,8 +18,8 @@ import {
 	HandlerSendDataChannelResult,
 	HandlerReceiveDataChannelOptions,
 	HandlerReceiveDataChannelResult
-} from 'mediasoup-client/src/handlers/HandlerInterface';
-import { RemoteSdp } from 'mediasoup-client/src/handlers/sdp/RemoteSdp';
+} from 'mediasoup-client/lib/handlers/HandlerInterface';
+import { RemoteSdp } from 'mediasoup-client/lib/handlers/sdp/RemoteSdp';
 import {
 	MediaKind,
 	IceParameters,
@@ -27,7 +27,7 @@ import {
 	RtpCapabilities,
 	RtpParameters,
 	SctpCapabilities
-} from 'mediasoup-client/src/types';
+} from 'mediasoup-client/lib/types';
 import { WorkerLogLevel, WorkerSendOptions, Worker } from './Worker';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 

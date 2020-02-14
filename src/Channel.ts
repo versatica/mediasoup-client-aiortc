@@ -1,9 +1,9 @@
 import { Duplex } from 'stream';
 // @ts-ignore
 import * as netstring from 'netstring';
-import { Logger } from 'mediasoup-client/src/Logger';
-import { EnhancedEventEmitter } from 'mediasoup-client/src/EnhancedEventEmitter';
-import { InvalidStateError } from 'mediasoup-client/src/errors';
+import { Logger } from 'mediasoup-client/lib/Logger';
+import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
+import { InvalidStateError } from 'mediasoup-client/lib/errors';
 
 interface Sent
 {

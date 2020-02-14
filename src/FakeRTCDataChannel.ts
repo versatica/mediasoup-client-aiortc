@@ -1,6 +1,6 @@
 import { EventTarget, defineEventAttribute } from 'event-target-shim';
-import { Logger } from 'mediasoup-client/src/Logger';
-import { InvalidStateError } from 'mediasoup-client/src/errors';
+import { Logger } from 'mediasoup-client/lib/Logger';
+import { InvalidStateError } from 'mediasoup-client/lib/errors';
 
 const logger = new Logger('aiortc:FakeRTCDataChannel');
 

@@ -1,9 +1,9 @@
 import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
-import { Logger } from 'mediasoup-client/src/Logger';
-import { EnhancedEventEmitter } from 'mediasoup-client/src/EnhancedEventEmitter';
+import { Logger } from 'mediasoup-client/lib/Logger';
+import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
 import { Channel } from './Channel';
-import { MediaKind } from 'mediasoup-client/src/RtpParameters';
+import { MediaKind } from 'mediasoup-client/lib/RtpParameters';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 
 export type WorkerLogLevel = 'debug' | 'warn' | 'error' | 'none';

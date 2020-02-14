@@ -1,5 +1,5 @@
-import { HandlerFactory, HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from 'mediasoup-client/src/handlers/HandlerInterface';
-import { IceParameters, RtpCapabilities, SctpCapabilities } from 'mediasoup-client/src/types';
+import { HandlerFactory, HandlerInterface, HandlerRunOptions, HandlerSendOptions, HandlerSendResult, HandlerReceiveOptions, HandlerReceiveResult, HandlerSendDataChannelOptions, HandlerSendDataChannelResult, HandlerReceiveDataChannelOptions, HandlerReceiveDataChannelResult } from 'mediasoup-client/lib/handlers/HandlerInterface';
+import { IceParameters, RtpCapabilities, SctpCapabilities } from 'mediasoup-client/lib/types';
 import { WorkerLogLevel } from './Worker';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 export declare class Aiortc extends HandlerInterface {
