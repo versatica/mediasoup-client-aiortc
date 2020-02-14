@@ -89,7 +89,7 @@ test('worker.createOffer() returns a RTCSessionDescription', async () =>
 test('worker.setLocalDescription() succeeds', async () =>
 {
 	await worker.setLocalDescription(localDescription);
-}, 3000);
+}, 8000);
 
 test('worker.getLocalDescription() returns a RTCSessionDescription', async () =>
 {
