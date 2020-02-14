@@ -1,5 +1,5 @@
 {
-  "name": "mediasoup-client-aiortc-handler",
+  "name": "mediasoup-client-aiortc",
   "version": "3.0.0",
   "description": "mediasoup client aiortc handler",
   "contributors": [
@@ -10,7 +10,7 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/versatica/mediasoup-client-aiortc-handler.git"
+    "url": "https://github.com/versatica/mediasoup-client-aiortc.git"
   },
   "funding": {
     "type": "opencollective",
