@@ -1,0 +1,57 @@
+{
+  "name": "mediasoup-client-aiortc-handler",
+  "version": "3.0.0",
+  "description": "mediasoup client aiortc handler",
+  "contributors": [
+    "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)",
+    "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)"
+  ],
+  "homepage": "https://mediasoup.org",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/versatica/mediasoup-client-aiortc-handler.git"
+  },
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/mediasoup"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "engines": {
+    "node": ">=8.6.0"
+  },
+  "scripts": {
+    "typescript:build": "node npm-scripts.js typescript:build",
+    "typescript:watch": "node npm-scripts.js typescript:watch",
+    "lint": "node npm-scripts.js lint",
+    "test": "node npm-scripts.js test",
+    "coverage": "node npm-scripts.js coverage"
+  },
+  "jest": {
+    "verbose": true,
+    "testEnvironment": "node",
+    "testRegex": "test/test.*\\.js"
+  },
+  "dependencies": {
+    "debug": "^4.1.1",
+    "h264-profile-level-id": "^1.0.1",
+    "netstring": "^0.3.0",
+    "sdp-transform": "^2.14.0"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "@types/sdp-transform": "^2.4.1",
+    "@types/uuid": "^3.4.6",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-jest": "^23.6.0",
+    "fake-mediastreamtrack": "^1.0.0",
+    "jest-tobetype": "^1.2.3",
+    "open-cli": "^5.0.0",
+    "tsc-watch": "^4.1.0",
+    "typescript": "~3.6.4",
+    "uuid": "^3.4.0"
+  }
+}

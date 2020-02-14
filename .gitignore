@@ -1,0 +1,20 @@
+/node_modules/
+/coverage/
+
+# Vim temporal files.
+*.swp
+*.swo
+
+# Mac Stuff.
+.DS_Store
+
+# Vistual Studio Code stuff.
+/.vscode/
+
+# Python cache
+/.mypy_cache/
+worker/__pycache__/
+worker/.mypy_cache/
+
+# compiled javascript
+/lib/
