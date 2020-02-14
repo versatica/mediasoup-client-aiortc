@@ -607,7 +607,7 @@ if __name__ == "__main__":
                         help="RTCConfiguration string")
     args = parser.parse_args()
 
-    print("starting mediasoup-client aiortc handler")
+    print("starting mediasoup-client aiortc worker")
 
     """
     Argument handling
