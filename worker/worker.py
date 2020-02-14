@@ -626,14 +626,13 @@ if __name__ == "__main__":
     rtcConfiguration = None
     if args.rtcConfiguration:
         try:
-            rtcConfiguration = args.rtcConfiguration
-            if "iceServers" not in rtcConfiguration:
-                raise TypeError("missing 'iceServers' list")
+            if "iceServers" in args.rtcConfiguration:
+                rtcConfiguration = args.rtcConfiguration
+                for iceServer in rtcConfiguration["iceServers"]:
+                    if ("urls" not in iceServer):
+                        raise TypeError(
+                            "missing 'urls' parameter in 'iceServer' entry")
 
-            for iceServer in rtcConfiguration["iceServers"]:
-                if ("urls" not in iceServer):
-                    raise TypeError(
-                        "missing 'urls' parameter in 'iceServer' entry")
         except TypeError as error:
             print("invalid RTCConfiguration: %s" % error)
             exit(42)
