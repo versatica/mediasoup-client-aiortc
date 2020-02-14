@@ -33,23 +33,23 @@ test('create a worker with wrong settings and emits "failed"', async () =>
 
 	expect(worker.getState()).toBe('closed');
 	worker.close();
-}, 3000);
+}, 5000);
 
 test('create a worker and emits "open" once connected', async () =>
 {
-	worker = new Worker();
+	worker = new Worker({});
 
 	await new Promise((resolve) => worker.once('open', resolve));
 
 	expect(worker.getState()).toBe('open');
-}, 10000);
+}, 5000);
 
 test('worker.getRtpCapabilities() returns a string', async () =>
 {
 	const capabilities = await worker.getRtpCapabilities();
 
 	expect(capabilities).toBeType('string');
-}, 10000);
+}, 5000);
 
 test('worker.getLocalDescription() returns undefined right away', async () =>
 {
