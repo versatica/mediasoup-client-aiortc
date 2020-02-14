@@ -318,9 +318,13 @@ async def run(channel, handler) -> None:
                 }, sort_keys=True))
 
         async def failed(self, error) -> None:
+            errorType = "Error"
+            if isinstance(error, TypeError):
+                errorType = "TypeError"
+
             await channel.send(json.dumps({
                 "id": self._id,
-                "error": True,
+                "error": errorType,
                 "reason": str(error)
             }, sort_keys=True))
 

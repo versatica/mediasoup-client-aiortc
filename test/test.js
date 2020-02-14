@@ -81,9 +81,11 @@ test('worker.addTrack() with wrong SendOptions throws', async () =>
 {
 	const sendOptions = {};
 
-	await expect(worker.addTrack(sendOptions))
-		.rejects
-		.toThrow(Error)
+	try {
+		await worker.addTrack(sendOptions);
+	} catch (e) {
+		expect(e).toBeType('object');
+	}
 })
 
 test('worker.addTrack() with correct SendOptions returns string', async () =>
@@ -124,9 +126,7 @@ test('worker.getLocalDescription() returns a RTCSessionDescription', async () =>
 
 test('worker.setRemoteDescription() succeeds', async () =>
 {
-	await expect(worker.setRemoteDescription({ type: 'answer', sdp: localDescription.sdp }))
-		.resolves
-		.toBe(undefined);
+	await worker.setRemoteDescription({ type: 'answer', sdp: localDescription.sdp });
 }, 10000)
 
 test('worker.removeTrack() with an invalid "trackId" throws', async () =>
@@ -138,8 +138,7 @@ test('worker.removeTrack() with an invalid "trackId" throws', async () =>
 
 test('worker.removeTrack() with a valid "trackId" does not throw', async () =>
 {
-	await expect(worker.removeTrack(audioTrackId))
-		.resolves;
+	await worker.removeTrack(audioTrackId);
 })
 
 test('worker.close() succeeds', async () =>
@@ -148,4 +147,3 @@ test('worker.close() succeeds', async () =>
 
 	expect(worker.getState()).toBe('closed');
 })
-
