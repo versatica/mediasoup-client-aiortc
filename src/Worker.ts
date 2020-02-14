@@ -3,6 +3,7 @@ import { spawn, ChildProcess } from 'child_process';
 import { Logger } from 'mediasoup-client/src/Logger';
 import { EnhancedEventEmitter } from 'mediasoup-client/src/EnhancedEventEmitter';
 import { Channel } from './Channel';
+import { MediaKind } from 'mediasoup-client/src/RtpParameters';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 
 export type WorkerLogLevel = 'debug' | 'warn' | 'error' | 'none';
@@ -25,8 +26,7 @@ export type WorkerState = 'connecting' | 'open' | 'closed';
 
 export type WorkerSendOptions =
 {
-	// TODO: Replace with MediaKind of mediasoup-client types.
-	kind: 'audio' | 'video';
+	kind: MediaKind;
 	sourceType: 'device' | 'file' | 'url';
 	sourceValue?: string;
 }

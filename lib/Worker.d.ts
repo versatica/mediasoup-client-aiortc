@@ -1,4 +1,5 @@
 import { EnhancedEventEmitter } from 'mediasoup-client/src/EnhancedEventEmitter';
+import { MediaKind } from 'mediasoup-client/src/RtpParameters';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 export declare type WorkerLogLevel = 'debug' | 'warn' | 'error' | 'none';
 export declare type WorkerSettings = {
@@ -14,7 +15,7 @@ export declare type WorkerSettings = {
 };
 export declare type WorkerState = 'connecting' | 'open' | 'closed';
 export declare type WorkerSendOptions = {
-    kind: 'audio' | 'video';
+    kind: MediaKind;
     sourceType: 'device' | 'file' | 'url';
     sourceValue?: string;
 };
