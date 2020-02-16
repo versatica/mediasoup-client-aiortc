@@ -29,7 +29,7 @@ export class Channel extends EnhancedEventEmitter
 	private readonly _sendSocket: Duplex;
 	// Unix Socket instance for receiving messages to the worker process.
 	private readonly _recvSocket: Duplex;
-	// Next id for messages sent to the worker process.
+	// Next id for requests sent to the worker process.
 	private _nextId = 0;
 	// Map of pending sent requests.
 	private readonly _sents: Map<number, Sent> = new Map();
@@ -170,7 +170,7 @@ export class Channel extends EnhancedEventEmitter
 		}, 200);
 	}
 
-	async request(method: string, data?: any): Promise<any>
+	async request(method: string, internal?: object, data?: any): Promise<any>
 	{
 		this._nextId < 4294967295 ? ++this._nextId : (this._nextId = 1);
 
@@ -181,11 +181,14 @@ export class Channel extends EnhancedEventEmitter
 		if (this._closed)
 			throw new InvalidStateError('Channel closed');
 
-		const request = { id, method, data };
+		const request = { id, method, internal, data };
 		const ns = netstring.nsWrite(JSON.stringify(request));
 
 		if (Buffer.byteLength(ns) > NS_MESSAGE_MAX_LEN)
-			throw new Error('Channel request too big');
+		{
+			throw new Error(
+				`Channel request too big [length:${Buffer.byteLength(ns)}]`);
+		}
 
 		// This may throw if closed or remote side ended.
 		// Terminate with \r\n since we are expecting for it on the python side.
@@ -233,22 +236,38 @@ export class Channel extends EnhancedEventEmitter
 		});
 	}
 
-	async notify(event: string, data?: any): Promise<any>
+	notify(event: string, internal?: object, data?: any): any
 	{
 		logger.debug('notify() [event:%s]', event);
 
 		if (this._closed)
-			throw new InvalidStateError('Channel closed');
+		{
+			logger.warn('notify() | Channel closed');
 
-		const notification = { event, data };
+			return;
+		}
+
+		const notification = { event, internal, data };
 		const ns = netstring.nsWrite(JSON.stringify(notification));
 
 		if (Buffer.byteLength(ns) > NS_MESSAGE_MAX_LEN)
-			throw new Error('Channel request too big');
+		{
+			logger.error(
+				'notify() | notification too big [length:%s]', Buffer.byteLength(ns));
+
+			return;
+		}
 
 		// This may throw if closed or remote side ended.
 		// Terminate with \r\n since we are expecting for it on the python side.
-		this._sendSocket.write(ns);
+		try
+		{
+			this._sendSocket.write(ns);
+		}
+		catch (error)
+		{
+			logger.error('notify() | failed: %s', String(error));
+		}
 	}
 
 	private _processMessage(msg: any): void

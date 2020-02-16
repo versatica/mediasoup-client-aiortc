@@ -1,6 +1,7 @@
 import { EventTarget, defineEventAttribute } from 'event-target-shim';
 import { Logger } from 'mediasoup-client/lib/Logger';
 import { InvalidStateError } from 'mediasoup-client/lib/errors';
+import { Channel } from './Channel';
 
 const logger = new Logger('aiortc:FakeRTCDataChannel');
 
@@ -16,6 +17,10 @@ export type FakeRTCDataChannelOptions =
 
 export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 {
+	// Internal data
+	private readonly _internal: { dataChannelId: string };
+	// Channel.
+	private readonly _channel: Channel;
 	// Members for RTCDataChannel standard public getters/setters.
 	private _id: number;
 	private _negotiated = true; // mediasoup just uses negotiated DataChannels.
@@ -39,10 +44,13 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	public onbufferedamountlow: (this: RTCDataChannel, ev: Event) => any;
 	// NOTE: onerror not used.
 	public onerror: (this: RTCDataChannel, ev: RTCErrorEvent) => any;
-	// Other custom members.
-	private _bufferedamountlowFired = false;
 
 	constructor(
+		internal:
+		{
+			dataChannelId: string;
+		},
+		channel: Channel,
 		{
 			id,
 			ordered = true,
@@ -57,6 +65,8 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 
 		logger.debug(`constructor() [id:${id}, ordered:${ordered}, maxPacketLifeTime:${maxPacketLifeTime}, maxRetransmits:${maxRetransmits}, label:${label}, protocol:${protocol}`);
 
+		this._internal = internal;
+		this._channel = channel;
 		this._id = id;
 		this._ordered = ordered;
 		this._maxPacketLifeTime = maxPacketLifeTime;
@@ -153,8 +163,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 
 		this._readyState = 'closed';
 
-		// Notify the handler so it will close the aiortc's RTCDataChannel.
-		this.dispatchEvent({ type: '@close' });
+		this._channel.notify('datachannel.close', this._internal);
 	}
 
 	/**
@@ -165,90 +174,26 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 		if (this._readyState !== 'open')
 			throw new InvalidStateError('not open');
 
-		// Notify the handler so it will send the data.
-		this.dispatchEvent({ type: '@send', data } as MessageEvent);
+		this._channel.notify('datachannel.send', this._internal, data);
 	}
 
-	/**
-	 * Custom method to tell the FakeRTCDataChannel that readyState has changed
-	 * in the aiortc's RTCDataChannel.
-	 */
-	setReadyState(readyState: RTCDataChannelState): void
-	{
-		const previousReadyState = this._readyState;
-
-		this._readyState = readyState;
-
-		// Dispatch event if needed.
-		if (this._readyState !== previousReadyState)
-		{
-			switch (this._readyState)
-			{
-				case 'open':
-					this.dispatchEvent({ type: 'open' });
-					break;
-				case 'closing':
-					this.dispatchEvent({ type: 'closing' });
-					break;
-				case 'closed':
-					this.dispatchEvent({ type: 'close' });
-					break;
-			}
-		}
-
-		// Dispatch 'bufferedamountlow' if needed.
-		if (
-			!this._bufferedamountlowFired &&
-			this._bufferedAmount < this._bufferedAmountLowThreshold
-		)
-		{
-			this._bufferedamountlowFired = true;
-			this.dispatchEvent({ type: 'bufferedamountlow' });
-		}
-		else if (
-			this._bufferedamountlowFired &&
-			this._bufferedAmount >= this._bufferedAmountLowThreshold
-		)
-		{
-			this._bufferedamountlowFired = false;
-		}
-	}
-
-	/**
-	 * Custom method to tell the FakeRTCDataChannel that a message has been
-	 * received from the remote.
-	 */
-	receiveMessage(data: string | Blob | ArrayBuffer | ArrayBufferView | Buffer): void
-	{
-		// Dispatch 'message' event.
-		this.dispatchEvent({ type: 'message', data } as MessageEvent);
-	}
-
-	/**
-	 * Custom method to tell the FakeRTCDataChannel that bufferedAmount has
-	 * changed in the aiortc's RTCDataChannel.
-	 */
-	setBufferedAmount(value: number): void
-	{
-		this._bufferedAmount = value;
-
-		// Dispatch 'bufferedamountlow' if needed.
-		if (
-			!this._bufferedamountlowFired &&
-			this._bufferedAmount < this._bufferedAmountLowThreshold
-		)
-		{
-			this._bufferedamountlowFired = true;
-			this.dispatchEvent({ type: 'bufferedamountlow' });
-		}
-		else if (
-			this._bufferedamountlowFired &&
-			this._bufferedAmount >= this._bufferedAmountLowThreshold
-		)
-		{
-			this._bufferedamountlowFired = false;
-		}
-	}
+	// TODO: Not here!
+	// Dispatch 'bufferedamountlow' if needed.
+	// if (
+	// 	!this._bufferedamountlowFired &&
+	// 	this._bufferedAmount < this._bufferedAmountLowThreshold
+	// )
+	// {
+	// 	this._bufferedamountlowFired = true;
+	// 	this.dispatchEvent({ type: 'bufferedamountlow' });
+	// }
+	// else if (
+	// 	this._bufferedamountlowFired &&
+	// 	this._bufferedAmount >= this._bufferedAmountLowThreshold
+	// )
+	// {
+	// 	this._bufferedamountlowFired = false;
+	// }
 }
 
 // Define EventTarget properties.
@@ -258,6 +203,3 @@ defineEventAttribute(FakeRTCDataChannel.prototype, 'close');
 defineEventAttribute(FakeRTCDataChannel.prototype, 'message');
 defineEventAttribute(FakeRTCDataChannel.prototype, 'bufferedamountlow');
 defineEventAttribute(FakeRTCDataChannel.prototype, 'error');
-// Custom event to notify the handler.
-defineEventAttribute(FakeRTCDataChannel.prototype, '@send');
-defineEventAttribute(FakeRTCDataChannel.prototype, '@close');

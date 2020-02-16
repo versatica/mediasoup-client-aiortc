@@ -48,7 +48,7 @@ export class Worker extends EnhancedEventEmitter
 	// Channel instance.
 	private readonly _channel: Channel;
 	// State.
-	private _state: WorkerState = 'closed';
+	private _state: WorkerState = 'connecting';
 
 	/**
 	 * @emits open
@@ -149,7 +149,6 @@ export class Worker extends EnhancedEventEmitter
 						'worker process failed unexpectedly [pid:%s, code:%s, signal:%s]',
 						pid, code, signal);
 
-					this._state = 'closed';
 					this.emit(
 						'failed',
 						new Error(`[pid:${pid}, code:${code}, signal:${signal}]`));
@@ -161,7 +160,6 @@ export class Worker extends EnhancedEventEmitter
 					'worker process died unexpectedly [pid:%s, code:%s, signal:%s]',
 					pid, code, signal);
 
-				this._state = 'closed';
 				this.emit(
 					'error',
 					new Error(`[pid:${pid}, code:${code}, signal:${signal}]`));
@@ -180,7 +178,6 @@ export class Worker extends EnhancedEventEmitter
 				logger.error(
 					'worker process failed [pid:%s]: %s', pid, error.message);
 
-				this._state = 'closed';
 				this.emit('failed', error);
 			}
 			else
@@ -188,7 +185,6 @@ export class Worker extends EnhancedEventEmitter
 				logger.error(
 					'worker process error [pid:%s]: %s', pid, error.message);
 
-				this._state = 'closed';
 				this.emit('error', error);
 			}
 		});
@@ -266,14 +262,14 @@ export class Worker extends EnhancedEventEmitter
 	{
 		logger.debug('setLocalDescription()');
 
-		return this._channel.request('setLocalDescription', desc);
+		return this._channel.request('setLocalDescription', undefined, desc);
 	}
 
 	async setRemoteDescription(desc: RTCSessionDescription): Promise<void>
 	{
 		logger.debug('setRemoteDescription()');
 
-		return this._channel.request('setRemoteDescription', desc);
+		return this._channel.request('setRemoteDescription', undefined, desc);
 	}
 
 	async createOffer(
@@ -297,14 +293,14 @@ export class Worker extends EnhancedEventEmitter
 	{
 		logger.debug('send() [options:%o]', options);
 
-		return this._channel.request('addTrack', options);
+		return this._channel.request('addTrack', undefined, options);
 	}
 
 	async removeTrack(trackId: string): Promise<void>
 	{
 		logger.debug(`removeTrack() | [trackId:${trackId}]`);
 
-		return this._channel.request('removeTrack', { trackId });
+		return this._channel.request('removeTrack', undefined, { trackId });
 	}
 
 	async getMid(trackId: string): Promise<string | undefined>
@@ -313,7 +309,8 @@ export class Worker extends EnhancedEventEmitter
 
 		try
 		{
-			const mid = await this._channel.request('getMid', { trackId });
+			const mid =
+				await this._channel.request('getMid', undefined, { trackId });
 
 			return mid;
 		}
@@ -327,14 +324,14 @@ export class Worker extends EnhancedEventEmitter
 	{
 		logger.debug(`enableTrack() | [trackId:${trackId}]`);
 
-		this._channel.notify('enableTrack', { trackId });
+		this._channel.notify('enableTrack', undefined, { trackId });
 	}
 
 	disableTrack(trackId: string): void
 	{
 		logger.debug(`disableTrack() | [trackId:${trackId}]`);
 
-		this._channel.notify('disableTrack', { trackId });
+		this._channel.notify('disableTrack', undefined, { trackId });
 	}
 
 	async getTransportStats(): Promise<FakeRTCStatsReport>
@@ -346,14 +343,16 @@ export class Worker extends EnhancedEventEmitter
 
 	async getSenderStats(trackId: string): Promise<FakeRTCStatsReport>
 	{
-		const data = await this._channel.request('getSenderStats', { trackId });
+		const data =
+			await this._channel.request('getSenderStats', undefined, { trackId });
 
 		return new FakeRTCStatsReport(data);
 	}
 
 	async getReceiverStats(trackId: string): Promise<FakeRTCStatsReport>
 	{
-		const data = await this._channel.request('getReceiverStats', { trackId });
+		const data =
+			await this._channel.request('getReceiverStats', undefined, { trackId });
 
 		return new FakeRTCStatsReport(data);
 	}

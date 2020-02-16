@@ -11,8 +11,8 @@ export declare class Channel extends EnhancedEventEmitter {
         recvSocket: any;
     });
     close(): void;
-    request(method: string, data?: any): Promise<any>;
-    notify(event: string, data?: any): Promise<any>;
+    request(method: string, internal?: object, data?: any): Promise<any>;
+    notify(event: string, internal?: object, data?: any): any;
     private _processMessage;
 }
 //# sourceMappingURL=Channel.d.ts.map
