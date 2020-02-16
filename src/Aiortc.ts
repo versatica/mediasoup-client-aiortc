@@ -160,6 +160,9 @@ export class Aiortc extends HandlerInterface
 
 		this._direction = direction;
 
+		// aiortc only supports "sha-256" hash algorithm.
+		dtlsParameters.fingerprints = dtlsParameters.fingerprints.filter((f) => f.algorithm ==='sha-256');
+
 		this._remoteSdp = new RemoteSdp(
 			{
 				iceParameters,
