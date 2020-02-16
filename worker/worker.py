@@ -18,6 +18,7 @@ from aiortc import (
     RTCSessionDescription,
     RTCStatsReport,
 )
+
 from aiortc.contrib.media import MediaPlayer
 
 READ_FD = 3
@@ -618,9 +619,8 @@ if __name__ == "__main__":
     Argument handling
     """
     if args.logLevel:
-        if args.logLevel == "none":
-            args.logLevel = "notset"
-        logging.basicConfig(level=args.logLevel.upper())
+        if args.logLevel != "none":
+            logging.basicConfig(level=args.logLevel.upper())
 
     # check RTCConfiguration if given
     rtcConfiguration = None
