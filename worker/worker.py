@@ -240,24 +240,6 @@ class Handler(AsyncIOEventEmitter):
             "ssrc": stats.ssrc,
             "kind": stats.kind,
             "transportId": stats.transportId,
-            # RTCSentRtpStreamStats
-            "packetsSent": stats.packetsSent,
-            "bytesSent": stats.bytesSent,
-            "jitter": stats.jitter,
-            # RTCRemoteOutboundRtpStreamStats
-            "remoteTimestamp": stats.remoteTimestamp.timestamp(),
-        }
-
-    def _serializeRemoteOutboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
-        return {
-            # RTCStats
-            "timestamp": stats.timestamp,
-            "type": stats.type,
-            "id": stats.id,
-            # RTCStreamStats
-            "ssrc": stats.ssrc,
-            "kind": stats.kind,
-            "transportId": stats.transportId,
             # RTCReceivedRtpStreamStats
             "packetsReceived": stats.packetsReceived,
             "packetsLost": stats.packetsLost,
@@ -265,6 +247,24 @@ class Handler(AsyncIOEventEmitter):
             # RTCRemoteInboundRtpStreamStats
             "roundTripTime": stats.roundTripTime,
             "fractionLost": stats.fractionLost,
+        }
+
+    def _serializeRemoteOutboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
+        return {
+            # RTCStats
+            "timestamp": stats.timestamp.timestamp(),
+            "type": stats.type,
+            "id": stats.id,
+            # RTCStreamStats
+            "ssrc": stats.ssrc,
+            "kind": stats.kind,
+            "transportId": stats.transportId,
+            # RTCSentRtpStreamStats
+            "packetsSent": stats.packetsSent,
+            "bytesSent": stats.bytesSent,
+            "jitter": stats.jitter,
+            # RTCRemoteOutboundRtpStreamStats
+            "remoteTimestamp": stats.remoteTimestamp.timestamp(),
         }
 
     def _serializeTransportStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
