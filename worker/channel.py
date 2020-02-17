@@ -5,7 +5,7 @@ import pynetstring
 from pyee import AsyncIOEventEmitter
 from asyncio import StreamReader, StreamWriter
 from typing import Any, Dict, Optional
-from logger import errorLogger
+from logger import errorLogger, fileLogger
 
 
 def object_from_string(message_str) -> Optional[Dict[str, Any]]:
@@ -67,7 +67,9 @@ class Channel(AsyncIOEventEmitter):
         try:
             # retrieve chunks of 50 bytes
             data = await self._reader.read(50)
+            fileLogger.debug('--- received data:%d', len(data))
             if len(data) == 0:
+                fileLogger.error('--- 00000000 received data:%d', len(data))
                 raise Exception("socket closed")
 
             decoded_list = self._nsDecoder.feed(data)
@@ -76,9 +78,6 @@ class Channel(AsyncIOEventEmitter):
 
         except asyncio.IncompleteReadError:
             pass
-
-        except Exception as error:
-            self.emit("error", error)
 
         return None
 
