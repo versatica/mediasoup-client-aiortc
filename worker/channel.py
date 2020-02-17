@@ -51,9 +51,8 @@ class Channel:
 
         self._connected = True
 
-    async def close(self) -> None:
+    def close(self) -> None:
         if self._writer is not None:
-            await self.send(None)
             self._writer.close()
             self._reader = None
             self._writer = None
@@ -76,11 +75,6 @@ class Channel:
     async def send(self, descr) -> None:
         await self._connect()
 
-        # TODO: Where does it come from?
-        if descr is None:
-            print("skip empty message...")
-            return
-
         data = descr.encode("utf8")
         data = pynetstring.encode(data)
 
@@ -89,6 +83,5 @@ class Channel:
     async def notify(self, targetId: str, event: str, data=None):
         if data:
             await self.send(json.dumps({"targetId": targetId, "event": event, "data": data}))
-
         else:
             await self.send(json.dumps({"targetId": targetId, "event": event}))

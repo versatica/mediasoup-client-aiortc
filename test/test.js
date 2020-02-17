@@ -18,38 +18,27 @@ test('mediasoup-client-aiortc exposes a version property', () =>
 test('create a worker and getState() returns "connecting" right away', () =>
 {
 	// eslint-disable-next-line no-shadow
-	const worker = new Worker();
+	const worker = new Worker({ logLevel: 'debug' });
 
 	expect(worker.getState()).toBe('connecting');
 	worker.close();
 });
 
-test('create a worker with wrong settings and emits "failed"', async () =>
-{
-	// eslint-disable-next-line no-shadow
-	const worker = new Worker({ rtcConfiguration: 'justbecause' });
-
-	await new Promise((resolve) => worker.once('failed', resolve));
-
-	expect(worker.getState()).toBe('closed');
-	worker.close();
-}, 5000);
-
 test('create a worker and emits "open" once connected', async () =>
 {
-	worker = new Worker();
+	worker = new Worker({ logLevel: 'debug' });
 
 	await new Promise((resolve) => worker.once('open', resolve));
 
 	expect(worker.getState()).toBe('open');
-}, 5000);
+}, 3000);
 
 test('worker.getRtpCapabilities() returns a string', async () =>
 {
 	const capabilities = await worker.getRtpCapabilities();
 
 	expect(capabilities).toBeType('string');
-}, 5000);
+}, 3000);
 
 test('worker.getLocalDescription() returns undefined right away', async () =>
 {

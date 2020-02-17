@@ -80,14 +80,14 @@ class Handler(AsyncIOEventEmitter):
     def getLocalDescription(self) -> RTCSessionDescription:
         return self._pc.localDescription
 
-    async def addTrack(self, kind: str, sourceType: str, sourceValue: Optional[str]) -> str:
+    def addTrack(self, kind: str, sourceType: str, sourceValue: Optional[str]) -> str:
         track = self._getTrack(kind, sourceType, sourceValue)
         transceiver = self._pc.addTransceiver(track)
         # store transceiver in the dictionary
         self._transceivers[track.id] = transceiver
         return track.id
 
-    async def removeTrack(self, trackId: str) -> None:
+    def removeTrack(self, trackId: str) -> None:
         try:
             transceiver = self._transceivers[trackId]
         except KeyError:
@@ -97,7 +97,6 @@ class Handler(AsyncIOEventEmitter):
         transceiver.direction = "inactive"
         transceiver.sender.track.stop()
         transceiver.sender.replaceTrack(None)
-
         del self._transceivers[trackId]
 
     async def setLocalDescription(self, description: RTCSessionDescription) -> None:
@@ -112,7 +111,7 @@ class Handler(AsyncIOEventEmitter):
     async def createAnswer(self) -> RTCSessionDescription:
         return await self._pc.createAnswer()
 
-    async def getMid(self, trackId: str) -> str:
+    def getMid(self, trackId: str) -> str:
         try:
             transceiver = self._transceivers[trackId]
         except KeyError:
@@ -393,9 +392,9 @@ async def run(channel, handler) -> None:
 
             try:
                 if "sourceValue" in data:
-                    trackId = await handler.addTrack(data["kind"], data["sourceType"], data["sourceValue"])
+                    trackId = handler.addTrack(data["kind"], data["sourceType"], data["sourceValue"])
                 else:
-                    trackId = await handler.addTrack(data["kind"], data["sourceType"], None)
+                    trackId = handler.addTrack(data["kind"], data["sourceType"], None)
 
                 result = {}
                 result["trackId"] = trackId
@@ -418,7 +417,7 @@ async def run(channel, handler) -> None:
                 return
 
             try:
-                await handler.removeTrack(data["trackId"])
+                handler.removeTrack(data["trackId"])
                 await request.succeed()
             except Exception as error:
                 await request.failed(error)
@@ -497,7 +496,7 @@ async def run(channel, handler) -> None:
                 return
 
             try:
-                mid = await handler.getMid(data["trackId"])
+                mid = handler.getMid(data["trackId"])
                 await request.succeed(mid)
             except Exception as error:
                 await request.failed(error)
@@ -587,7 +586,7 @@ async def run(channel, handler) -> None:
             except Exception as error:
                 print("disableTrack() failed: %s" % error)
 
-        # tell the Node process that we are running.
+    # tell the Node process that we are running
     await channel.notify(getpid(), "running")
 
     # consume channel
@@ -618,24 +617,13 @@ if __name__ == "__main__":
     """
     Argument handling
     """
-    if args.logLevel:
-        if args.logLevel != "none":
-            logging.basicConfig(level=args.logLevel.upper())
+    if args.logLevel and args.logLevel != "none":
+        logging.basicConfig(level=args.logLevel.upper())
 
-    # check RTCConfiguration if given
+    # use RTCConfiguration if given
     rtcConfiguration = None
     if args.rtcConfiguration:
-        try:
-            if "iceServers" in args.rtcConfiguration:
-                rtcConfiguration = args.rtcConfiguration
-                for iceServer in rtcConfiguration["iceServers"]:
-                    if ("urls" not in iceServer):
-                        raise TypeError(
-                            "missing 'urls' parameter in 'iceServer' entry")
-
-        except TypeError as error:
-            print("invalid RTCConfiguration: %s" % error)
-            exit(42)
+        rtcConfiguration = args.rtcConfiguration
 
     """
     Initialization
@@ -647,7 +635,11 @@ if __name__ == "__main__":
     channel = Channel(loop, READ_FD, WRITE_FD)
 
     # create handler
-    handler = Handler(channel, rtcConfiguration)
+    try:
+        handler = Handler(channel, rtcConfiguration)
+    except Exception as error:
+        print("invalid RTCConfiguration: %s" % error)
+        exit(42)
 
     """
     Signal handling

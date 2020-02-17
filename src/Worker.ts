@@ -227,6 +227,8 @@ export class Worker extends EnhancedEventEmitter
 		{
 			// Remove event listeners but leave a fake 'error' hander to avoid
 			// propagation.
+			this._child.stdout.removeAllListeners();
+			this._child.stderr.removeAllListeners();
 			this._child.removeAllListeners('exit');
 			this._child.removeAllListeners('error');
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
