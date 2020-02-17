@@ -36,6 +36,7 @@
     "transformIgnorePatterns": []
   },
   "dependencies": {
+    "@types/uuid": "^3.4.7",
     "debug": "^4.1.1",
     "event-target-shim": "^5.0.1",
     "fake-mediastreamtrack": "^1.1.2",

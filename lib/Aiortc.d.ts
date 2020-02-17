@@ -12,6 +12,8 @@ export declare class Aiortc extends HandlerInterface {
     private readonly _mapLocalIdTracks;
     private readonly _mapLocalIdMid;
     private _transportReady;
+    private _hasDataChannelMediaSection;
+    private _nextSendSctpStreamId;
     /**
      * Creates a factory function.
      */
@@ -34,7 +36,7 @@ export declare class Aiortc extends HandlerInterface {
     setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;
     setRtpEncodingParameters(localId: string, params: any): Promise<void>;
     getSenderStats(localId: string): Promise<FakeRTCStatsReport>;
-    sendDataChannel(options: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
+    sendDataChannel({ ordered, maxPacketLifeTime, maxRetransmits, label, protocol, priority }: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult>;
     receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
     stopReceiving(localId: string): Promise<void>;
     getReceiverStats(localId: string): Promise<FakeRTCStatsReport>;

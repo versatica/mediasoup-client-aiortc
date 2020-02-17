@@ -26,7 +26,8 @@ import {
 	DtlsRole,
 	RtpCapabilities,
 	RtpParameters,
-	SctpCapabilities
+	SctpCapabilities,
+	SctpStreamParameters
 } from 'mediasoup-client/lib/types';
 import { WorkerLogLevel, WorkerSendOptions, Worker } from './Worker';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
@@ -56,6 +57,10 @@ export class Aiortc extends HandlerInterface
 	private readonly _mapLocalIdMid: Map<string, string> = new Map();
 	// Got transport local and remote parameters.
 	private _transportReady = false;
+	// Whether a DataChannel m=application section has been created.
+	private _hasDataChannelMediaSection = false;
+	// Next DataChannel id.
+	private _nextSendSctpStreamId: number = 0;
 
 	/**
 	 * Creates a factory function.
@@ -408,11 +413,80 @@ export class Aiortc extends HandlerInterface
 	}
 
 	async sendDataChannel(
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		options: HandlerSendDataChannelOptions
+		{
+			ordered,
+			maxPacketLifeTime,
+			maxRetransmits,
+			label,
+			protocol,
+			priority
+		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
-		throw new UnsupportedError('not implemented');
+		this._assertSendDirection();
+
+		logger.debug('sendDataChannel()');
+
+		const options =
+		{
+			negotiated : true,
+			streamId   : this._nextSendSctpStreamId,
+			ordered,
+			maxPacketLifeTime,
+			maxRetransmits,
+			protocol,
+			priority
+		};
+
+
+		logger.debug('DataChannel options:%o', options);
+
+		const dataChannel = await this._worker.createDataChannel(options);
+
+		// Increase next id.
+		this._nextSendSctpStreamId =
+			++this._nextSendSctpStreamId % SCTP_NUM_STREAMS.MIS;
+
+		// If this is the first DataChannel we need to create the SDP answer with
+		// m=application section.
+		if (!this._hasDataChannelMediaSection)
+		{
+			const offer = await this._worker.createOffer();
+			const localSdpObject = sdpTransform.parse(offer.sdp);
+			const offerMediaObject = localSdpObject.media
+				.find((m: any) => m.type === 'application');
+
+			if (!this._transportReady)
+				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+
+			logger.debug(
+				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
+				offer);
+
+			await this._worker.setLocalDescription(offer);
+
+			this._remoteSdp.sendSctpAssociation({ offerMediaObject });
+
+			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+
+			logger.debug(
+				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
+				answer);
+
+			await this._worker.setRemoteDescription(answer as RTCSessionDescription);
+
+			this._hasDataChannelMediaSection = true;
+		}
+
+		const sctpStreamParameters: SctpStreamParameters =
+		{
+			streamId          : options.streamId,
+			ordered           : options.ordered,
+			maxPacketLifeTime : options.maxPacketLifeTime,
+			maxRetransmits    : options.maxRetransmits
+		};
+
+		return { dataChannel, sctpStreamParameters };
 	}
 
 	async receive(

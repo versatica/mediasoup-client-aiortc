@@ -1,6 +1,8 @@
 import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
 import { MediaKind } from 'mediasoup-client/lib/RtpParameters';
+import { FakeRTCDataChannel } from './FakeRTCDataChannel';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
+import { HandlerSendDataChannelOptions } from 'mediasoup-client/lib/handlers/HandlerInterface';
 export declare type WorkerLogLevel = 'debug' | 'warn' | 'error' | 'none';
 export declare type WorkerSettings = {
     /**
@@ -48,6 +50,7 @@ export declare class Worker extends EnhancedEventEmitter {
     getMid(trackId: string): Promise<string | undefined>;
     enableTrack(trackId: string): void;
     disableTrack(trackId: string): void;
+    createDataChannel(options: HandlerSendDataChannelOptions): Promise<FakeRTCDataChannel>;
     getTransportStats(): Promise<FakeRTCStatsReport>;
     getSenderStats(trackId: string): Promise<FakeRTCStatsReport>;
     getReceiverStats(trackId: string): Promise<FakeRTCStatsReport>;

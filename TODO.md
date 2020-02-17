@@ -32,3 +32,7 @@ Things that must be verified, asked or even reported in aiortc project.
 * Must report lack of `track.enabled = xxx` to pause sending RTP (or generate silence or black video with less bitrate).
   - Reported: https://github.com/aiortc/aiortc/issues/264
   - Store the legit track and replace the track `replaceTrack` with the base audio or video track.
+
+* Does only emit 'open' for the first DataChannel.
+
+* Does mandate MaxRetransmits. Providing MaxPacketLifeTime and not the former results in error.

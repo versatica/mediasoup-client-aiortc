@@ -9,6 +9,7 @@ from pyee import AsyncIOEventEmitter
 from aiortc import (
     MediaStreamTrack,
     RTCConfiguration,
+    RTCDataChannel,
     RTCPeerConnection,
     RTCRtpTransceiver,
     RTCSessionDescription,
@@ -31,6 +32,8 @@ class Handler(AsyncIOEventEmitter):
         self._channel = channel
         # dictionary of transceivers mapped by track id
         self._transceivers = dict()  # type: Dict[str, RTCRtpTransceiver]
+        # dictionary of dataChannelds mapped by internal id
+        self._dataChannels = dict()  # type: Dict[str, RTCDataChannel]
 
         @self._pc.on("track")
         def on_track(track):
@@ -135,6 +138,67 @@ class Handler(AsyncIOEventEmitter):
         #     raise Exception("no transceiver for the given trackId: '%s'" % trackId)
 
         errorLogger.warning("disabling track not implemented")
+
+    def createDataChannel(
+        self,
+        internalId: str,
+        label: str,
+        maxRetransmits: None,
+        maxPacketLifeTime: None,
+        ordered: bool,
+        protocol: str,
+        id=str,
+    ) -> RTCDataChannel:
+        dataChannel = self._pc.createDataChannel(
+            label=label,
+            maxRetransmits=maxRetransmits,
+            maxPacketLifeTime=maxPacketLifeTime,
+            ordered=ordered,
+            protocol=protocol,
+            negotiated=True,
+            id=id
+        )
+
+        @dataChannel.on("open")
+        async def on_open():
+            await self._channel.notify(internalId, 'open')
+
+        @dataChannel.on("close")
+        async def on_close():
+            await self._channel.notify(internalId, 'close')
+
+        @dataChannel.on("message")
+        async def on_message(message):
+            await self._channel.notify(internalId, 'message', message)
+
+        self._dataChannels[internalId] = dataChannel
+
+    def send(self, dataChannelId: str, data=None) -> None:
+        try:
+            dataChannel = self._dataChannels[dataChannelId]
+        except KeyError:
+            raise Exception(
+                "no dataChannel for the given dataChannelId: '%s'" % dataChannelId)
+
+        dataChannel.send(data)
+
+    def closeDataChannel(self, dataChannelId: str) -> None:
+        try:
+            dataChannel = self._dataChannels[dataChannelId]
+        except KeyError:
+            raise Exception(
+                "no dataChannel for the given dataChannelId: '%s'" % dataChannelId)
+
+        dataChannel.close()
+
+    def setBufferedAmountLowThreshold(self, dataChannelId: str, value: int) -> None:
+        try:
+            dataChannel = self._dataChannels[dataChannelId]
+        except KeyError:
+            raise Exception(
+                "no dataChannel for the given dataChannelId: '%s'" % dataChannelId)
+
+        dataChannel.bufferedAmountLowThreshold = value
 
     async def getTransportStats(self) -> Dict[str, Any]:
         statsJson = {}
@@ -301,10 +365,11 @@ async def run(channel, handler) -> None:
     Request class
     """
     class Request:
-        def __init__(self, id: str, method: str, data=None) -> None:
+        def __init__(self, id: str, method: str, data=None, internal=None) -> None:
             self._id = id
             self.method = method
             self.data = data
+            self.internal = internal
 
         async def succeed(self, data=None) -> None:
             if data:
@@ -334,9 +399,10 @@ async def run(channel, handler) -> None:
     Notification class
     """
     class Notification:
-        def __init__(self, event: str, data=None) -> None:
+        def __init__(self, event: str, data=None, internal=None) -> None:
             self.event = event
             self.data = data
+            self.internal = internal
 
     @handler.on("iceconnectionstatechange")
     async def on_iceconnectionstatechange(iceConnectionState):
@@ -502,6 +568,49 @@ async def run(channel, handler) -> None:
             except Exception as error:
                 await request.failed(error)
 
+        elif request.method == "createDataChannel":
+            """
+            Check data object
+            """
+            if request.data is None:
+                errorLogger.error("missing 'data' field in request")
+                return
+
+            if request.internal is None:
+                errorLogger.error("missing 'data' field in request")
+                return
+
+            data = request.data
+            internal = request.internal
+
+            try:
+                if data["maxRetransmits"] is not None:
+                    handler.createDataChannel(
+                        internalId=internal["dataChannelId"],
+                        label=data["label"],
+                        maxRetransmits=data["maxRetransmits"],
+                        maxPacketLifeTime=None,
+                        ordered=data["ordered"],
+                        protocol=data["protocol"],
+                        id=data["id"]
+                    )
+                elif data["maxPacketLifeTime"] is not None:
+                    handler.createDataChannel(
+                        internalId=internal["dataChannelId"],
+                        label=data["label"],
+                        maxRetransmits=None,
+                        maxPacketLifeTime=data["maxPacketLifeTime"],
+                        ordered=data["ordered"],
+                        protocol=data["protocol"],
+                        id=data["id"]
+                    )
+                else:
+                    print("either 'maxRetransmits' or 'maxPacketLifeTime' are required")
+
+                await request.succeed()
+            except Exception as error:
+                await request.failed(error)
+
         elif request.method == "getTransportStats":
             try:
                 stats = await handler.getTransportStats()
@@ -588,6 +697,62 @@ async def run(channel, handler) -> None:
                 handler.disableTrack(data["trackId"])
             except Exception as error:
                 errorLogger.error("disableTrack() failed: %s" % error)
+
+        elif notification.event == "datachannel.send":
+            """
+            Check data object
+            """
+            if notification.data is None:
+                errorLogger.error("missing 'data' field in notification")
+                return
+
+            if notification.internal is None:
+                errorLogger.error("missing 'data' field in notification")
+                return
+
+            data = notification.data
+            internal = notification.internal
+
+            try:
+                handler.send(internal["dataChannelId"], data)
+            except Exception as error:
+                errorLogger.error("datachannel.send() failed: %s" % error)
+
+        elif notification.event == "datachannel.close":
+            """
+            Check internal object
+            """
+            if notification.internal is None:
+                errorLogger.error("missing 'data' field in notification")
+                return
+
+            internal = notification.internal
+
+            try:
+                handler.closeDataChannel(internal["dataChannelId"])
+            except Exception as error:
+                errorLogger.error("datachannel.close() failed: %s" % error)
+
+        elif notification.event == "datachannel.setBufferedAmountLowThreshold":
+            """
+            Check data object
+            """
+            if notification.data is None:
+                errorLogger.error("missing 'data' field in notification")
+                return
+
+            if notification.internal is None:
+                errorLogger.error("missing 'data' field in notification")
+                return
+
+            value = notification.data
+            internal = notification.internal
+
+            try:
+                handler.setBufferedAmountLowThreshold(
+                    internal["dataChannelId"], value)
+            except Exception as error:
+                errorLogger.error("datachannel.close() failed: %s" % error)
 
     # tell the Node process that we are running
     await channel.notify(getpid(), "running")

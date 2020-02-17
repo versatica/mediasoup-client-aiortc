@@ -1,10 +1,15 @@
+import uuidv4 from 'uuid/v4';
 import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import { Logger } from 'mediasoup-client/lib/Logger';
 import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
 import { Channel } from './Channel';
 import { MediaKind } from 'mediasoup-client/lib/RtpParameters';
+import { FakeRTCDataChannel } from './FakeRTCDataChannel';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
+import {
+	HandlerSendDataChannelOptions
+} from 'mediasoup-client/lib/handlers/HandlerInterface';
 
 export type WorkerLogLevel = 'debug' | 'warn' | 'error' | 'none';
 
@@ -329,6 +334,39 @@ export class Worker extends EnhancedEventEmitter
 		this._channel.notify('disableTrack', undefined, { trackId });
 	}
 
+	async createDataChannel(options: HandlerSendDataChannelOptions): Promise<FakeRTCDataChannel>
+	{
+		logger.debug('createDataChannel()');
+
+		const dataChannelId = uuidv4();
+
+		await this._channel.request('createDataChannel',
+			{ dataChannelId },
+			{
+				label: '',
+				maxRetransmits: options.maxRetransmits,
+				maxPacketLifeTime: options.maxPacketLifeTime,
+				ordered: options.ordered,
+				protocol: options.protocol,
+				id: options.streamId
+			});
+
+		return  new FakeRTCDataChannel(
+			{
+				dataChannelId
+			},
+			this._channel,
+			{
+				id: options.streamId,
+				ordered: options.ordered,
+				maxPacketLifeTime: options.maxPacketLifeTime,
+				maxRetransmits: options.maxRetransmits,
+				label: options.label,
+				protocol: options.protocol
+			}
+		);
+	}
+
 	async getTransportStats(): Promise<FakeRTCStatsReport>
 	{
 		const data = await this._channel.request('getTransportStats');
@@ -360,8 +398,8 @@ export class Worker extends EnhancedEventEmitter
 			{
 				case 'iceconnectionstatechange':
 				{
-
 					this.emit('iceconnectionstatechange', data as string);
+					break;
 				}
 			}
 		});
