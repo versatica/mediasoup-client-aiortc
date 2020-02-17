@@ -3,7 +3,7 @@ import json
 import socket
 import pynetstring
 from asyncio import StreamReader, StreamWriter
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from logger import debugLogger, errorLogger
 
 
@@ -31,8 +31,8 @@ class Channel():
         self._loop = loop
         self._readfd = readfd
         self._writefd = writefd
-        self._reader = None  # type: StreamReader
-        self._writer = None  # type: StreamWriter
+        self._reader = Union[StreamReader, None]
+        self._writer = Union[StreamWriter, None]
         self._nsDecoder = pynetstring.Decoder()
         self._connected = False
 

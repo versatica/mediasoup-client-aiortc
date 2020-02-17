@@ -790,7 +790,7 @@ async def run(channel, handler) -> None:
             elif "event" in obj:
                 await processNotification(Notification(**obj))
 
-        except Exception as error:
+        except Exception:
             shutdown()
 
 
