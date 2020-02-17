@@ -825,6 +825,11 @@ if __name__ == "__main__":
     # create channel
     channel = Channel(loop, READ_FD, WRITE_FD)
 
+    @channel.on("error")
+    def on_error(error):
+        errorLogger.debug("channel errored [error:%s]" % error)
+        shutdown()
+
     # create handler
     try:
         handler = Handler(channel, rtcConfiguration)

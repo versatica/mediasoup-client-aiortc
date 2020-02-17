@@ -2,6 +2,7 @@ import asyncio
 import json
 import socket
 import pynetstring
+from pyee import AsyncIOEventEmitter
 from asyncio import StreamReader, StreamWriter
 from typing import Any, Dict, Optional
 from logger import errorLogger
@@ -26,8 +27,9 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
         return None
 
 
-class Channel:
+class Channel(AsyncIOEventEmitter):
     def __init__(self, loop, readfd, writefd) -> None:
+        super().__init__()
         self._loop = loop
         self._readfd = readfd
         self._writefd = writefd
@@ -65,12 +67,18 @@ class Channel:
         try:
             # retrieve chunks of 50 bytes
             data = await self._reader.read(50)
+            if len(data) == 0:
+                raise Exception("socket closed")
+
             decoded_list = self._nsDecoder.feed(data)
             for item in decoded_list:
                 return object_from_string(item.decode("utf8"))
 
         except asyncio.IncompleteReadError:
             pass
+
+        except Exception as error:
+            self.emit("error", error)
 
         return None
 
