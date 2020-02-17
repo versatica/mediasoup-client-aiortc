@@ -15,11 +15,17 @@ test('mediasoup-client-aiortc exposes a version property', () =>
 	expect(version).toBe(pkg.version);
 }, 500);
 
-test('create a worker and emits "open" once connected', async () =>
+test('create a worker and getState() returns "connecting" right away', async () =>
 {
 	worker = new Worker({ logLevel: 'debug' });
 
 	expect(worker.getState()).toBe('connecting');
+	worker.close();
+});
+
+test('create a worker and emits "open" once connected', async () =>
+{
+	worker = new Worker();
 
 	await new Promise((resolve) => worker.once('open', resolve));
 
