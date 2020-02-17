@@ -161,24 +161,28 @@ class Handler(AsyncIOEventEmitter):
 
         @dataChannel.on("open")
         async def on_open():
-            await self._channel.notify(internalId, 'open')
+            await self._channel.notify(internalId, "open")
 
         @dataChannel.on("close")
         async def on_close():
-            await self._channel.notify(internalId, 'close')
+            await self._channel.notify(internalId, "close")
 
         @dataChannel.on("message")
         async def on_message(message):
-            await self._channel.notify(internalId, 'message', message)
+            await self._channel.notify(internalId, "message", message)
 
         self._dataChannels[internalId] = dataChannel
 
         return {
-            "id": dataChannel.id,
+            "streamId": dataChannel.id,
             "ordered": dataChannel.ordered,
+            "maxPacketLifeTime": dataChannel.maxPacketLifeTime,
             "maxRetransmits": dataChannel.maxRetransmits,
             "label": dataChannel.label,
-            "protocol": dataChannel.protocol
+            "protocol": dataChannel.protocol,
+            "readyState": dataChannel.readyState,
+            "bufferedAmount": dataChannel.bufferedAmount,
+            "bufferedAmountLowThreshold": dataChannel.bufferedAmountLowThreshold
         }
 
     def send(self, dataChannelId: str, data=None) -> None:
@@ -207,16 +211,6 @@ class Handler(AsyncIOEventEmitter):
                 "no dataChannel for the given dataChannelId: '%s'" % dataChannelId)
 
         dataChannel.bufferedAmountLowThreshold = value
-
-    async def mayNotifyDataChannelOpen(self, dataChannelId: str) -> None:
-        try:
-            dataChannel = self._dataChannels[dataChannelId]
-        except KeyError:
-            raise Exception(
-                "no dataChannel for the given dataChannelId: '%s'" % dataChannelId)
-
-        if dataChannel.readyState == "open":
-            await self._channel.notify(dataChannelId, 'open')
 
     async def getTransportStats(self) -> Dict[str, Any]:
         statsJson = {}
@@ -366,12 +360,12 @@ class Handler(AsyncIOEventEmitter):
     # TODO: complete.
     def _getTrack(self, kind: str, sourceType: str, sourceValue: Optional[str]) -> MediaStreamTrack:
         # check for other OS: https://aiortc.readthedocs.io/en/latest/helpers.html
-        if (kind == 'audio'):
-            player = MediaPlayer('none:0', format='avfoundation')
+        if (kind == "audio"):
+            player = MediaPlayer("none:0", format="avfoundation")
             return player.audio
-        if (kind == 'video'):
-            player = MediaPlayer('default:none', format='avfoundation', options={
-                'framerate': '30', 'video_size': '640x480'
+        if (kind == "video"):
+            player = MediaPlayer("default:none", format="avfoundation", options={
+                "framerate": "30", "video_size": "640x480"
             })
             return player.video
 
@@ -615,7 +609,6 @@ async def run(channel, handler) -> None:
                 )
 
                 await request.succeed(dataChannelInfo)
-                await handler.mayNotifyDataChannelOpen(internal["dataChannelId"])
             except Exception as error:
                 await request.failed(error)
 

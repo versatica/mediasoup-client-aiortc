@@ -66,7 +66,7 @@ class Channel():
             # retrieve chunks of 50 bytes
             data = await self._reader.read(50)
             if len(data) == 0:
-                debugLogger.debug('channel socket closed, exiting')
+                debugLogger.debug("channel socket closed, exiting")
                 raise Exception("socket closed")
 
             decoded_list = self._nsDecoder.feed(data)

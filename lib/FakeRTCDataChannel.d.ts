@@ -32,7 +32,11 @@ export declare class FakeRTCDataChannel extends EventTarget implements RTCDataCh
     onerror: (this: RTCDataChannel, ev: RTCErrorEvent) => any;
     constructor(internal: {
         dataChannelId: string;
-    }, channel: Channel, { id, ordered, maxPacketLifeTime, maxRetransmits, label, protocol }: FakeRTCDataChannelOptions);
+    }, channel: Channel, { id, ordered, maxPacketLifeTime, maxRetransmits, label, protocol }: FakeRTCDataChannelOptions, status: {
+        readyState: RTCDataChannelState;
+        bufferedAmount: number;
+        bufferedAmountLowThreshold: number;
+    });
     readonly id: number;
     readonly negotiated: boolean;
     readonly ordered: boolean;

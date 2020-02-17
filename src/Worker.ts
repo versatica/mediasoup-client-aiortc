@@ -342,13 +342,23 @@ export class Worker extends EnhancedEventEmitter
 
 		const internal = { dataChannelId: uuidv4() };
 
-		await this._channel.request('createDataChannel',
+		const {
+			streamId,
+			ordered,
+			maxPacketLifeTime,
+			maxRetransmits,
+			label,
+			protocol,
+			readyState,
+			bufferedAmount,
+			bufferedAmountLowThreshold
+		} = await this._channel.request('createDataChannel',
 			internal,
 			{
 				id                : options.streamId,
 				ordered           : options.ordered,
-				maxPacketLifeTime : options.maxPacketLifeTime || null,
-				maxRetransmits    : options.maxRetransmits || null,
+				maxPacketLifeTime : options.maxPacketLifeTime || null, // Important.
+				maxRetransmits    : options.maxRetransmits || null, // Important.
 				label             : options.label,
 				protocol          : options.protocol
 			});
@@ -357,12 +367,17 @@ export class Worker extends EnhancedEventEmitter
 			internal,
 			this._channel,
 			{
-				id                : options.streamId,
-				ordered           : options.ordered,
-				maxPacketLifeTime : options.maxPacketLifeTime,
-				maxRetransmits    : options.maxRetransmits,
-				label             : options.label,
-				protocol          : options.protocol
+				id : streamId,
+				ordered,
+				maxPacketLifeTime,
+				maxRetransmits,
+				label,
+				protocol
+			},
+			{
+				readyState,
+				bufferedAmount,
+				bufferedAmountLowThreshold
 			}
 		);
 	}

@@ -58,7 +58,13 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 			maxRetransmits = null,
 			label = '',
 			protocol = ''
-		}: FakeRTCDataChannelOptions
+		}: FakeRTCDataChannelOptions,
+		status:
+		{
+			readyState: RTCDataChannelState;
+			bufferedAmount: number;
+			bufferedAmountLowThreshold: number;
+		}
 	)
 	{
 		super();
@@ -73,6 +79,9 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 		this._maxRetransmits = maxRetransmits;
 		this._label = label;
 		this._protocol = protocol;
+		this._readyState = status.readyState;
+		this._bufferedAmount = status.bufferedAmount;
+		this._bufferedAmountLowThreshold = status.bufferedAmountLowThreshold;
 
 		this._handleWorkerNotifications();
 	}
