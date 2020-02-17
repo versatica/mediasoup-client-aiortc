@@ -36,9 +36,6 @@ type WorkerSendResult =
 	trackId: string;
 };
 
-// TODO.
-const workerBin = '/usr/local/bin/python3';
-
 const logger = new Logger('aiortc:Worker');
 
 export class Worker extends EnhancedEventEmitter
@@ -59,9 +56,11 @@ export class Worker extends EnhancedEventEmitter
 	{
 		super();
 
-		logger.debug('constructor()');
+		logger.debug(
+			'constructor() [rtcConfiguration:%o, logLevel:%o]',
+			rtcConfiguration, logLevel);
 
-		const spawnBin = workerBin;
+		const spawnBin = process.env.PYTHON_PATH || 'python3';
 		const spawnArgs: string[] = [];
 
 		spawnArgs.push('-u'); // Unbuffered stdio.
@@ -86,13 +85,7 @@ export class Worker extends EnhancedEventEmitter
 			spawnArgs,
 			// options
 			{
-				env :
-				{
-					MEDIASOUP_VERSION : '__MEDIASOUP_VERSION__'
-				},
-
 				detached : false,
-
 				// fd 0 (stdin)   : Just ignore it.
 				// fd 1 (stdout)  : Pipe it for 3rd libraries that log their own stuff.
 				// fd 2 (stderr)  : Same as stdout.
