@@ -142,21 +142,21 @@ class Handler(AsyncIOEventEmitter):
     def createDataChannel(
         self,
         internalId: str,
-        label: str,
-        maxRetransmits: None,
-        maxPacketLifeTime: None,
+        id: str,
         ordered: bool,
-        protocol: str,
-        id=str,
+        maxPacketLifeTime: None,
+        maxRetransmits: None,
+        label: str,
+        protocol: str
     ) -> Any:
         dataChannel = self._pc.createDataChannel(
-            label=label,
-            maxRetransmits=maxRetransmits,
-            maxPacketLifeTime=maxPacketLifeTime,
-            ordered=ordered,
-            protocol=protocol,
             negotiated=True,
-            id=id
+            id=id,
+            ordered=ordered,
+            maxPacketLifeTime=maxPacketLifeTime,
+            maxRetransmits=maxRetransmits,
+            label=label,
+            protocol=protocol
         )
 
         @dataChannel.on("open")
@@ -607,22 +607,22 @@ async def run(channel, handler) -> None:
                 if data["maxRetransmits"] is not None:
                     dataChannelInfo = handler.createDataChannel(
                         internalId=internal["dataChannelId"],
-                        label=data["label"],
-                        maxRetransmits=data["maxRetransmits"],
-                        maxPacketLifeTime=None,
+                        id=data["id"],
                         ordered=data["ordered"],
-                        protocol=data["protocol"],
-                        id=data["id"]
+                        maxPacketLifeTime=None,
+                        maxRetransmits=data["maxRetransmits"],
+                        label=data["label"],
+                        protocol=data["protocol"]
                     )
                 elif data["maxPacketLifeTime"] is not None:
                     dataChannelInfo = handler.createDataChannel(
                         internalId=internal["dataChannelId"],
-                        label=data["label"],
-                        maxRetransmits=None,
-                        maxPacketLifeTime=data["maxPacketLifeTime"],
+                        id=data["id"],
                         ordered=data["ordered"],
-                        protocol=data["protocol"],
-                        id=data["id"]
+                        maxPacketLifeTime=data["maxPacketLifeTime"],
+                        maxRetransmits=None,
+                        label=data["label"],
+                        protocol=data["protocol"]
                     )
                 else:
                     print("either 'maxRetransmits' or 'maxPacketLifeTime' are required")
