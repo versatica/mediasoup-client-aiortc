@@ -148,7 +148,7 @@ class Handler(AsyncIOEventEmitter):
         ordered: bool,
         protocol: str,
         id=str,
-    ) -> RTCDataChannel:
+    ) -> Any:
         dataChannel = self._pc.createDataChannel(
             label=label,
             maxRetransmits=maxRetransmits,
@@ -172,6 +172,14 @@ class Handler(AsyncIOEventEmitter):
             await self._channel.notify(internalId, 'message', message)
 
         self._dataChannels[internalId] = dataChannel
+
+        return {
+            "label": dataChannel.label,
+            "maxRetransmits": dataChannel.maxRetransmits,
+            "ordered": dataChannel.ordered,
+            "protocol": dataChannel.protocol,
+            "id": dataChannel.id,
+        }
 
     def send(self, dataChannelId: str, data=None) -> None:
         try:
@@ -593,9 +601,11 @@ async def run(channel, handler) -> None:
             data = request.data
             internal = request.internal
 
+            dataChannelInfo = None
+
             try:
                 if data["maxRetransmits"] is not None:
-                    handler.createDataChannel(
+                    dataChannelInfo = handler.createDataChannel(
                         internalId=internal["dataChannelId"],
                         label=data["label"],
                         maxRetransmits=data["maxRetransmits"],
@@ -605,7 +615,7 @@ async def run(channel, handler) -> None:
                         id=data["id"]
                     )
                 elif data["maxPacketLifeTime"] is not None:
-                    handler.createDataChannel(
+                    dataChannelInfo = handler.createDataChannel(
                         internalId=internal["dataChannelId"],
                         label=data["label"],
                         maxRetransmits=None,
@@ -617,7 +627,7 @@ async def run(channel, handler) -> None:
                 else:
                     print("either 'maxRetransmits' or 'maxPacketLifeTime' are required")
 
-                await request.succeed()
+                await request.succeed(dataChannelInfo)
                 await handler.mayNotifyDataChannelOpen(internal["dataChannelId"])
             except Exception as error:
                 await request.failed(error)
