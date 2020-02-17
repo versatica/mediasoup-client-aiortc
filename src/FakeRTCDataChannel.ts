@@ -126,6 +126,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 		return this._readyState;
 	}
 
+	// TODO: This always returns 0.
 	get bufferedAmount(): number
 	{
 		return this._bufferedAmount;
@@ -225,7 +226,14 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 					break;
 				}
 
-				case 'message':
+				case 'stringmessage':
+				{
+					this.dispatchEvent({ type: 'message', data });
+
+					break;
+				}
+
+				case 'binarymessage':
 				{
 					// TODO: Must handle binary messages and produce a Blob or an
 					// ArrayBuffer depending on this._binaryType.
@@ -238,6 +246,16 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 				case 'bufferedamountlow':
 				{
 					this.dispatchEvent({ type: 'bufferedamountlow' });
+
+					break;
+				}
+
+				case 'bufferedamount':
+				{
+					// TODO: We should periodically (or triggered by X) this event in
+					// Python side to update it in JS.
+
+					this._bufferedAmount = data as number;
 
 					break;
 				}

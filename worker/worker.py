@@ -169,7 +169,10 @@ class Handler(AsyncIOEventEmitter):
 
         @dataChannel.on("message")
         async def on_message(message):
-            await self._channel.notify(internalId, "message", message)
+            if type(message).__name__ == 'str':
+                await self._channel.notify(internalId, "stringmessage", message)
+            elif type(message).__name__ == 'bytes':
+                errorLogger.warning("binary message reception not implemented")
 
         self._dataChannels[internalId] = dataChannel
 
