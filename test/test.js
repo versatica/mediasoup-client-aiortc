@@ -15,32 +15,25 @@ test('mediasoup-client-aiortc exposes a version property', () =>
 	expect(version).toBe(pkg.version);
 }, 500);
 
-test('create a worker and getState() returns "connecting" right away', () =>
-{
-	// eslint-disable-next-line no-shadow
-	const worker = new Worker({ logLevel: 'debug' });
-
-	expect(worker.getState()).toBe('connecting');
-	worker.close();
-});
-
 test('create a worker and emits "open" once connected', async () =>
 {
 	worker = new Worker({ logLevel: 'debug' });
+
+	expect(worker.getState()).toBe('connecting');
 
 	await new Promise((resolve) => worker.once('open', resolve));
 
 	expect(worker.getState()).toBe('open');
 }, 3000);
 
-test('worker.getRtpCapabilities() returns a string', async () =>
+test('worker.getRtpCapabilities() succeeds', async () =>
 {
 	const capabilities = await worker.getRtpCapabilities();
 
 	expect(capabilities).toBeType('string');
 }, 3000);
 
-test('worker.getLocalDescription() returns undefined right away', async () =>
+test('worker.getLocalDescription() resolves with undefined right away', async () =>
 {
 	// eslint-disable-next-line no-shadow
 	const localDescription = await worker.getLocalDescription();
@@ -48,14 +41,7 @@ test('worker.getLocalDescription() returns undefined right away', async () =>
 	expect(localDescription).toBeType('undefined');
 }, 3000);
 
-test('worker.addTrack() with wrong SendOptions throws', async () =>
-{
-	await expect(worker.addTrack({}))
-		.rejects
-		.toThrow(TypeError);
-}, 3000);
-
-test('worker.addTrack() with correct SendOptions returns string', async () =>
+test('worker.addTrack() with correct SendOptions succeeds', async () =>
 {
 	const result =
 		await worker.addTrack({ kind: 'audio', sourceType: 'device' });
@@ -66,7 +52,30 @@ test('worker.addTrack() with correct SendOptions returns string', async () =>
 	audioTrackId = result.trackId;
 }, 3000);
 
-test('worker.createOffer() returns a RTCSessionDescription', async () =>
+test('worker.addTrack() with wrong SendOptions throws TypeError', async () =>
+{
+	// Missing fields.
+	await expect(worker.addTrack())
+		.rejects
+		.toThrow(TypeError);
+
+	// Missing fields.
+	await expect(worker.addTrack({}))
+		.rejects
+		.toThrow(TypeError);
+
+	// Invalid kind.
+	await expect(worker.addTrack({ kind: 'foo' }))
+		.rejects
+		.toThrow(TypeError);
+
+	// Invalid sourceType.
+	await expect(worker.addTrack({ kind: 'audio', sourceType: 'foo' }))
+		.rejects
+		.toThrow(TypeError);
+}, 3000);
+
+test('worker.createOffer() resolves with a RTCSessionDescription', async () =>
 {
 	localDescription = await worker.createOffer();
 
@@ -80,7 +89,7 @@ test('worker.setLocalDescription() succeeds', async () =>
 	await worker.setLocalDescription(localDescription);
 }, 8000);
 
-test('worker.getLocalDescription() returns a RTCSessionDescription', async () =>
+test('worker.getLocalDescription() resolves with a RTCSessionDescription', async () =>
 {
 	localDescription = await worker.getLocalDescription();
 
@@ -122,16 +131,16 @@ test('worker.getSenderStats() succeeds', async () =>
 	}
 }, 3000);
 
-test('worker.removeTrack() with an invalid trackId throws', async () =>
+test('worker.removeTrack() with a valid trackId succeeds', async () =>
+{
+	await worker.removeTrack(audioTrackId);
+}, 3000);
+
+test('worker.removeTrack() with an unknown trackId throws', async () =>
 {
 	await expect(worker.removeTrack('justbecause'))
 		.rejects
 		.toThrow(Error);
-}, 3000);
-
-test('worker.removeTrack() with a valid trackId does not throw', async () =>
-{
-	await worker.removeTrack(audioTrackId);
 }, 3000);
 
 test('worker.close() succeeds', () =>
