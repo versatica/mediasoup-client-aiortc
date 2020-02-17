@@ -334,35 +334,35 @@ export class Worker extends EnhancedEventEmitter
 		this._channel.notify('disableTrack', undefined, { trackId });
 	}
 
-	async createDataChannel(options: HandlerSendDataChannelOptions): Promise<FakeRTCDataChannel>
+	async createDataChannel(
+		options: HandlerSendDataChannelOptions
+	): Promise<FakeRTCDataChannel>
 	{
-		logger.debug('createDataChannel()');
+		logger.debug('createDataChannel() [options:%o]', options);
 
-		const dataChannelId = uuidv4();
+		const internal = { dataChannelId: uuidv4() };
 
-		const dataChannelInfo = await this._channel.request('createDataChannel',
-			{ dataChannelId },
+		await this._channel.request('createDataChannel',
+			internal,
 			{
-				label: '',
-				maxRetransmits: options.maxRetransmits,
-				maxPacketLifeTime: options.maxPacketLifeTime,
-				ordered: options.ordered,
-				protocol: options.protocol,
-				id: options.streamId
+				id                : options.streamId,
+				ordered           : options.ordered,
+				maxPacketLifeTime : options.maxPacketLifeTime,
+				maxRetransmits    : options.maxRetransmits,
+				label             : options.label,
+				protocol          : options.protocol
 			});
 
-		return  new FakeRTCDataChannel(
-			{
-				dataChannelId
-			},
+		return new FakeRTCDataChannel(
+			internal,
 			this._channel,
 			{
-				id: dataChannelInfo.streamId,
-				ordered: dataChannelInfo.ordered,
-				maxPacketLifeTime: dataChannelInfo.maxPacketLifeTime,
-				maxRetransmits: dataChannelInfo.maxRetransmits,
-				label: dataChannelInfo.label,
-				protocol: dataChannelInfo.protocol
+				id                : options.streamId,
+				ordered           : options.ordered,
+				maxPacketLifeTime : options.maxPacketLifeTime,
+				maxRetransmits    : options.maxRetransmits,
+				label             : options.label,
+				protocol          : options.protocol
 			}
 		);
 	}

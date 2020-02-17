@@ -60,7 +60,7 @@ export class Aiortc extends HandlerInterface
 	// Whether a DataChannel m=application section has been created.
 	private _hasDataChannelMediaSection = false;
 	// Next DataChannel id.
-	private _nextSendSctpStreamId: number = 0;
+	private _nextSendSctpStreamId = 0;
 
 	/**
 	 * Creates a factory function.
@@ -425,8 +425,6 @@ export class Aiortc extends HandlerInterface
 	{
 		this._assertSendDirection();
 
-		logger.debug('sendDataChannel()');
-
 		const options =
 		{
 			negotiated : true,
@@ -434,12 +432,12 @@ export class Aiortc extends HandlerInterface
 			ordered,
 			maxPacketLifeTime,
 			maxRetransmits,
+			label,
 			protocol,
 			priority
 		};
 
-
-		logger.debug('DataChannel options:%o', options);
+		logger.debug('sendDataChannel() [options:%o]', options);
 
 		const dataChannel = await this._worker.createDataChannel(options);
 
@@ -460,7 +458,7 @@ export class Aiortc extends HandlerInterface
 				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
 
 			logger.debug(
-				'sendDataChannel() | calling pc.setLocalDescription() [offer:%o]',
+				'sendDataChannel() | calling worker.setLocalDescription() [offer:%o]',
 				offer);
 
 			await this._worker.setLocalDescription(offer);
@@ -470,7 +468,7 @@ export class Aiortc extends HandlerInterface
 			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 			logger.debug(
-				'sendDataChannel() | calling pc.setRemoteDescription() [answer:%o]',
+				'sendDataChannel() | calling worker.setRemoteDescription() [answer:%o]',
 				answer);
 
 			await this._worker.setRemoteDescription(answer as RTCSessionDescription);
