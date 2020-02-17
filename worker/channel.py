@@ -4,7 +4,7 @@ import socket
 import pynetstring
 from asyncio import StreamReader, StreamWriter
 from typing import Any, Dict, Optional
-from logger import errorLogger, fileLogger
+from logger import debugLogger, errorLogger
 
 
 def object_from_string(message_str) -> Optional[Dict[str, Any]]:
@@ -65,9 +65,8 @@ class Channel():
         try:
             # retrieve chunks of 50 bytes
             data = await self._reader.read(50)
-            fileLogger.debug('--- received data:%d', len(data))
             if len(data) == 0:
-                fileLogger.error('--- 00000000 received data:%d', len(data))
+                debugLogger.debug('channel socket closed, exiting')
                 raise Exception("socket closed")
 
             decoded_list = self._nsDecoder.feed(data)

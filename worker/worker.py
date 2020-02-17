@@ -16,7 +16,7 @@ from aiortc import (
     RTCStatsReport,
 )
 from aiortc.contrib.media import MediaPlayer
-from logger import rootLogger, debugLogger, errorLogger, fileLogger
+from logger import rootLogger, debugLogger, errorLogger
 from channel import Channel
 
 # File descriptors to communicate with the Node.js process
@@ -791,9 +791,7 @@ async def run(channel, handler) -> None:
                 await processNotification(Notification(**obj))
 
         except Exception as error:
-            fileLogger.error("------------------------------------ worker.py: channel errored [error:%s]" % error)
             shutdown()
-            raise error
 
 
 if __name__ == "__main__":
@@ -840,7 +838,7 @@ if __name__ == "__main__":
     Signal handling
     """
     def shutdown():
-        loop.stop()
+        loop.close()
 
     # signal handler
     loop.add_signal_handler(signal.SIGINT, shutdown)
