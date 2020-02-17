@@ -151,7 +151,7 @@ class Handler(AsyncIOEventEmitter):
     ) -> Any:
         dataChannel = self._pc.createDataChannel(
             label=label,
-            maxRetransmits=maxRetransmits,
+            # maxRetransmits=maxRetransmits,
             maxPacketLifeTime=maxPacketLifeTime,
             ordered=ordered,
             protocol=protocol,
@@ -174,11 +174,11 @@ class Handler(AsyncIOEventEmitter):
         self._dataChannels[internalId] = dataChannel
 
         return {
-            "label": dataChannel.label,
-            "maxRetransmits": dataChannel.maxRetransmits,
-            "ordered": dataChannel.ordered,
-            "protocol": dataChannel.protocol,
             "id": dataChannel.id,
+            "ordered": dataChannel.ordered,
+            "maxRetransmits": dataChannel.maxRetransmits,
+            "label": dataChannel.label,
+            "protocol": dataChannel.protocol
         }
 
     def send(self, dataChannelId: str, data=None) -> None:
