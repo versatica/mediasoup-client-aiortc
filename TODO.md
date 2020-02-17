@@ -20,6 +20,9 @@
 
 Things that must be verified, asked or even reported in aiortc project.
 
+* If `rtcConfiguration` is given without `iceServers` or with empty `iceServers: []`, it fails. This is a BUG in aiortc.
+  - Reported: https://github.com/aiortc/aiortc/issues/266
+
 * Must verify max number of SCTP streams (`OS` and `MIS`). For instance it's `OS: 1024, MIS: 1024` in Chrome (cannot renegotiate it later) and `OS: 16, MIS: 2048` in Firefox (which does allow later renegotiation).
   - In https://github.com/aiortc/aiortc/blob/master/src/aiortc/rtcsctptransport.py:
     `MAX_STREAMS = 65535`, and it seems to support renegotiation.
