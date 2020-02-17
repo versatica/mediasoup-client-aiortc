@@ -347,8 +347,8 @@ export class Worker extends EnhancedEventEmitter
 			{
 				id                : options.streamId,
 				ordered           : options.ordered,
-				maxPacketLifeTime : options.maxPacketLifeTime,
-				maxRetransmits    : options.maxRetransmits,
+				maxPacketLifeTime : options.maxPacketLifeTime || null,
+				maxRetransmits    : options.maxRetransmits || null,
 				label             : options.label,
 				protocol          : options.protocol
 			});

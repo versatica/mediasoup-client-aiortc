@@ -604,28 +604,15 @@ async def run(channel, handler) -> None:
             dataChannelInfo = None
 
             try:
-                if data["maxRetransmits"] is not None:
-                    dataChannelInfo = handler.createDataChannel(
-                        internalId=internal["dataChannelId"],
-                        id=data["id"],
-                        ordered=data["ordered"],
-                        maxPacketLifeTime=None,
-                        maxRetransmits=data["maxRetransmits"],
-                        label=data["label"],
-                        protocol=data["protocol"]
-                    )
-                elif data["maxPacketLifeTime"] is not None:
-                    dataChannelInfo = handler.createDataChannel(
-                        internalId=internal["dataChannelId"],
-                        id=data["id"],
-                        ordered=data["ordered"],
-                        maxPacketLifeTime=data["maxPacketLifeTime"],
-                        maxRetransmits=None,
-                        label=data["label"],
-                        protocol=data["protocol"]
-                    )
-                else:
-                    print("either 'maxRetransmits' or 'maxPacketLifeTime' are required")
+                dataChannelInfo = handler.createDataChannel(
+                    internalId=internal["dataChannelId"],
+                    id=data["id"],
+                    ordered=data["ordered"],
+                    maxPacketLifeTime=data["maxPacketLifeTime"],
+                    maxRetransmits=data["maxRetransmits"],
+                    label=data["label"],
+                    protocol=data["protocol"]
+                )
 
                 await request.succeed(dataChannelInfo)
                 await handler.mayNotifyDataChannelOpen(internal["dataChannelId"])
