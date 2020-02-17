@@ -2,6 +2,8 @@
 
 ## mediasoup-client-aiortc
 
+* **CRITICAL:** Once the webcam is enabled (or mic?) the Python process remains alive as a xombie process forever.
+
 * Python. Improve logging. Right now I (Iñaki) have added a `logger.py` file which exposes `rootLogger`, `debugLogger` and `errorLogger`.
   - Try it by running `DEBUG="-babel *" npm test`.
   - See https://docs.python.org/3/howto/logging.html
