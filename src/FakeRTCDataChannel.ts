@@ -1,6 +1,6 @@
 import { EventTarget, defineEventAttribute } from 'event-target-shim';
 import { Logger } from 'mediasoup-client/lib/Logger';
-// import { InvalidStateError } from 'mediasoup-client/lib/errors';
+import { InvalidStateError } from 'mediasoup-client/lib/errors';
 import { Channel } from './Channel';
 
 const logger = new Logger('aiortc:FakeRTCDataChannel');
@@ -179,9 +179,8 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	 */
 	send(data: string | Blob | ArrayBuffer | ArrayBufferView | Buffer): void
 	{
-		// TODO: Is seems that aiortc only emits 'open' for the first DataChannel.
-		// if (this._readyState !== 'open')
-			// throw new InvalidStateError('not open');
+		if (this._readyState !== 'open')
+			throw new InvalidStateError('not open');
 
 		this._channel.notify('datachannel.send', this._internal, data);
 	}

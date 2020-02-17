@@ -34,5 +34,6 @@ Things that must be verified, asked or even reported in aiortc project.
   - Store the legit track and replace the track `replaceTrack` with the base audio or video track.
 
 * Does only emit 'open' for the first DataChannel.
+  - Solved by checking the state after replying to DataChannel creation request and notifying about it if by that time 'readyState' is 'open'
 
 * Does mandate MaxRetransmits. Providing MaxPacketLifeTime and not the former results in error.

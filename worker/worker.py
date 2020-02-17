@@ -200,6 +200,16 @@ class Handler(AsyncIOEventEmitter):
 
         dataChannel.bufferedAmountLowThreshold = value
 
+    async def mayNotifyDataChannelOpen(self, dataChannelId: str) -> None:
+        try:
+            dataChannel = self._dataChannels[dataChannelId]
+        except KeyError:
+            raise Exception(
+                "no dataChannel for the given dataChannelId: '%s'" % dataChannelId)
+
+        if dataChannel.readyState == "open":
+            await self._channel.notify(dataChannelId, 'open')
+
     async def getTransportStats(self) -> Dict[str, Any]:
         statsJson = {}
         stats = await self._pc.getStats()
@@ -608,6 +618,7 @@ async def run(channel, handler) -> None:
                     print("either 'maxRetransmits' or 'maxPacketLifeTime' are required")
 
                 await request.succeed()
+                await handler.mayNotifyDataChannelOpen(internal["dataChannelId"])
             except Exception as error:
                 await request.failed(error)
 
