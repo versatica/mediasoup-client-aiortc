@@ -34,7 +34,8 @@ class Handler(AsyncIOEventEmitter):
 
         @self._pc.on("track")
         def on_track(track):
-            debugLogger.debug("ontrack [kind:%s, id:%s]" % (track.kind, track.id))
+            debugLogger.debug("ontrack [kind:%s, id:%s]" %
+                              (track.kind, track.id))
             # store transceiver in the dictionary
             for transceiver in self._pc.getTransceivers():
                 if transceiver.receiver._track is not None:
@@ -44,18 +45,19 @@ class Handler(AsyncIOEventEmitter):
         @self._pc.on("iceconnectionstatechange")
         async def on_iceconnectionstatechange():
             debugLogger.debug("iceconnectionstatechange [state:%s]" %
-                  self._pc.iceConnectionState)
+                              self._pc.iceConnectionState)
             self.emit("iceconnectionstatechange", self._pc.iceConnectionState)
 
         @self._pc.on("icegatheringstatechange")
         async def on_icegatheringstatechange():
             debugLogger.debug("icegatheringstatechange [state:%s]" %
-                  self._pc.iceGatheringState)
+                              self._pc.iceGatheringState)
             self.emit("icegatheringstatechange", self._pc.iceGatheringState)
 
         @self._pc.on("signalingstatechange")
         async def on_signalingstatechange():
-            debugLogger.debug("signalingstatechange [state:%s]" % self._pc.signalingState)
+            debugLogger.debug(
+                "signalingstatechange [state:%s]" % self._pc.signalingState)
             self.emit("signalingstatechange", self._pc.signalingState)
 
     async def close(self) -> None:
@@ -390,9 +392,11 @@ async def run(channel, handler) -> None:
 
             try:
                 if "sourceValue" in data:
-                    trackId = handler.addTrack(data["kind"], data["sourceType"], data["sourceValue"])
+                    trackId = handler.addTrack(
+                        data["kind"], data["sourceType"], data["sourceValue"])
                 else:
-                    trackId = handler.addTrack(data["kind"], data["sourceType"], None)
+                    trackId = handler.addTrack(
+                        data["kind"], data["sourceType"], None)
 
                 result = {}
                 result["trackId"] = trackId
@@ -558,7 +562,8 @@ async def run(channel, handler) -> None:
 
             data = notification.data
             if "trackId" not in data:
-                errorLogger.error("missing 'trackId' field in notification data")
+                errorLogger.error(
+                    "missing 'trackId' field in notification data")
                 return
 
             try:
@@ -576,7 +581,8 @@ async def run(channel, handler) -> None:
 
             data = notification.data
             if "trackId" not in data:
-                errorLogger.error("missing 'trackId' field in notification data")
+                errorLogger.error(
+                    "missing 'trackId' field in notification data")
                 return
 
             try:
