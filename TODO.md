@@ -2,6 +2,8 @@
 
 ## mediasoup-client-aiortc
 
+* Fill `README.md`.
+
 * Why is there a `Handler` class in `worker.py` and why does requests and notifications call `handler.xxx()` instead of directly doing the stuff? Do we really need such a `Handler` class and `handler` singleton?
 
 * DataChannel.
