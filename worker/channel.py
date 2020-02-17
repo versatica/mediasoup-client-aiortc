@@ -2,7 +2,6 @@ import asyncio
 import json
 import socket
 import pynetstring
-from pyee import AsyncIOEventEmitter
 from asyncio import StreamReader, StreamWriter
 from typing import Any, Dict, Optional
 from logger import errorLogger, fileLogger
@@ -27,9 +26,8 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
         return None
 
 
-class Channel(AsyncIOEventEmitter):
+class Channel():
     def __init__(self, loop, readfd, writefd) -> None:
-        super().__init__()
         self._loop = loop
         self._readfd = readfd
         self._writefd = writefd
