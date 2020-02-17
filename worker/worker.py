@@ -1,15 +1,11 @@
 import argparse
 import asyncio
 import json
-import logging
 import signal
+import sys
 from os import getpid
-from sys import exit
 from typing import Any, Dict, Optional
-
-from channel import Channel
 from pyee import AsyncIOEventEmitter
-
 from aiortc import (
     MediaStreamTrack,
     RTCConfiguration,
@@ -18,9 +14,11 @@ from aiortc import (
     RTCSessionDescription,
     RTCStatsReport,
 )
-
 from aiortc.contrib.media import MediaPlayer
+from logger import rootLogger, debugLogger, errorLogger
+from channel import Channel
 
+# File descriptors to communicate with the Node.js process
 READ_FD = 3
 WRITE_FD = 4
 
@@ -36,7 +34,7 @@ class Handler(AsyncIOEventEmitter):
 
         @self._pc.on("track")
         def on_track(track):
-            print("receiving track [kind:%s, id:%s]" % (track.kind, track.id))
+            debugLogger.debug("ontrack [kind:%s, id:%s]" % (track.kind, track.id))
             # store transceiver in the dictionary
             for transceiver in self._pc.getTransceivers():
                 if transceiver.receiver._track is not None:
@@ -45,19 +43,19 @@ class Handler(AsyncIOEventEmitter):
 
         @self._pc.on("iceconnectionstatechange")
         async def on_iceconnectionstatechange():
-            print("iceconnectionstatechange [state:%s]" %
+            debugLogger.debug("iceconnectionstatechange [state:%s]" %
                   self._pc.iceConnectionState)
             self.emit("iceconnectionstatechange", self._pc.iceConnectionState)
 
         @self._pc.on("icegatheringstatechange")
         async def on_icegatheringstatechange():
-            print("icegatheringstatechange [state:%s]" %
+            debugLogger.debug("icegatheringstatechange [state:%s]" %
                   self._pc.iceGatheringState)
             self.emit("icegatheringstatechange", self._pc.iceGatheringState)
 
         @self._pc.on("signalingstatechange")
         async def on_signalingstatechange():
-            print("signalingstatechange [state:%s]" % self._pc.signalingState)
+            debugLogger.debug("signalingstatechange [state:%s]" % self._pc.signalingState)
             self.emit("signalingstatechange", self._pc.signalingState)
 
     async def close(self) -> None:
@@ -126,7 +124,7 @@ class Handler(AsyncIOEventEmitter):
         # except KeyError:
         #     raise Exception("no transceiver for the given trackId: '%s'" % trackId)
 
-        print("enabling track not implemented")
+        errorLogger.warning("enabling track not implemented")
 
     def disableTrack(self, trackId: str) -> None:
         # try:
@@ -134,7 +132,7 @@ class Handler(AsyncIOEventEmitter):
         # except KeyError:
         #     raise Exception("no transceiver for the given trackId: '%s'" % trackId)
 
-        print("disabling track not implemented")
+        errorLogger.warning("disabling track not implemented")
 
     async def getTransportStats(self) -> Dict[str, Any]:
         statsJson = {}
@@ -408,7 +406,7 @@ async def run(channel, handler) -> None:
             Check data object
             """
             if request.data is None:
-                print("missing 'data' field in request")
+                errorLogger.error("missing 'data' field in request")
                 return
 
             data = request.data
@@ -427,7 +425,7 @@ async def run(channel, handler) -> None:
             Check data object
             """
             if request.data is None:
-                print("missing 'data' field in request")
+                errorLogger.error("missing 'data' field in request")
                 return
 
             data = request.data
@@ -446,7 +444,7 @@ async def run(channel, handler) -> None:
             Check data object
             """
             if request.data is None:
-                print("missing 'data' field in request")
+                errorLogger.error("missing 'data' field in request")
                 return
 
             data = request.data
@@ -487,7 +485,7 @@ async def run(channel, handler) -> None:
             Check data object
             """
             if request.data is None:
-                print("missing 'data' field in request")
+                errorLogger.error("missing 'data' field in request")
                 return
 
             data = request.data
@@ -513,7 +511,7 @@ async def run(channel, handler) -> None:
             Check data object
             """
             if request.data is None:
-                print("missing 'data' field in request")
+                errorLogger.error("missing 'data' field in request")
                 return
 
             data = request.data
@@ -532,7 +530,7 @@ async def run(channel, handler) -> None:
             Check data object
             """
             if request.data is None:
-                print("missing 'data' field in request")
+                errorLogger.error("missing 'data' field in request")
                 return
 
             data = request.data
@@ -547,7 +545,7 @@ async def run(channel, handler) -> None:
                 await request.failed(error)
 
         else:
-            print("unknown method received: %s" % request.method)
+            errorLogger.error("unknown method received: %s" % request.method)
 
     async def processNotification(notification: Notification) -> None:
         if notification.event == "enableTrack":
@@ -555,36 +553,36 @@ async def run(channel, handler) -> None:
             Check data object
             """
             if notification.data is None:
-                print("missing 'data' field in notification")
+                errorLogger.error("missing 'data' field in notification")
                 return
 
             data = notification.data
             if "trackId" not in data:
-                print("missing 'trackId' field in notification data")
+                errorLogger.error("missing 'trackId' field in notification data")
                 return
 
             try:
                 handler.enableTrack(data["trackId"])
             except Exception as error:
-                print("enableTrack() failed: %s" % error)
+                errorLogger.error("enableTrack() failed: %s" % error)
 
         elif notification.event == "disableTrack":
             """
             Check data object
             """
             if notification.data is None:
-                print("missing 'data' field in notification")
+                errorLogger.error("missing 'data' field in notification")
                 return
 
             data = notification.data
             if "trackId" not in data:
-                print("missing 'trackId' field in notification data")
+                errorLogger.error("missing 'trackId' field in notification data")
                 return
 
             try:
                 handler.disableTrack(data["trackId"])
             except Exception as error:
-                print("disableTrack() failed: %s" % error)
+                errorLogger.error("disableTrack() failed: %s" % error)
 
     # tell the Node process that we are running
     await channel.notify(getpid(), "running")
@@ -612,13 +610,15 @@ if __name__ == "__main__":
                         help="RTCConfiguration string")
     args = parser.parse_args()
 
-    print("starting mediasoup-client aiortc worker")
-
     """
     Argument handling
     """
     if args.logLevel and args.logLevel != "none":
-        logging.basicConfig(level=args.logLevel.upper())
+        rootLogger.setLevel(args.logLevel.upper())
+        debugLogger.setLevel(args.logLevel.upper())
+        errorLogger.setLevel(args.logLevel.upper())
+
+    debugLogger.debug("starting mediasoup-client aiortc worker")
 
     # use RTCConfiguration if given
     rtcConfiguration = None
@@ -638,8 +638,8 @@ if __name__ == "__main__":
     try:
         handler = Handler(channel, rtcConfiguration)
     except Exception as error:
-        print("invalid RTCConfiguration: %s" % error)
-        exit(42)
+        debugLogger.error("invalid RTCConfiguration: %s" % error)
+        sys.exit(42)
 
     """
     Signal handling

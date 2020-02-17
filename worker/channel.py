@@ -1,10 +1,10 @@
 import asyncio
 import json
 import socket
+import pynetstring
 from asyncio import StreamReader, StreamWriter
 from typing import Any, Dict, Optional
-
-import pynetstring
+from logger import debugLogger, errorLogger
 
 
 def object_from_string(message_str) -> Optional[Dict[str, Any]]:
@@ -13,14 +13,14 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
         if "id" in message:
             return message
         else:
-            print("invalid messsage, missing 'method' and 'event' fields")
+            errorLogger.error("invalid messsage, missing 'method' and 'event' fields")
             return None
 
     elif "event" in message:
         return message
 
     else:
-        print("invalid messsage, missing 'method' and 'event' fields")
+        errorLogger.error("invalid messsage, missing 'method' and 'event' fields")
         return None
 
 

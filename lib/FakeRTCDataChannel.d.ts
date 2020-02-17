@@ -50,5 +50,6 @@ export declare class FakeRTCDataChannel extends EventTarget implements RTCDataCh
      * We extend the definition of send() to allow Node Buffer.
      */
     send(data: string | Blob | ArrayBuffer | ArrayBufferView | Buffer): void;
+    private _handleWorkerNotifications;
 }
 //# sourceMappingURL=FakeRTCDataChannel.d.ts.map

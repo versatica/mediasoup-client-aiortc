@@ -73,6 +73,8 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 		this._maxRetransmits = maxRetransmits;
 		this._label = label;
 		this._protocol = protocol;
+
+		this._handleWorkerNotifications();
 	}
 
 	get id(): number
@@ -129,7 +131,8 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	{
 		this._bufferedAmountLowThreshold = value;
 
-		// TODO: Let's see if aiortc implements this.
+		this._channel.notify(
+			'datachannel.setBufferedAmountLowThreshold', this._internal, value);
 	}
 
 	get binaryType(): string
@@ -141,9 +144,13 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	{
 		this._binaryType = value;
 
-		// TODO: Let's see if aiortc implements this.
+		// TODO: Let's see how to deal with this. aiortc does not implement this
+		// since this just makes sense in JS. We should use this setting when
+		// 'message' event is fired (we should generate a "Blob" if "blob" and an
+		// ArrayBuffer if "arraybuffer").
 	}
 
+	// NOTE: Deprecated in the spec but required by RTCDataChannel TS definition.
 	get priority(): RTCPriorityType
 	{
 		return this._priority;
@@ -156,12 +163,13 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 
 	close(): void
 	{
-		// NOTE: We do not use readyState 'closing'.
-
 		if ([ 'closing', 'closed' ].includes(this._readyState))
 			return;
 
 		this._readyState = 'closed';
+
+		// Remove notification subscriptions.
+		this._channel.removeAllListeners(this._internal.dataChannelId);
 
 		this._channel.notify('datachannel.close', this._internal);
 	}
@@ -177,23 +185,71 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 		this._channel.notify('datachannel.send', this._internal, data);
 	}
 
-	// TODO: Not here!
-	// Dispatch 'bufferedamountlow' if needed.
-	// if (
-	// 	!this._bufferedamountlowFired &&
-	// 	this._bufferedAmount < this._bufferedAmountLowThreshold
-	// )
-	// {
-	// 	this._bufferedamountlowFired = true;
-	// 	this.dispatchEvent({ type: 'bufferedamountlow' });
-	// }
-	// else if (
-	// 	this._bufferedamountlowFired &&
-	// 	this._bufferedAmount >= this._bufferedAmountLowThreshold
-	// )
-	// {
-	// 	this._bufferedamountlowFired = false;
-	// }
+	private _handleWorkerNotifications(): void
+	{
+		this._channel.on(this._internal.dataChannelId, (event: string, data?: any) =>
+		{
+			switch (event)
+			{
+				case 'open':
+				{
+					this._readyState = 'open';
+
+					this.dispatchEvent({ type: 'open' });
+
+					break;
+				}
+
+				case 'closing':
+				case 'close':
+				{
+					if (this._readyState === 'closed')
+						break;
+
+					this._readyState = 'closed';
+
+					// Remove notification subscriptions.
+					this._channel.removeAllListeners(this._internal.dataChannelId);
+
+					this.dispatchEvent({ type: 'close' });
+
+					break;
+				}
+
+				case 'message':
+				{
+					// TODO: Must handle binary messages and produce a Blob or an
+					// ArrayBuffer depending on this._binaryType.
+
+					this.dispatchEvent({ type: 'message', data });
+
+					break;
+				}
+
+				case 'bufferedamountlow':
+				{
+					this.dispatchEvent({ type: 'bufferedamountlow' });
+
+					break;
+				}
+
+				case 'error':
+				{
+					// NOTE: aiortc does not emit 'error'. In theory this should be a
+					// RTCErrorEvent, but anyway.
+
+					this.dispatchEvent({ type: 'error' });
+
+					break;
+				}
+
+				default:
+				{
+					logger.error('ignoring unknown event "%s"', event);
+				}
+			}
+		});
+	}
 }
 
 // Define EventTarget properties.
