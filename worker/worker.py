@@ -4,7 +4,7 @@ import json
 import signal
 import sys
 from os import getpid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from pyee import AsyncIOEventEmitter
 from aiortc import (
     MediaStreamTrack,
@@ -77,7 +77,7 @@ class Handler(AsyncIOEventEmitter):
         await pc.close()
         return offer.sdp
 
-    def getLocalDescription(self) -> RTCSessionDescription:
+    def getLocalDescription(self) -> Union[RTCSessionDescription, None]:
         return self._pc.localDescription
 
     def addTrack(self, kind: str, sourceType: str, sourceValue: Optional[str]) -> str:
@@ -362,12 +362,11 @@ async def run(channel, handler) -> None:
             try:
                 localDescription = handler.getLocalDescription()
 
+                result = None
                 if (localDescription is not None):
                     result = {}
                     result["type"] = localDescription.type
                     result["sdp"] = localDescription.sdp
-                else:
-                    result = None
 
                 await request.succeed(result)
             except Exception as error:
