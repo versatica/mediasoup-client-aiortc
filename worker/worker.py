@@ -151,7 +151,7 @@ class Handler(AsyncIOEventEmitter):
     ) -> Any:
         dataChannel = self._pc.createDataChannel(
             label=label,
-            # maxRetransmits=maxRetransmits,
+            maxRetransmits=maxRetransmits,
             maxPacketLifeTime=maxPacketLifeTime,
             ordered=ordered,
             protocol=protocol,
