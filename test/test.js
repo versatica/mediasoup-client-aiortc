@@ -17,7 +17,23 @@ test('mediasoup-client-aiortc exposes a version property', () =>
 
 test('create a worker and getState() returns "connecting" right away', async () =>
 {
-	worker = new Worker({ logLevel: 'debug' });
+	worker = new Worker(
+		{
+			logLevel         : 'debug',
+			rtcConfiguration : { iceServers: [] }
+		});
+
+	expect(worker.getState()).toBe('connecting');
+	worker.close();
+
+	worker = new Worker(
+		{
+			logLevel         : 'debug',
+			rtcConfiguration :
+			{
+				iceServers : [ { urls: [ 'stun:foo.com' ] } ]
+			}
+		});
 
 	expect(worker.getState()).toBe('connecting');
 	worker.close();
@@ -25,7 +41,11 @@ test('create a worker and getState() returns "connecting" right away', async () 
 
 test('create a worker and emits "open" once connected', async () =>
 {
-	worker = new Worker({ logLevel: 'debug' });
+	worker = new Worker(
+		{
+			logLevel         : 'debug',
+			rtcConfiguration : { iceServers: [] }
+		});
 
 	await new Promise((resolve) => worker.once('open', resolve));
 

@@ -9,6 +9,7 @@ from pyee import AsyncIOEventEmitter
 from aiortc import (
     MediaStreamTrack,
     RTCConfiguration,
+    RTCIceServer,
     RTCDataChannel,
     RTCPeerConnection,
     RTCRtpTransceiver,
@@ -28,6 +29,7 @@ WRITE_FD = 4
 class Handler(AsyncIOEventEmitter):
     def __init__(self, channel: Channel, configuration: Optional[RTCConfiguration] = None) -> None:
         super().__init__()
+
         self._pc = RTCPeerConnection(configuration or None)
         self._channel = channel
         # dictionary of transceivers mapped by track id
@@ -798,8 +800,20 @@ if __name__ == "__main__":
 
     # use RTCConfiguration if given
     rtcConfiguration = None
+
     if args.rtcConfiguration:
-        rtcConfiguration = args.rtcConfiguration
+        jsonRtcConfiguration = json.loads(args.rtcConfiguration)
+        if "iceServers" in jsonRtcConfiguration:
+            iceServers = []
+            for entry in jsonRtcConfiguration["iceServers"]:
+                iceServer = RTCIceServer(
+                    urls=entry["urls"] if "urls" in entry else None,
+                    username=entry["username"] if "username" in entry else None,
+                    credential=entry["credential"] if "credential" in entry else None,
+                    credentialType=entry["credentialType"] if "credentialType" in entry else None)
+                iceServers.append(iceServer)
+            rtcConfiguration = RTCConfiguration(iceServers)
+
 
     """
     Initialization
