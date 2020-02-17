@@ -70,7 +70,7 @@ export class Worker extends EnhancedEventEmitter
 		if (logLevel)
 			spawnArgs.push(`--logLevel=${logLevel}`);
 
-		if (rtcConfiguration)
+		if (rtcConfiguration && Array.isArray(rtcConfiguration.iceServers))
 			spawnArgs.push(`--rtcConfiguration=${JSON.stringify(rtcConfiguration)}`);
 
 		logger.debug(
