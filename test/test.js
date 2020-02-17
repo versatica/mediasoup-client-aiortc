@@ -25,7 +25,7 @@ test('create a worker and getState() returns "connecting" right away', async () 
 
 test('create a worker and emits "open" once connected', async () =>
 {
-	worker = new Worker();
+	worker = new Worker({ logLevel: 'debug' });
 
 	await new Promise((resolve) => worker.once('open', resolve));
 
