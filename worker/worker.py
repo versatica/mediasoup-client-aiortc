@@ -814,7 +814,6 @@ if __name__ == "__main__":
                 iceServers.append(iceServer)
             rtcConfiguration = RTCConfiguration(iceServers)
 
-
     """
     Initialization
     """
