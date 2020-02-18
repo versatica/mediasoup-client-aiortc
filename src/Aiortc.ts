@@ -496,7 +496,7 @@ export class Aiortc extends HandlerInterface
 
 		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-		const localId = String(this._mapLocalIdTracks.size);
+		const localId = String(this._mapLocalIdMid.size);
 		const mid = localId;
 
 		this._remoteSdp.receive(
@@ -535,8 +535,10 @@ export class Aiortc extends HandlerInterface
 			sdp  : sdpTransform.write(localSdpObject)
 		} as RTCSessionDescription;
 
+		// NOTE: This should be localDtlsRole: 'client'. However aiortc fails to honor
+		// given DTLS role and assumes it must always be 'server'.
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
 
 		logger.debug(
 			'receive() | calling worker.setLocalDescription() [answer:%o]',
