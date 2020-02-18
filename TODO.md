@@ -5,6 +5,44 @@
 * Fill `README.md`.
 
 * Why is there a `Handler` class in `worker.py` and why does requests and notifications call `handler.xxx()` instead of directly doing the stuff? Do we really need such a `Handler` class and `handler` singleton?
+  - __main__ creates a `Channel` (instance) and a `Handler` (instance) and calls `run(channel, handler)`. `run` is just responsible of receiving requests, checking the requests arguments, calling corresponding `Handler` instance, retrieving the result of the method and sending back to the channel. I find good reason for having `Handler` and `Channel` clases.
+
+* Internal track ID does not correspond with track ID in remote offer:
+
+
+```txt
+The following SDP of type 'offer' is set via pc.setRemoteDescription()
+
+v=0
+o=mediasoup-client 10000 1 IN IP4 0.0.0.0
+s=-
+t=0 0
+a=ice-lite
+a=fingerprint:sha-256 A9:46:9A:9A:C2:F4:6B:CB:EC:DD:9F:0B:BF:00:A7:A9:76:59:3E:EB:16:A4:A6:D9:40:1A:BE:DC:71:85:71:04
+a=msid-semantic: WMS *
+a=group:BUNDLE 0
+m=audio 7 UDP/TLS/RTP/SAVPF 100
+c=IN IP4 127.0.0.1
+a=rtpmap:100 opus/48000/2
+a=fmtp:100 minptime=10;useinbandfec=1;sprop-stereo=1;usedtx=1
+a=extmap:4 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+a=setup:actpass
+a=mid:0
+a=msid:YeZ9atr3+L+AdIqE 19fe488f-c936-4ae3-91b6-3947ee95ae4f
+a=sendonly
+a=ice-ufrag:4apu7crrnycj2cpr
+a=ice-pwd:lz2j0tcwk71obtusaszklel15w690e3h
+a=candidate:udpcandidate 1 udp 1076302079 10.0.0.1 40029 typ host
+a=end-of-candidates
+a=ice-options:renomination
+a=ssrc:963935251 cname:YeZ9atr3+L+AdIqE
+a=rtcp-mux
+a=rtcp-rsize
+
+As a result, pc "track" event is fired with the following information:
+
+ontrack [kind:audio, id:1ba7eef1-022f-469f-9ce0-f0d6bad91ba5]
+```
 
 * DataChannel.
   - No "error" event implemented in aiortc.
