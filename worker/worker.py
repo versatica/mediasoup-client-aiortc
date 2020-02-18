@@ -39,25 +39,22 @@ class Handler(AsyncIOEventEmitter):
 
         @self._pc.on("track")
         def on_track(track):
-            debugLogger.debug("ontrack [kind:%s, id:%s]" %
-                              (track.kind, track.id))
+            debugLogger.debug(f"ontrack [kind:{track.kind}, id:{track.id}]")
 
         @self._pc.on("iceconnectionstatechange")
         async def on_iceconnectionstatechange():
-            debugLogger.debug("iceconnectionstatechange [state:%s]" %
-                              self._pc.iceConnectionState)
+            debugLogger.debug(f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]")
             self.emit("iceconnectionstatechange", self._pc.iceConnectionState)
 
         @self._pc.on("icegatheringstatechange")
         async def on_icegatheringstatechange():
-            debugLogger.debug("icegatheringstatechange [state:%s]" %
-                              self._pc.iceGatheringState)
+            debugLogger.debug(f"icegatheringstatechange [state:{self._pc.iceGatheringState}]")
             self.emit("icegatheringstatechange", self._pc.iceGatheringState)
 
         @self._pc.on("signalingstatechange")
         async def on_signalingstatechange():
             debugLogger.debug(
-                "signalingstatechange [state:%s]" % self._pc.signalingState)
+                f"signalingstatechange [state:{self._pc.signalingState}]")
             self.emit("signalingstatechange", self._pc.signalingState)
 
     async def close(self) -> None:
@@ -660,7 +657,7 @@ async def run(channel, handler) -> None:
                 await request.failed(error)
 
         else:
-            errorLogger.error("unknown method received: %s" % request.method)
+            errorLogger.error(f"unknown method received: '{request.method}'")
 
     async def processNotification(notification: Notification) -> None:
         if notification.event == "enableTrack":
@@ -680,7 +677,7 @@ async def run(channel, handler) -> None:
             try:
                 handler.enableTrack(data["trackId"])
             except Exception as error:
-                errorLogger.error("enableTrack() failed: %s" % error)
+                errorLogger.error(f"enableTrack() failed: {error}")
 
         elif notification.event == "disableTrack":
             """
@@ -699,7 +696,7 @@ async def run(channel, handler) -> None:
             try:
                 handler.disableTrack(data["trackId"])
             except Exception as error:
-                errorLogger.error("disableTrack() failed: %s" % error)
+                errorLogger.error(f"disableTrack() failed: {error}")
 
         elif notification.event == "datachannel.send":
             """
@@ -719,7 +716,7 @@ async def run(channel, handler) -> None:
             try:
                 handler.send(internal["dataChannelId"], data)
             except Exception as error:
-                errorLogger.error("datachannel.send() failed: %s" % error)
+                errorLogger.error(f"datachannel.send() failed: {error}")
 
         elif notification.event == "datachannel.close":
             """
@@ -734,7 +731,7 @@ async def run(channel, handler) -> None:
             try:
                 handler.closeDataChannel(internal["dataChannelId"])
             except Exception as error:
-                errorLogger.error("datachannel.close() failed: %s" % error)
+                errorLogger.error(f"datachannel.close() failed: {error}")
 
         elif notification.event == "datachannel.setBufferedAmountLowThreshold":
             """
@@ -755,7 +752,7 @@ async def run(channel, handler) -> None:
                 handler.setBufferedAmountLowThreshold(
                     internal["dataChannelId"], value)
             except Exception as error:
-                errorLogger.error("datachannel.close() failed: %s" % error)
+                errorLogger.error(f"datachannel.close() failed: {error}")
 
     # tell the Node process that we are running
     await channel.notify(getpid(), "running")
@@ -824,7 +821,7 @@ if __name__ == "__main__":
     try:
         handler = Handler(channel, rtcConfiguration)
     except Exception as error:
-        debugLogger.error("invalid RTCConfiguration: %s" % error)
+        debugLogger.error(f"invalid RTCConfiguration: {error}")
         sys.exit(42)
 
     """
