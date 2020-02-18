@@ -243,6 +243,8 @@ class Handler(AsyncIOEventEmitter):
                 statsJson[key] = self._serializeOutboundStats(stats[key])
             elif type == "remote-inbound-rtp":
                 statsJson[key] = self._serializeRemoteInboundStats(stats[key])
+            elif type == "transport":
+                statsJson[key] = self._serializeTransportStats(stats[key])
 
         return statsJson
 
@@ -262,6 +264,8 @@ class Handler(AsyncIOEventEmitter):
                 statsJson[key] = self._serializeInboundStats(stats[key])
             elif type == "remote-outbound-rtp":
                 statsJson[key] = self._serializeRemoteOutboundStats(stats[key])
+            elif type == "transport":
+                statsJson[key] = self._serializeTransportStats(stats[key])
 
         return statsJson
 
