@@ -84,46 +84,42 @@ Determines which source **aiortc** will use to generate the audio or video track
 
 Provides detailed information depending on `sourceType`:
 
-* For "device" `sourceType`, `sourceValue` specifies the device ID of the microphone or webcam to use. If unset, the default one in the system will be used.
-	- Default values for `Darwin` platform
-		 - "none:0" for "audio" `kind`
-		 - "default:none" for "video" `kind`
+* For "device" `sourceType`, `sourceValue` is optional and, if given, specifies the device ID of the microphone or webcam to use. If unset, the default one in the system will be used.
+  - Default values for `Darwin` platform:
+  - "none:0" for "audio" `kind`.
+     - "default:none" for "video" `kind`.
 
-	- Default values for `Linux` platform
-		 - "hw:0" for "audio" `kind`
-		 - "/dev/video0" for "video" `kind`
+  - Default values for `Linux` platform:
+    - "hw:0" for "audio" `kind`.
+    - "/dev/video0" for "video" `kind`.
 
 * For "file" `sourceType`, `sourceValue` must be the absolute path to a multimedia file.
 
 * For "url" `sourceType`, `sourceValue` must be the URL of an HTTP stream.
 
-#### track.data.format (optional)
+#### `track.data.format` (optional)
 
-Valid for "device" `sourceType`.
+Valid for "device" `sourceType`. Specifies the device format used by ffmpeg.
 
-Specifies the device format used by ffmpeg.
+* Default values for **Darwin** platform:
+  - "avfoundation" for "audio" `kind`.
+  - "avfoundation" for "video" `kind`.
 
-* Default values for **Darwin** platform
-   - "avfoundation" for "audio" `kind`
-   - "avfoundation" for "video" `kind`
+* Default values for **Linux** platform:
+  - "alsa" for "audio" `kind`.
+  - "v4f2" for "video" `kind`.
 
-* Default values for **Linux** platform
-   - "alsa" for "audio" `kind`
-   - "v4f2" for "video" `kind`
+#### `track.data.options` (optional)
 
-#### track.data.options (optional)
+Valid for "device" `sourceType`. Specifies the device options used by ffmpeg.
 
-Valid for "device" `sourceType`.
+* Default values for **Darwin** platform:
+  - `{}` for "audio" `kind`.
+  - `{"framerate": "30", "video_size": "640x480"}` for "video" `kind`.
 
-Specifies the device options used by ffmpeg.
-
-* Default values for **Darwin** platform
-   - {} for "audio" `kind`
-   - {"framerate": "30", "video_size": "640x480"} for "video" `kind`
-
-* Default values for **Linux** platform
-   - {} for "audio" `kind`
-   - {"framerate": "30", "video_size": "640x480"} for "video" `kind`
+* Default values for **Linux** platform:
+  - `{}` for "audio" `kind`.
+  - `{"framerate": "30", "video_size": "640x480"}` for "video" `kind`.
 
 ```javascript
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
