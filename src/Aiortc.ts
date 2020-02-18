@@ -535,8 +535,8 @@ export class Aiortc extends HandlerInterface
 			sdp  : sdpTransform.write(localSdpObject)
 		} as RTCSessionDescription;
 
-		// NOTE: This should be localDtlsRole: 'client'. However aiortc fails to honor
-		// given DTLS role and assumes it must always be 'server'.
+		// NOTE: This should be localDtlsRole: 'client'. However aiortc fails to
+		// honor given DTLS role and assumes it must always be 'server'.
 		if (!this._transportReady)
 			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
 
@@ -612,11 +612,68 @@ export class Aiortc extends HandlerInterface
 	}
 
 	async receiveDataChannel(
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		options: HandlerReceiveDataChannelOptions
+		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
-		throw new UnsupportedError('not implemented');
+		this._assertRecvDirection();
+
+		const {
+			streamId,
+			ordered,
+			maxPacketLifeTime,
+			maxRetransmits
+		}: SctpStreamParameters = sctpStreamParameters;
+
+		const options =
+		{
+			negotiated : true,
+			streamId,
+			ordered,
+			maxPacketLifeTime,
+			maxRetransmits,
+			label,
+			protocol
+		};
+
+		logger.debug('receiveDataChannel() [options:%o]', options);
+
+		const dataChannel = await this._worker.createDataChannel(options);
+
+		// If this is the first DataChannel we need to create the SDP offer with
+		// m=application section.
+		if (!this._hasDataChannelMediaSection)
+		{
+			this._remoteSdp.receiveSctpAssociation();
+
+			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+
+			logger.debug(
+				'receiveDataChannel() | calling worker.setRemoteDescription() [offer:%o]',
+				offer);
+
+			await this._worker.setRemoteDescription(offer as RTCSessionDescription);
+
+			const answer = await this._worker.createAnswer();
+
+			if (!this._transportReady)
+			{
+				const localSdpObject = sdpTransform.parse(answer.sdp);
+
+				// NOTE: This should be localDtlsRole: 'client'. However aiortc fails to
+				// honor given DTLS role and assumes it must always be 'server'.
+				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+			}
+
+			logger.debug(
+				'receiveDataChannel() | calling worker.setRemoteDescription() [answer:%o]',
+				answer);
+
+			await this._worker.setLocalDescription(answer);
+
+			this._hasDataChannelMediaSection = true;
+		}
+
+		return { dataChannel };
 	}
 
 	private async _setupTransport(

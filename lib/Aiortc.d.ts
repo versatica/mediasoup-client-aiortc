@@ -40,7 +40,7 @@ export declare class Aiortc extends HandlerInterface {
     receive({ trackId, kind, rtpParameters }: HandlerReceiveOptions): Promise<HandlerReceiveResult>;
     stopReceiving(localId: string): Promise<void>;
     getReceiverStats(localId: string): Promise<FakeRTCStatsReport>;
-    receiveDataChannel(options: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
+    receiveDataChannel({ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions): Promise<HandlerReceiveDataChannelResult>;
     private _setupTransport;
     private _assertSendDirection;
     private _assertRecvDirection;
