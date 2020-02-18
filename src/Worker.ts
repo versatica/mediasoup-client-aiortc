@@ -397,10 +397,13 @@ export class Worker extends EnhancedEventEmitter
 		return new FakeRTCStatsReport(data);
 	}
 
-	async getReceiverStats(trackId: string): Promise<FakeRTCStatsReport>
+	async getReceiverStats(mid: string): Promise<FakeRTCStatsReport>
 	{
 		const data =
-			await this._channel.request('getReceiverStats', undefined, { trackId });
+			await this._channel.request('getReceiverStats', undefined, { mid });
+
+		if (!data)
+			throw new Error(`no stats for mid '${mid}'`);
 
 		return new FakeRTCStatsReport(data);
 	}

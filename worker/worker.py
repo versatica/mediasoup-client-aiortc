@@ -41,11 +41,6 @@ class Handler(AsyncIOEventEmitter):
         def on_track(track):
             debugLogger.debug("ontrack [kind:%s, id:%s]" %
                               (track.kind, track.id))
-            # store transceiver in the dictionary
-            for transceiver in self._pc.getTransceivers():
-                if transceiver.receiver._track is not None:
-                    if transceiver.receiver._track.id == track.id:
-                        self._transceivers[track.id] = transceiver
 
         @self._pc.on("iceconnectionstatechange")
         async def on_iceconnectionstatechange():
@@ -254,12 +249,12 @@ class Handler(AsyncIOEventEmitter):
 
         return statsJson
 
-    async def getReceiverStats(self, trackId: str) -> Dict[str, Any]:
-        try:
-            transceiver = self._transceivers[trackId]
-        except KeyError:
+    async def getReceiverStats(self, mid: str) -> Dict[str, Any]:
+        transceiver = self._getTransceiverByMid(mid)
+
+        if transceiver is None:
             raise Exception(
-                "no transceiver for the given trackId: '%s'" % trackId)
+                "no transceiver for the given mid: '%s'" % mid)
 
         receiver = transceiver.receiver
         statsJson = {}
@@ -267,15 +262,18 @@ class Handler(AsyncIOEventEmitter):
         for key in stats:
             type = stats[key].type
             if type == "inbound-rtp":
-                statsJson[key] = self._serializeOutboundStats(stats[key])
+                statsJson[key] = self._serializeInboundStats(stats[key])
             elif type == "remote-outbound-rtp":
-                statsJson[key] = self._serializeRemoteInboundStats(stats[key])
+                statsJson[key] = self._serializeRemoteOutboundStats(stats[key])
 
         return statsJson
 
     """
     Helper functions
     """
+
+    def _getTransceiverByMid(self, mid: str) -> Optional[RTCRtpTransceiver]:
+        return next(filter(lambda x: x.mid == mid, self._pc.getTransceivers()), None)
 
     def _serializeInboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
@@ -342,7 +340,6 @@ class Handler(AsyncIOEventEmitter):
             # RTCSentRtpStreamStats
             "packetsSent": stats.packetsSent,
             "bytesSent": stats.bytesSent,
-            "jitter": stats.jitter,
             # RTCRemoteOutboundRtpStreamStats
             "remoteTimestamp": stats.remoteTimestamp.timestamp(),
         }
@@ -652,12 +649,12 @@ async def run(channel, handler) -> None:
                 return
 
             data = request.data
-            if "trackId" not in data:
-                await request.failed(TypeError("missing 'trackId' field in request data"))
+            if "mid" not in data:
+                await request.failed(TypeError("missing 'mid' field in request data"))
                 return
 
             try:
-                stats = await handler.getReceiverStats(data["trackId"])
+                stats = await handler.getReceiverStats(data["mid"])
                 await request.succeed(stats)
             except Exception as error:
                 await request.failed(error)
