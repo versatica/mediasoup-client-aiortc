@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import json
+import platform
 import signal
 import sys
 from os import getpid
@@ -77,8 +78,14 @@ class Handler(AsyncIOEventEmitter):
     def getLocalDescription(self) -> Union[RTCSessionDescription, None]:
         return self._pc.localDescription
 
-    def addTrack(self, kind: str, sourceType: str, sourceValue: Optional[str]) -> str:
-        track = self._getTrack(kind, sourceType, sourceValue)
+    def addTrack(
+            self,
+            kind: str,
+            sourceType: str,
+            sourceValue: Optional[str],
+            format: Optional[str],
+            options: Optional[Any]) -> str:
+        track = self._getTrack(kind, sourceType, sourceValue, format, options)
         transceiver = self._pc.addTransceiver(track)
         # store transceiver in the dictionary
         self._transceivers[track.id] = transceiver
@@ -360,17 +367,60 @@ class Handler(AsyncIOEventEmitter):
             "dtlsState": stats.dtlsState,
         }
 
-    # TODO: complete.
-    def _getTrack(self, kind: str, sourceType: str, sourceValue: Optional[str]) -> MediaStreamTrack:
-        # check for other OS: https://aiortc.readthedocs.io/en/latest/helpers.html
-        if (kind == "audio"):
-            player = MediaPlayer("none:0", format="avfoundation")
-            return player.audio
-        if (kind == "video"):
-            player = MediaPlayer("default:none", format="avfoundation", options={
-                "framerate": "30", "video_size": "640x480"
-            })
-            return player.video
+    def _getTrack(
+            self,
+            kind: str,
+            sourceType: str,
+            sourceValue: Optional[str],
+            format: Optional[str],
+            options: Optional[Any]) -> MediaStreamTrack:
+        if sourceType == "device":
+            system = platform.system()
+
+            if system == "Darwin":
+                if (kind == 'audio'):
+                    player = MediaPlayer(
+                        "none:0" if sourceValue is None else sourceValue,
+                        format="avfoundation" if format is None else format,
+                        options={} if options is None else options
+                    )
+                    return player.audio
+
+                elif (kind == 'video'):
+                    player = MediaPlayer(
+                        "default:none" if sourceValue is None else sourceValue,
+                        format="avfoundation" if format is None else format,
+                        options={
+                            "framerate": "30", "video_size": "640x480"
+                        } if options is None else options
+                    )
+                    return player.video
+
+            elif system == "Linux":
+                if (kind == 'audio'):
+                    player = MediaPlayer(
+                        "hw:0" if sourceValue is None else sourceValue,
+                        format="alsa" if format is None else format,
+                        options={} if options is None else options
+                    )
+                    return player.audio
+                elif (kind == 'video'):
+                    player = MediaPlayer(
+                        "/dev/video0" if sourceValue is None else sourceValue,
+                        format="v4l2",
+                        options={
+                            "framerate": "30", "video_size": "640x480"
+                        } if options is None else options
+                    )
+                    return player.video
+
+        elif sourceType == "file":
+            player = MediaPlayer(sourceValue)
+            return player.audio if kind == "audio" else player.video
+
+        elif sourceType == "url":
+            player = MediaPlayer(sourceValue)
+            return player.audio if kind == "audio" else player.video
 
 
 async def run(channel, handler) -> None:
@@ -471,12 +521,13 @@ async def run(channel, handler) -> None:
                 return
 
             try:
-                if "sourceValue" in data:
-                    trackId = handler.addTrack(
-                        data["kind"], data["sourceType"], data["sourceValue"])
-                else:
-                    trackId = handler.addTrack(
-                        data["kind"], data["sourceType"], None)
+                trackId = handler.addTrack(
+                    kind=data["kind"],
+                    sourceType=data["sourceType"],
+                    sourceValue=data["sourceValue"] if "sourceValue" in data else None,
+                    format=data["format"] if "format" in data else None,
+                    options=data["options"] if "options" in data else None
+                )
 
                 result = {}
                 result["trackId"] = trackId

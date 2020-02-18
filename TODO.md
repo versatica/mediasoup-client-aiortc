@@ -2,8 +2,6 @@
 
 ## mediasoup-client-aiortc
 
-* Implement different options for `sourceType` and `sourceValue` as documented in the README.
-
 * DataChannel.
   - No "error" event implemented in aiortc. OK.
   - We do not update `dc.bufferedAmount` in JS. We may notify its native value from Python to JS for each sent message, received message, 'bufferedamountlow' event, etc. 

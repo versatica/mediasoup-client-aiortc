@@ -254,12 +254,16 @@ export class Aiortc extends HandlerInterface
 			'send() [kind:%s, track.id:%s, track.data:%o]',
 			track.kind, track.id, (track as FakeMediaStreamTrack).data);
 
-		const { sourceType, sourceValue } = (track as FakeMediaStreamTrack).data;
+		const { sourceType, sourceValue, format, options } =
+			(track as FakeMediaStreamTrack).data;
+
 		const { trackId } = await this._worker.addTrack(
 			{
 				kind : track.kind as MediaKind,
 				sourceType,
-				sourceValue
+				sourceValue,
+				format,
+				options
 			} as WorkerSendOptions);
 		const localId = trackId;
 		let offer = await this._worker.createOffer();

@@ -34,6 +34,8 @@ export type WorkerSendOptions =
 	kind: MediaKind;
 	sourceType: 'device' | 'file' | 'url';
 	sourceValue?: string;
+	format?: string;
+	options?: any;
 }
 
 type WorkerSendResult =
