@@ -1,7 +1,7 @@
 {
   "name": "mediasoup-client-aiortc",
   "version": "3.0.0",
-  "description": "mediasoup-client handler for aiortc",
+  "description": "mediasoup-client handler for aiortc Python library",
   "contributors": [
     "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)",
     "Iñaki Baz Castillo <ibc@aliax.net> (https://inakibaz.me)"
