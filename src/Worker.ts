@@ -65,7 +65,7 @@ export class Worker extends EnhancedEventEmitter
 			'constructor() [rtcConfiguration:%o, logLevel:%o]',
 			rtcConfiguration, logLevel);
 
-		const spawnBin = process.env.PYTHON_PATH || 'python3';
+		const spawnBin = process.env.PYTHON3 || 'python3';
 		const spawnArgs: string[] = [];
 
 		spawnArgs.push('-u'); // Unbuffered stdio.

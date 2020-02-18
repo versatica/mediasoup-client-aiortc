@@ -67,6 +67,15 @@ switch (task)
 		break;
 	}
 
+	case 'postinstall':
+	{
+		const PYP3 = process.bin.PIP3 || 'pip3';
+
+		execute(`${PYP3} install worker/`);
+
+		break;
+	}
+
 	default:
 	{
 		throw new TypeError(`unknown task "${task}"`);

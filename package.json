@@ -18,6 +18,9 @@
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "os": [
+    "!win32"
+  ],
   "engines": {
     "node": ">=8.6.0"
   },
@@ -27,7 +30,8 @@
     "lint": "node npm-scripts.js lint",
     "lint:fix": "node npm-scripts.js lint:fix",
     "test": "node npm-scripts.js test",
-    "coverage": "node npm-scripts.js coverage"
+    "coverage": "node npm-scripts.js coverage",
+    "postinstall": "node npm-scripts.js postinstall"
   },
   "jest": {
     "verbose": true,
@@ -36,8 +40,6 @@
     "transformIgnorePatterns": []
   },
   "dependencies": {
-    "@types/uuid": "^3.4.7",
-    "debug": "^4.1.1",
     "event-target-shim": "^5.0.1",
     "fake-mediastreamtrack": "^1.1.2",
     "netstring": "^0.3.0",
@@ -46,6 +48,7 @@
   "devDependencies": {
     "@types/node": "^13.7.1",
     "@types/sdp-transform": "^2.4.1",
+    "@types/uuid": "^3.4.7",
     "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^2.20.0",
     "eslint": "^6.8.0",
