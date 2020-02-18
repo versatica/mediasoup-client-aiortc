@@ -69,7 +69,7 @@ switch (task)
 
 	case 'postinstall':
 	{
-		const PYP3 = process.bin.PIP3 || 'pip3';
+		const PYP3 = process.env.PIP3 || 'pip3';
 
 		execute(`${PYP3} install worker/`);
 
