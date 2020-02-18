@@ -389,10 +389,10 @@ export class Worker extends EnhancedEventEmitter
 		return new FakeRTCStatsReport(data);
 	}
 
-	async getSenderStats(trackId: string): Promise<FakeRTCStatsReport>
+	async getSenderStats(mid: string): Promise<FakeRTCStatsReport>
 	{
 		const data =
-			await this._channel.request('getSenderStats', undefined, { trackId });
+			await this._channel.request('getSenderStats', undefined, { mid });
 
 		return new FakeRTCStatsReport(data);
 	}
@@ -401,9 +401,6 @@ export class Worker extends EnhancedEventEmitter
 	{
 		const data =
 			await this._channel.request('getReceiverStats', undefined, { mid });
-
-		if (!data)
-			throw new Error(`no stats for mid '${mid}'`);
 
 		return new FakeRTCStatsReport(data);
 	}

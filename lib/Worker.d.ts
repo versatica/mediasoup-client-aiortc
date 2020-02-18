@@ -52,7 +52,7 @@ export declare class Worker extends EnhancedEventEmitter {
     disableTrack(trackId: string): void;
     createDataChannel(options: HandlerSendDataChannelOptions): Promise<FakeRTCDataChannel>;
     getTransportStats(): Promise<FakeRTCStatsReport>;
-    getSenderStats(trackId: string): Promise<FakeRTCStatsReport>;
+    getSenderStats(mid: string): Promise<FakeRTCStatsReport>;
     getReceiverStats(mid: string): Promise<FakeRTCStatsReport>;
     private _handleWorkerNotifications;
 }

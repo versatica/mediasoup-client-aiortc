@@ -409,7 +409,12 @@ export class Aiortc extends HandlerInterface
 		this._assertSendDirection();
 		this._waitForReady();
 
-		return this._worker.getSenderStats(localId);
+		const mid = this._mapLocalIdMid.get(localId);
+
+		if (!mid)
+			throw new Error('associated MID not found');
+
+		return this._worker.getSenderStats(mid);
 	}
 
 	async sendDataChannel(
@@ -608,7 +613,12 @@ export class Aiortc extends HandlerInterface
 		this._assertRecvDirection();
 		this._waitForReady();
 
-		return this._worker.getReceiverStats(localId);
+		const mid = this._mapLocalIdMid.get(localId);
+
+		if (!mid)
+			throw new Error('associated MID not found');
+
+		return this._worker.getReceiverStats(mid);
 	}
 
 	async receiveDataChannel(
