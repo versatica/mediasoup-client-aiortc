@@ -4,8 +4,6 @@
 
 * Fill `README.md`.
 
-* Move master to "v3" branch and delete "master" branch (and make "v3" the main branch in GitHub).
-
 * Why is there a `Handler` class in `worker.py` and why does requests and notifications call `handler.xxx()` instead of directly doing the stuff? Do we really need such a `Handler` class and `handler` singleton?
 
 * DataChannel.
