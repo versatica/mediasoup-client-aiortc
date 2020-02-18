@@ -11,6 +11,8 @@
   - Let's figure out how to deal with `binaryType` stuff (aiortc does not implement it since it just makes sense in JS).
   - Need DataChannel tests.
   
+* Integrate Python linter into `npm run lint`. So it must be in `npm-scripts.js` and must allow custom paths for the required Python executables via `env` (same as in "postinstall" task).
+
 
 ## aiortc
 

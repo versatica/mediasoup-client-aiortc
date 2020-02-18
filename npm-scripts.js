@@ -71,7 +71,7 @@ switch (task)
 	{
 		const PYP3 = process.env.PIP3 || 'pip3';
 
-		execute(`${PYP3} install worker/`);
+		execute(`${PYP3} install --user worker/`);
 
 		break;
 	}
