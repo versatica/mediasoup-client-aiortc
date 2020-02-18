@@ -227,12 +227,12 @@ class Handler(AsyncIOEventEmitter):
 
         return statsJson
 
-    async def getSenderStats(self, trackId: str) -> Dict[str, Any]:
-        try:
-            transceiver = self._transceivers[trackId]
-        except KeyError:
+    async def getSenderStats(self, mid: str) -> Dict[str, Any]:
+        transceiver = self._getTransceiverByMid(mid)
+
+        if transceiver is None:
             raise Exception(
-                "no transceiver for the given trackId: '%s'" % trackId)
+                "no transceiver for the given mid: '%s'" % mid)
 
         sender = transceiver.sender
         statsJson = {}
@@ -631,12 +631,12 @@ async def run(channel, handler) -> None:
                 return
 
             data = request.data
-            if "trackId" not in data:
-                await request.failed(TypeError("missing 'trackId' field in request data"))
+            if "mid" not in data:
+                await request.failed(TypeError("missing 'mid' field in request data"))
                 return
 
             try:
-                stats = await handler.getSenderStats(data["trackId"])
+                stats = await handler.getSenderStats(data["mid"])
                 await request.succeed(stats)
             except Exception as error:
                 await request.failed(error)
