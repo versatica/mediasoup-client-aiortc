@@ -98,7 +98,7 @@ class Channel:
         self._writer.write(data)
 
     # TODO: notify() should receive a Notification instance
-    async def notify(self, targetId: str, event: str, data=None):
+    async def notify(self, targetId: str, event: str, data=None) -> None:
         if data is not None:
             await self.send(
                 json.dumps({"targetId": targetId, "event": event, "data": data})

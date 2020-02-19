@@ -39,7 +39,7 @@ class Handler:
             Logger.debug(f"ontrack [kind:{track.kind}, id:{track.id}]")
 
         @self._pc.on("iceconnectionstatechange")
-        async def on_iceconnectionstatechange():
+        async def on_iceconnectionstatechange() -> None:
             Logger.debug(
                 f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]"
             )
@@ -48,7 +48,7 @@ class Handler:
             )
 
         @self._pc.on("icegatheringstatechange")
-        async def on_icegatheringstatechange():
+        async def on_icegatheringstatechange() -> None:
             Logger.debug(
                 f"icegatheringstatechange [state:{self._pc.iceGatheringState}]"
             )
@@ -57,7 +57,7 @@ class Handler:
             )
 
         @self._pc.on("signalingstatechange")
-        async def on_signalingstatechange():
+        async def on_signalingstatechange() -> None:
             Logger.debug(
                 f"signalingstatechange [state:{self._pc.signalingState}]"
             )
@@ -65,14 +65,15 @@ class Handler:
                 getpid(), "signalingstatechange", self._pc.signalingState
             )
 
-        async def periodic():
+        async def checkDataChannelsBufferedAmount() -> None:
             while True:
+                await asyncio.sleep(1)
                 for dataChannelId, dataChannel in self._dataChannels.items():
                     await self._channel.notify(dataChannelId, "bufferedamount", dataChannel.bufferedAmount)
 
-                await asyncio.sleep(1)
-
-        loop.create_task(periodic())
+        self._dataChannelsBufferedAmountTask = loop.create_task(
+            checkDataChannelsBufferedAmount()
+        )
 
     async def close(self) -> None:
         # stop tracks
@@ -96,6 +97,9 @@ class Handler:
 
         # close peerconnection
         await self._pc.close()
+
+        # stop the periodic task
+        self._dataChannelsBufferedAmountTask.cancel()
 
     async def processRequest(self, request: Request) -> Any:
         Logger.debug(f"processRequest() [method:{request.method}]")
@@ -272,15 +276,15 @@ class Handler:
             self._dataChannels[dataChannelId] = dataChannel
 
             @dataChannel.on("open")
-            async def on_open():
+            async def on_open() -> None:
                 await self._channel.notify(dataChannelId, "open")
 
             @dataChannel.on("closing")
-            async def on_closing():
+            async def on_closing() -> None:
                 await self._channel.notify(dataChannelId, "closing")
 
             @dataChannel.on("close")
-            async def on_close():
+            async def on_close() -> None:
                 # NOTE: After calling dataChannel.close() aiortc emits "close"event
                 # on the dataChannel. Probably it shouldn't do it. So caution.
                 try:
@@ -290,7 +294,7 @@ class Handler:
                     pass
 
             @dataChannel.on("message")
-            async def on_message(message):
+            async def on_message(message) -> None:
                 if isinstance(message, str):
                     await self._channel.notify(dataChannelId, "message", message)
                 if isinstance(message, bytes):
@@ -299,7 +303,7 @@ class Handler:
                         dataChannelId, "binary", str(message_bytes))
 
             @dataChannel.on("bufferedamountlow")
-            async def on_bufferedamountlow():
+            async def on_bufferedamountlow() -> None:
                 await self._channel.notify(dataChannelId, "bufferedamountlow")
 
             return {
