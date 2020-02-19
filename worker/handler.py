@@ -25,6 +25,10 @@ class Handler:
         self._transceivers = dict()  # type: Dict[str, RTCRtpTransceiver]
         # dictionary of dataChannelds mapped by internal id
         self._dataChannels = dict()  # type: Dict[str, RTCDataChannel]
+        # dictionary of file players mapped by path
+        self._filePlayers = dict()  # type: Dict[str, MediaPlayer]
+        # dictionary of URL players mapped by URL
+        self._urlPlayers = dict()  # type: Dict[str, MediaPlayer]
 
         @self._pc.on("track")
         def on_track(track):
@@ -60,6 +64,22 @@ class Handler:
         for sender in self._pc.getSenders():
             if sender.track is not None:
                 sender.track.stop()
+
+        # stop file players
+        for key, value in self._filePlayers.items():
+            player = value
+            if player.audio is not None:
+                player.audio.stop()
+            if player.video is not None:
+                player.video.stop()
+
+        # stop URL players
+        for key, value in self._urlPlayers.items():
+            player = value
+            if player.audio is not None:
+                player.audio.stop()
+            if player.video is not None:
+                player.video.stop()
 
         # close peerconnection
         await self._pc.close()
@@ -473,11 +493,25 @@ class Handler:
                     return player.video
 
         elif sourceType == "file":
-            player = MediaPlayer(sourceValue)
+            player = None
+
+            try:
+                player = self._filePlayers[sourceValue]
+            except KeyError:
+                player = MediaPlayer(sourceValue)
+                self._filePlayers[sourceValue] = player
+
             return player.audio if kind == "audio" else player.video
 
         elif sourceType == "url":
-            player = MediaPlayer(sourceValue)
+            player = None
+
+            try:
+                player = self._urlPlayers[sourceValue]
+            except KeyError:
+                player = MediaPlayer(sourceValue)
+                self._urlPlayers[sourceValue] = player
+
             return player.audio if kind == "audio" else player.video
 
         else:
