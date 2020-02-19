@@ -9,35 +9,35 @@ let worker;
 let audioTrackId;
 let localDescription;
 
-// test('mediasoup-client-aiortc exposes a version property', () =>
-// {
-// 	expect(version).toBeType('string');
-// 	expect(version).toBe(pkg.version);
-// }, 500);
+test('mediasoup-client-aiortc exposes a version property', () =>
+{
+	expect(version).toBeType('string');
+	expect(version).toBe(pkg.version);
+}, 500);
 
-// test('create a worker and getState() returns "connecting" right away', async () =>
-// {
-// 	worker = new Worker(
-// 		{
-// 			logLevel         : 'debug',
-// 			rtcConfiguration : { iceServers: [] }
-// 		});
+test('create a worker and getState() returns "connecting" right away', async () =>
+{
+	worker = new Worker(
+		{
+			logLevel         : 'debug',
+			rtcConfiguration : { iceServers: [] }
+		});
 
-// 	expect(worker.getState()).toBe('connecting');
-// 	worker.close();
+	expect(worker.getState()).toBe('connecting');
+	worker.close();
 
-// 	worker = new Worker(
-// 		{
-// 			logLevel         : 'debug',
-// 			rtcConfiguration :
-// 			{
-// 				iceServers : [ { urls: [ 'stun:foo.com' ] } ]
-// 			}
-// 		});
+	worker = new Worker(
+		{
+			logLevel         : 'debug',
+			rtcConfiguration :
+			{
+				iceServers : [ { urls: [ 'stun:foo.com' ] } ]
+			}
+		});
 
-// 	expect(worker.getState()).toBe('connecting');
-// 	worker.close();
-// });
+	expect(worker.getState()).toBe('connecting');
+	worker.close();
+});
 
 test('create a worker and emits "open" once connected', async () =>
 {
