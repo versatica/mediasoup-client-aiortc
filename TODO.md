@@ -6,13 +6,10 @@
   - Reason why we are calling `loop.close()` instead of gracefully closing `RTCPeerConnection`.
 
 * Properly close aiortc `Players` (all their tracks).
+  - This is done, right?
 
-* DataChannel.
-  - No "error" event implemented in aiortc. OK.
-  - Need DataChannel tests.
+* Need DataChannel tests.
   
-* Integrate Python linter into `npm run lint`. So it must be in `npm-scripts.js` and must allow custom paths for the required Python executables via `env` (same as in "postinstall" task).
-
 
 ## aiortc
 
@@ -20,6 +17,7 @@ Things that must be verified, asked or even reported in aiortc project.
 
 * Internal track ID does not correspond with track ID in remote offer.
   - Issue: https://github.com/aiortc/aiortc/issues/269
+  - Done in `aiortc` master branch, not yet released.
 
 * Our `Aiortc.js` handler uses `this._setupTransport({ localDtlsRole: 'server'` always because aiortc does not implemente ICE Lite and assumes to be ICE controlled when it's SDP answerer. It then reacts to our ICE 487 "Role Conflict" response and switches to ICE controlling and becomes DTLS server.
   - Issue: https://github.com/aiortc/aioice/issues/15
@@ -30,3 +28,4 @@ Things that must be verified, asked or even reported in aiortc project.
 
 * Do not close transport on `pc.setRemoteDescription()` if media and data are bundled.
   - PR: https://github.com/aiortc/aiortc/pull/271
+  - Done in `aiortc` master branch, not yet released.
