@@ -7,10 +7,6 @@ _debugLogger = logging.Logger('')
 _debugLogger.addHandler(logging.StreamHandler(sys.stdout))
 _errorLogger = logging.Logger('')
 _errorLogger.addHandler(logging.StreamHandler(sys.stderr))
-# For debugging.
-_fileLogger = logging.Logger('')
-_fileLogger.addHandler(logging.FileHandler('/tmp/mediasoup-client-aiortc.py.log'))
-_fileLogger.setLevel(logging.DEBUG)
 
 
 class Logger:
@@ -31,7 +27,3 @@ class Logger:
     @staticmethod
     def error(*args):
         _errorLogger.error(*args)
-
-    @staticmethod
-    def toFile(*args):
-        _fileLogger.error(*args)
