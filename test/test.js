@@ -83,17 +83,17 @@ test('worker.addTrack() with wrong SendOptions throws TypeError', async () =>
 	// Missing options.
 	await expect(worker.addTrack())
 		.rejects
-		.toThrow(TypeError);
+		.toThrow(Error);
 
 	// Missing kind.
 	await expect(worker.addTrack({}))
 		.rejects
-		.toThrow(Error);
+		.toThrow(TypeError);
 
 	// Missing sourceType.
 	await expect(worker.addTrack({ kind: 'audio' }))
 		.rejects
-		.toThrow(Error);
+		.toThrow(TypeError);
 
 	// Invalid kind.
 	await expect(worker.addTrack({ kind: 'foo', sourceType: 'device' }))

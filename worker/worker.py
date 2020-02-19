@@ -11,7 +11,7 @@ from aiortc import (
 )
 from channel import Request, Notification, Channel
 from handler import Handler
-from logger import rootLogger, debugLogger, errorLogger
+from logger import Logger
 
 
 # File descriptors to communicate with the Node.js process
@@ -22,21 +22,19 @@ WRITE_FD = 4
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="aiortc mediasoup-client handler")
-    parser.add_argument("--logLevel", "-l",
-                        choices=["debug", "warn", "error", "none"])
-    parser.add_argument("--rtcConfiguration", "-c",
-                        help="RTCConfiguration string")
+    parser.add_argument(
+        "--logLevel", "-l", choices=["debug", "warn", "error", "none"])
+    parser.add_argument(
+        "--rtcConfiguration", "-c", help="RTCConfiguration string")
     args = parser.parse_args()
 
     """
     Argument handling
     """
     if args.logLevel and args.logLevel != "none":
-        rootLogger.setLevel(args.logLevel.upper())
-        debugLogger.setLevel(args.logLevel.upper())
-        errorLogger.setLevel(args.logLevel.upper())
+        Logger.setLogLevel(args.logLevel)
 
-    debugLogger.debug("starting mediasoup-client aiortc worker")
+    Logger.debug("starting mediasoup-client aiortc worker")
 
     # use RTCConfiguration if given
     rtcConfiguration = None
@@ -47,10 +45,11 @@ if __name__ == "__main__":
             iceServers = []
             for entry in jsonRtcConfiguration["iceServers"]:
                 iceServer = RTCIceServer(
-                    urls=entry["urls"] if "urls" in entry else None,
-                    username=entry["username"] if "username" in entry else None,
-                    credential=entry["credential"] if "credential" in entry else None,
-                    credentialType=entry["credentialType"] if "credentialType" in entry else None)
+                    urls=entry.get("urls"),
+                    username=entry.get("username"),
+                    credential=entry.get("credential"),
+                    credentialType=entry.get("credentialType")
+                )
                 iceServers.append(iceServer)
             rtcConfiguration = RTCConfiguration(iceServers)
 
@@ -67,7 +66,7 @@ if __name__ == "__main__":
     try:
         handler = Handler(channel, loop, rtcConfiguration)
     except Exception as error:
-        errorLogger.error(f"invalid RTCConfiguration: {error}")
+        Logger.error(f"invalid RTCConfiguration: {error.__class__.__name__}: {error}")
         sys.exit(42)
 
     def shutdown():
@@ -92,7 +91,7 @@ if __name__ == "__main__":
                         await request.succeed(result)
                     except Exception as error:
                         errorStr = f"{error.__class__.__name__}: {error}"
-                        errorLogger.error(f"request '{request.method}' failed: {errorStr}")
+                        Logger.error(f"request '{request.method}' failed: {errorStr}")
                         if not isinstance(error, TypeError):
                             traceback.print_tb(error.__traceback__)
                         await request.failed(error)
@@ -103,7 +102,7 @@ if __name__ == "__main__":
                         await handler.processNotification(notification)
                     except Exception as error:
                         errorStr = f"{error.__class__.__name__}: {error}"
-                        errorLogger.error(f"notification '{notification.event}' failed: {errorStr}")
+                        Logger.error(f"notification '{notification.event}' failed: {errorStr}")
                         if not isinstance(error, TypeError):
                             traceback.print_tb(error.__traceback__)
 

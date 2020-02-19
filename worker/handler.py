@@ -14,7 +14,7 @@ from aiortc import (
 )
 from aiortc.contrib.media import MediaPlayer
 from channel import Request, Notification, Channel
-from logger import debugLogger, errorLogger
+from logger import Logger
 
 
 class Handler:
@@ -22,31 +22,35 @@ class Handler:
         self._channel = channel
         self._pc = RTCPeerConnection(configuration or None)
         # dictionary of transceivers mapped by track id
-        self._transceivers = dict()  # type: Dict[str, RTCRtpTransceiver]
+        # type: Dict[str, RTCRtpTransceiver]
+        self._transceivers = dict()
         # dictionary of dataChannelds mapped by internal id
-        self._dataChannels = dict()  # type: Dict[str, RTCDataChannel]
+        # type: Dict[str, RTCDataChannel]
+        self._dataChannels = dict()
         # dictionary of file players mapped by path
-        self._filePlayers = dict()  # type: Dict[str, MediaPlayer]
+        # type: Dict[str, MediaPlayer]
+        self._filePlayers = dict()
         # dictionary of URL players mapped by URL
-        self._urlPlayers = dict()  # type: Dict[str, MediaPlayer]
+        # type: Dict[str, MediaPlayer]
+        self._urlPlayers = dict()
 
         @self._pc.on("track")
         def on_track(track):
-            debugLogger.debug(f"ontrack [kind:{track.kind}, id:{track.id}]")
+            Logger.debug(f"ontrack [kind:{track.kind}, id:{track.id}]")
 
         @self._pc.on("iceconnectionstatechange")
         async def on_iceconnectionstatechange():
-            debugLogger.debug(f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]")
+            Logger.debug(f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]")
             await self._channel.notify(getpid(), "iceconnectionstatechange", self._pc.iceConnectionState)
 
         @self._pc.on("icegatheringstatechange")
         async def on_icegatheringstatechange():
-            debugLogger.debug(f"icegatheringstatechange [state:{self._pc.iceGatheringState}]")
+            Logger.debug(f"icegatheringstatechange [state:{self._pc.iceGatheringState}]")
             await self._channel.notify(getpid(), "icegatheringstatechange", self._pc.iceGatheringState)
 
         @self._pc.on("signalingstatechange")
         async def on_signalingstatechange():
-            debugLogger.debug(
+            Logger.debug(
                 f"signalingstatechange [state:{self._pc.signalingState}]")
             await self._channel.notify(getpid(), "signalingstatechange", self._pc.signalingState)
 
@@ -85,7 +89,7 @@ class Handler:
         await self._pc.close()
 
     async def processRequest(self, request: Request) -> Any:
-        debugLogger.debug(f"processRequest() [method:{request.method}]")
+        Logger.debug(f"processRequest() [method:{request.method}]")
 
         if request.method == "getRtpCapabilities":
             pc = RTCPeerConnection()
@@ -109,11 +113,11 @@ class Handler:
 
         elif request.method == "addTrack":
             data = request.data
-            kind = data["kind"]
-            sourceType = data["sourceType"]
-            sourceValue = data["sourceValue"] if "sourceValue" in data else None
-            format = data["format"] if "format" in data else None
-            options = data["options"] if "options" in data else None
+            kind = data.get("kind")
+            sourceType = data.get("sourceType")
+            sourceValue = data.get("sourceValue")
+            format = data.get("format")
+            options = data.get("options")
             track = self._getTrack(kind, sourceType, sourceValue, format, options)
             transceiver = self._pc.addTransceiver(track)
 
@@ -126,7 +130,10 @@ class Handler:
 
         elif request.method == "removeTrack":
             data = request.data
-            trackId = data["trackId"]
+            trackId = data.get("trackId")
+            if trackId is None:
+                raise TypeError("missing trackId")
+
             transceiver = self._transceivers[trackId]
 
             transceiver.direction = "inactive"
@@ -168,7 +175,10 @@ class Handler:
 
         elif request.method == "getMid":
             data = request.data
-            trackId = data["trackId"]
+            trackId = data.get("trackId")
+            if trackId is None:
+                raise TypeError("missing trackId")
+
             transceiver = self._transceivers[trackId]
             return transceiver.mid
 
@@ -192,7 +202,10 @@ class Handler:
 
         elif request.method == "getSenderStats":
             data = request.data
-            mid = data["mid"]
+            mid = data.get("mid")
+            if mid is None:
+                raise TypeError("missing mid")
+
             transceiver = self._getTransceiverByMid(mid)
             sender = transceiver.sender
             result = {}
@@ -210,7 +223,10 @@ class Handler:
 
         elif request.method == "getReceiverStats":
             data = request.data
-            mid = data["mid"]
+            mid = data.get("mid")
+            if mid is None:
+                raise TypeError("missing mid")
+
             transceiver = self._getTransceiverByMid(mid)
             receiver = transceiver.receiver
             result = {}
@@ -228,14 +244,14 @@ class Handler:
 
         elif request.method == "createDataChannel":
             internal = request.internal
-            dataChannelId = internal["dataChannelId"]
+            dataChannelId = internal.get("dataChannelId")
             data = request.data
-            id = data["id"]
-            ordered = data["ordered"]
-            maxPacketLifeTime = data["maxPacketLifeTime"]
-            maxRetransmits = data["maxRetransmits"]
-            label = data["label"]
-            protocol = data["protocol"]
+            id = data.get("id")
+            ordered = data.get("ordered")
+            maxPacketLifeTime = data.get("maxPacketLifeTime")
+            maxRetransmits = data.get("maxRetransmits")
+            label = data.get("label")
+            protocol = data.get("protocol")
             dataChannel = self._pc.createDataChannel(
                 negotiated=True,
                 id=id,
@@ -295,17 +311,20 @@ class Handler:
             raise TypeError("unknown request with method '%s' received" % request.method)
 
     async def processNotification(self, notification: Notification) -> None:
-        debugLogger.debug(f"processNotification() [event:{notification.event}]")
+        Logger.debug(f"processNotification() [event:{notification.event}]")
 
         if notification.event == "enableTrack":
-            errorLogger.warning("enabling track not implemented")
+            Logger.warning("enabling track not implemented")
 
         elif notification.event == "disableTrack":
-            errorLogger.warning("disabling track not implemented")
+            Logger.warning("disabling track not implemented")
 
         elif notification.event == "datachannel.send":
             internal = notification.internal
-            dataChannelId = internal["dataChannelId"]
+            dataChannelId = internal.get("dataChannelId")
+            if dataChannelId is None:
+                raise TypeError("missing dataChannelId")
+
             data = notification.data
             dataChannel = self._dataChannels[dataChannelId]
 
@@ -316,7 +335,10 @@ class Handler:
 
         elif notification.event == "datachannel.sendBinary":
             internal = notification.internal
-            dataChannelId = internal["dataChannelId"]
+            dataChannelId = internal.get("dataChannelId")
+            if dataChannelId is None:
+                raise TypeError("missing dataChannelId")
+
             data = notification.data
             dataChannel = self._dataChannels[dataChannelId]
 
@@ -327,7 +349,10 @@ class Handler:
 
         elif notification.event == "datachannel.close":
             internal = notification.internal
-            dataChannelId = internal["dataChannelId"]
+            dataChannelId = internal.get("dataChannelId")
+            if dataChannelId is None:
+                raise TypeError("missing dataChannelId")
+
             dataChannel = self._dataChannels[dataChannelId]
 
             # NOTE: After calling dataChannel.close() aiortc emits "close" event
@@ -341,14 +366,17 @@ class Handler:
 
         elif notification.event == "datachannel.setBufferedAmountLowThreshold":
             internal = notification.internal
-            dataChannelId = internal["dataChannelId"]
+            dataChannelId = internal.get("dataChannelId")
+            if dataChannelId is None:
+                raise TypeError("missing dataChannelId")
+
             value = notification.data
             dataChannel = self._dataChannels[dataChannelId]
 
             dataChannel.bufferedAmountLowThreshold = value
 
         else:
-            errorLogger.warning(f"unknown notification with event '${notification.event}' received")
+            Logger.warning(f"unknown notification with event '${notification.event}' received")
 
     """
     Helper functions
@@ -432,7 +460,7 @@ class Handler:
             "timestamp": stats.timestamp.timestamp(),
             "type": stats.type,
             "id": stats.id,
-            # RTCTransportStats,
+            # RTCTransportStats
             "packetsSent": stats.packetsSent,
             "packetsReceived": stats.packetsReceived,
             "bytesSent": stats.bytesSent,

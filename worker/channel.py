@@ -4,7 +4,7 @@ import socket
 import pynetstring
 from asyncio import StreamReader, StreamWriter
 from typing import Any, Dict, Optional, Union
-from logger import debugLogger, errorLogger
+from logger import Logger
 
 
 def object_from_string(message_str) -> Optional[Dict[str, Any]]:
@@ -13,7 +13,7 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
         if "id" in message:
             return message
         else:
-            errorLogger.error(
+            Logger.error(
                 "invalid messsage, missing 'method' and 'event' fields")
             return None
 
@@ -21,7 +21,7 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
         return message
 
     else:
-        errorLogger.error(
+        Logger.error(
             "invalid messsage, missing 'method' and 'event' fields")
         return None
 
@@ -73,7 +73,7 @@ class Channel:
             # retrieve chunks of 50 bytes
             data = await self._reader.read(50)
             if len(data) == 0:
-                debugLogger.debug("channel socket closed, exiting")
+                Logger.debug("channel socket closed, exiting")
                 raise Exception("socket closed")
 
             decoded_list = self._nsDecoder.feed(data)
@@ -139,7 +139,7 @@ class Request:
         await self._channel.send(json.dumps({
             "id": self._id,
             "error": errorType,
-            "reason": str(error)
+            "reason": f"{error.__class__.__name__}: {error}"
         }, sort_keys=True))
 
 
