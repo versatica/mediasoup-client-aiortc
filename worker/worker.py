@@ -73,10 +73,6 @@ if __name__ == "__main__":
 
     def shutdown():
         loop.stop()
-        # TODO: If loop.close() is not called, the channel will continue reading
-        # after the Node side is closed, producing an infinite loop.
-        # However, this produces a log "Cannot close a running event loop".
-        loop.close()
 
     async def run(channel: Channel, handler: Handler) -> None:
         # tell the Node process that we are running
