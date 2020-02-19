@@ -5,10 +5,8 @@ import json
 import signal
 import sys
 from os import getpid
-from aiortc import (
-    RTCConfiguration,
-    RTCIceServer
-)
+from aiortc import RTCConfiguration, RTCIceServer
+
 from channel import Request, Notification, Channel
 from handler import Handler
 from logger import Logger
