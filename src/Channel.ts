@@ -150,15 +150,15 @@ export class Channel extends EnhancedEventEmitter
 
 		// Remove event listeners but leave a fake 'error' hander to avoid
 		// propagation.
-		this._recvSocket.removeAllListeners('end');
-		this._recvSocket.removeAllListeners('error');
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		this._recvSocket.on('error', () => {});
-
 		this._sendSocket.removeAllListeners('end');
 		this._sendSocket.removeAllListeners('error');
 		// eslint-disable-next-line @typescript-eslint/no-empty-function
 		this._sendSocket.on('error', () => {});
+
+		this._recvSocket.removeAllListeners('end');
+		this._recvSocket.removeAllListeners('error');
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		this._recvSocket.on('error', () => {});
 
 		// Destroy the socket.
 		try { this._sendSocket.destroy(); }
