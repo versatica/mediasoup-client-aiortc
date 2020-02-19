@@ -25,8 +25,10 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
             "invalid messsage, missing 'method' and 'event' fields")
         return None
 
-
-class Channel():
+"""
+Channel class
+"""
+class Channel:
     def __init__(self, loop, readfd, writefd) -> None:
         self._loop = loop
         self._readfd = readfd
@@ -59,6 +61,8 @@ class Channel():
             self._reader = None
             self._writer = None
 
+    # TODO: receive() should return a Request or Notification instance instead of
+    # a dictionary
     async def receive(self) -> Optional[Dict[str, Any]]:
         await self._connect()
 
@@ -86,8 +90,57 @@ class Channel():
 
         self._writer.write(data)
 
+    # TODO: notify() should receive a Notification instance
     async def notify(self, targetId: str, event: str, data=None):
         if data:
             await self.send(json.dumps({"targetId": targetId, "event": event, "data": data}))
         else:
             await self.send(json.dumps({"targetId": targetId, "event": event}))
+
+"""
+Request class
+"""
+class Request:
+    def __init__(self, id: str, method: str, internal=None, data=None) -> None:
+        self._id = id
+        self.method = method
+        self.internal = internal
+        self.data = data
+
+    # TODO: This should be given in the constructor but I don't know how to deal
+    # with it given that the constructor is called with **obj as single argument
+    def setChannel(self, channel: Channel):
+        self._channel = channel;
+
+    async def succeed(self, data=None) -> None:
+        if data:
+            await self._channel.send(json.dumps({
+                "id": self._id,
+                "accepted": True,
+                "data": data
+            }, sort_keys=True))
+        else:
+            await self._channel.send(json.dumps({
+                "id": self._id,
+                "accepted": True
+            }, sort_keys=True))
+
+    async def failed(self, error) -> None:
+        errorType = "Error"
+        if isinstance(error, TypeError):
+            errorType = "TypeError"
+
+        await self._channel.send(json.dumps({
+            "id": self._id,
+            "error": errorType,
+            "reason": str(error)
+        }, sort_keys=True))
+
+"""
+Notification class
+"""
+class Notification:
+    def __init__(self, event: str, internal=None, data=None) -> None:
+        self.event = event
+        self.internal = internal
+        self.data = data
