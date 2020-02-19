@@ -230,9 +230,9 @@ class Handler:
 
             @dataChannel.on("message")
             async def on_message(message):
-                if type(message).__name__ == 'str':
+                if isinstance(message, str):
                     await self._channel.notify(internalId, "stringmessage", message)
-                elif type(message).__name__ == 'bytes':
+                if isinstance(message, bytes):
                     errorLogger.warning("binary message reception not implemented")
 
             return {
