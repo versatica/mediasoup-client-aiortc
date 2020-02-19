@@ -377,13 +377,13 @@ class Handler:
         }
 
     def _getTrack(
-            self,
-            kind: str,
-            sourceType: str,
-            sourceValue: Optional[str],
-            format: Optional[str],
-            options: Optional[Any]
-        ) -> MediaStreamTrack:
+        self,
+        kind: str,
+        sourceType: str,
+        sourceValue: Optional[str],
+        format: Optional[str],
+        options: Optional[Any]
+    ) -> MediaStreamTrack:
         if kind not in ['audio', 'video']:
             raise TypeError("invalid/missing kind")
 
@@ -437,4 +437,3 @@ class Handler:
 
         else:
             raise TypeError("invalid/missing sourceType")
-
