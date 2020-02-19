@@ -136,6 +136,13 @@ const audioProducer = await transport.produce({ track });
 ```
 
 
+## DataChannel
+
+**mediasoup-client-aiortc** supports sending/receiving string and binary DataChannel messages. However, due to the lack of `Blob` support in Node.js, `dataChannel.binaryType` is always "arraybuffer" so received binary messages are always `ArrayBuffer` instances.
+
+When sending, `dataChannel.send()` allows passing a string, a `Buffer` instance or an `ArrayBuffer` instance.
+
+
 ## Authors
 
 * José Luis Millán [[github](https://github.com/jmillan/)]
