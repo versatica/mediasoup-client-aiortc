@@ -194,7 +194,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 		}
 		else if (data instanceof ArrayBuffer)
 		{
-			const buffer = new Buffer(data);
+			const buffer = Buffer.from(data);
 
 			this._channel.notify(
 				'datachannel.sendBinary', this._internal, buffer.toString('base64'));
@@ -250,7 +250,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 
 				case 'binary':
 				{
-					const buffer = new Buffer(data, 'utf-8');
+					const buffer = Buffer.from(data, 'utf-8');
 					const arrayBuffer = new ArrayBuffer(buffer.length);
 					const view = new Uint8Array(arrayBuffer);
 
