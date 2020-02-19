@@ -111,7 +111,7 @@ if __name__ == "__main__":
                             traceback.print_tb(error.__traceback__)
 
             except Exception:
-                shutdown()
+                break
 
     # signal handler
     loop.add_signal_handler(signal.SIGINT, shutdown)

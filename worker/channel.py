@@ -25,9 +25,12 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
             "invalid messsage, missing 'method' and 'event' fields")
         return None
 
+
 """
 Channel class
 """
+
+
 class Channel:
     def __init__(self, loop, readfd, writefd) -> None:
         self._loop = loop
@@ -97,9 +100,12 @@ class Channel:
         else:
             await self.send(json.dumps({"targetId": targetId, "event": event}))
 
+
 """
 Request class
 """
+
+
 class Request:
     def __init__(self, id: str, method: str, internal=None, data=None) -> None:
         self._id = id
@@ -110,7 +116,7 @@ class Request:
     # TODO: This should be given in the constructor but I don't know how to deal
     # with it given that the constructor is called with **obj as single argument
     def setChannel(self, channel: Channel):
-        self._channel = channel;
+        self._channel = channel
 
     async def succeed(self, data=None) -> None:
         if data:
@@ -136,9 +142,12 @@ class Request:
             "reason": str(error)
         }, sort_keys=True))
 
+
 """
 Notification class
 """
+
+
 class Notification:
     def __init__(self, event: str, internal=None, data=None) -> None:
         self.event = event
