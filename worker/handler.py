@@ -70,16 +70,14 @@ class Handler:
                 sender.track.stop()
 
         # stop file players
-        for key, value in self._filePlayers.items():
-            player = value
+        for player in self._filePlayers.values():
             if player.audio is not None:
                 player.audio.stop()
             if player.video is not None:
                 player.video.stop()
 
         # stop URL players
-        for key, value in self._urlPlayers.items():
-            player = value
+        for player in self._urlPlayers.values():
             if player.audio is not None:
                 player.audio.stop()
             if player.video is not None:
@@ -529,7 +527,11 @@ class Handler:
                 player = MediaPlayer(sourceValue)
                 self._filePlayers[sourceValue] = player
 
-            return player.audio if kind == "audio" else player.video
+            track = player.audio if kind == "audio" else player.video
+            if track is None:
+                raise Exception("file does not have a track of the given kind")
+
+            return track
 
         elif sourceType == "url":
             player = None
@@ -540,7 +542,11 @@ class Handler:
                 player = MediaPlayer(sourceValue)
                 self._urlPlayers[sourceValue] = player
 
-            return player.audio if kind == "audio" else player.video
+            track = player.audio if kind == "audio" else player.video
+            if track is None:
+                raise Exception("URL stram does not have a track of the given kind")
+
+            return track
 
         else:
             raise TypeError("invalid/missing sourceType")
