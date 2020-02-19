@@ -14,7 +14,8 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
             return message
         else:
             Logger.error(
-                "invalid messsage, missing 'method' and 'event' fields")
+                "invalid messsage, missing 'method' and 'event' fields"
+            )
             return None
 
     elif "event" in message:
@@ -22,7 +23,8 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
 
     else:
         Logger.error(
-            "invalid messsage, missing 'method' and 'event' fields")
+            "invalid messsage, missing 'method' and 'event' fields"
+        )
         return None
 
 
@@ -50,11 +52,13 @@ class Channel:
         """
         rsock = socket.socket(
             socket.AF_UNIX, socket.SOCK_STREAM, 0, self._readfd)
-        self._reader, writer = await asyncio.open_connection(sock=rsock, loop=self._loop)
+        self._reader, writer = await asyncio.open_connection(
+            sock=rsock, loop=self._loop)
 
         wsock = socket.socket(
             socket.AF_UNIX, socket.SOCK_STREAM, 0, self._writefd)
-        reader, self._writer = await asyncio.open_connection(sock=wsock, loop=self._loop)
+        reader, self._writer = await asyncio.open_connection(
+            sock=wsock, loop=self._loop)
 
         self._connected = True
 
@@ -96,9 +100,13 @@ class Channel:
     # TODO: notify() should receive a Notification instance
     async def notify(self, targetId: str, event: str, data=None):
         if data is not None:
-            await self.send(json.dumps({"targetId": targetId, "event": event, "data": data}))
+            await self.send(
+                json.dumps({"targetId": targetId, "event": event, "data": data})
+            )
         else:
-            await self.send(json.dumps({"targetId": targetId, "event": event}))
+            await self.send(
+                json.dumps({"targetId": targetId, "event": event})
+            )
 
 
 """

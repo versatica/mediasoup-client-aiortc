@@ -66,7 +66,9 @@ if __name__ == "__main__":
     try:
         handler = Handler(channel, loop, rtcConfiguration)
     except Exception as error:
-        Logger.error(f"invalid RTCConfiguration: {error.__class__.__name__}: {error}")
+        Logger.error(
+            f"invalid RTCConfiguration: {error.__class__.__name__}: {error}"
+        )
         sys.exit(42)
 
     def shutdown():
@@ -91,7 +93,9 @@ if __name__ == "__main__":
                         await request.succeed(result)
                     except Exception as error:
                         errorStr = f"{error.__class__.__name__}: {error}"
-                        Logger.error(f"request '{request.method}' failed: {errorStr}")
+                        Logger.error(
+                            f"request '{request.method}' failed: {errorStr}"
+                        )
                         if not isinstance(error, TypeError):
                             traceback.print_tb(error.__traceback__)
                         await request.failed(error)
@@ -102,7 +106,9 @@ if __name__ == "__main__":
                         await handler.processNotification(notification)
                     except Exception as error:
                         errorStr = f"{error.__class__.__name__}: {error}"
-                        Logger.error(f"notification '{notification.event}' failed: {errorStr}")
+                        Logger.error(
+                            f"notification '{notification.event}' failed: {errorStr}"
+                        )
                         if not isinstance(error, TypeError):
                             traceback.print_tb(error.__traceback__)
 
@@ -121,9 +127,9 @@ if __name__ == "__main__":
     except RuntimeError:
         pass
     finally:
-        # force loop closure, otherwise RTCPeerConnection may not close and
-        # we may end up with a zoombie process
+        # TODO: we force loop closure, otherwise RTCPeerConnection may not close
+        # and we may end up with a zoombie process
         loop.close()
-        # ideally we should gracefully close instances like in the lines below
-        #  loop.run_until_complete(handler.close())
-        #  loop.run_until_complete(channel.close())
+        # TODO: Ideally we should gracefully close instances as follows
+        # loop.run_until_complete(handler.close())
+        # loop.run_until_complete(channel.close())

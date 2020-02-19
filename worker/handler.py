@@ -40,19 +40,30 @@ class Handler:
 
         @self._pc.on("iceconnectionstatechange")
         async def on_iceconnectionstatechange():
-            Logger.debug(f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]")
-            await self._channel.notify(getpid(), "iceconnectionstatechange", self._pc.iceConnectionState)
+            Logger.debug(
+                f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]"
+            )
+            await self._channel.notify(
+                getpid(), "iceconnectionstatechange", self._pc.iceConnectionState
+            )
 
         @self._pc.on("icegatheringstatechange")
         async def on_icegatheringstatechange():
-            Logger.debug(f"icegatheringstatechange [state:{self._pc.iceGatheringState}]")
-            await self._channel.notify(getpid(), "icegatheringstatechange", self._pc.iceGatheringState)
+            Logger.debug(
+                f"icegatheringstatechange [state:{self._pc.iceGatheringState}]"
+            )
+            await self._channel.notify(
+                getpid(), "icegatheringstatechange", self._pc.iceGatheringState
+            )
 
         @self._pc.on("signalingstatechange")
         async def on_signalingstatechange():
             Logger.debug(
-                f"signalingstatechange [state:{self._pc.signalingState}]")
-            await self._channel.notify(getpid(), "signalingstatechange", self._pc.signalingState)
+                f"signalingstatechange [state:{self._pc.signalingState}]"
+            )
+            await self._channel.notify(
+                getpid(), "signalingstatechange", self._pc.signalingState
+            )
 
         async def periodic():
             while True:
@@ -91,12 +102,10 @@ class Handler:
 
         if request.method == "getRtpCapabilities":
             pc = RTCPeerConnection()
-
             pc.addTransceiver("audio", "sendonly")
             pc.addTransceiver("video", "sendonly")
             offer = await pc.createOffer()
             await pc.close()
-
             return offer.sdp
 
         elif request.method == "getLocalDescription":
@@ -133,7 +142,6 @@ class Handler:
                 raise TypeError("missing trackId")
 
             transceiver = self._transceivers[trackId]
-
             transceiver.direction = "inactive"
             transceiver.sender.track.stop()
             transceiver.sender.replaceTrack(None)
@@ -273,7 +281,7 @@ class Handler:
 
             @dataChannel.on("close")
             async def on_close():
-                # NOTE: After calling dataChannel.close() aiortc emits "close" event
+                # NOTE: After calling dataChannel.close() aiortc emits "close"event
                 # on the dataChannel. Probably it shouldn't do it. So caution.
                 try:
                     del self._dataChannels[dataChannelId]
@@ -287,7 +295,8 @@ class Handler:
                     await self._channel.notify(dataChannelId, "message", message)
                 if isinstance(message, bytes):
                     message_bytes = base64.b64encode(message)
-                    await self._channel.notify(dataChannelId, "binary", str(message_bytes))
+                    await self._channel.notify(
+                        dataChannelId, "binary", str(message_bytes))
 
             @dataChannel.on("bufferedamountlow")
             async def on_bufferedamountlow():
@@ -306,7 +315,9 @@ class Handler:
             }
 
         else:
-            raise TypeError("unknown request with method '%s' received" % request.method)
+            raise TypeError(
+                f"unknown request with method '{request.method}' received"
+            )
 
     async def processNotification(self, notification: Notification) -> None:
         Logger.debug(f"processNotification() [event:{notification.event}]")
@@ -325,11 +336,12 @@ class Handler:
 
             data = notification.data
             dataChannel = self._dataChannels[dataChannelId]
-
             dataChannel.send(data)
 
             # Good moment to update bufferedAmount in Node.js side.
-            await self._channel.notify(dataChannelId, "bufferedamount", dataChannel.bufferedAmount)
+            await self._channel.notify(
+                dataChannelId, "bufferedamount", dataChannel.bufferedAmount
+            )
 
         elif notification.event == "datachannel.sendBinary":
             internal = notification.internal
@@ -339,11 +351,12 @@ class Handler:
 
             data = notification.data
             dataChannel = self._dataChannels[dataChannelId]
-
             dataChannel.send(base64.b64decode(data))
 
             # Good moment to update bufferedAmount in Node.js side.
-            await self._channel.notify(dataChannelId, "bufferedamount", dataChannel.bufferedAmount)
+            await self._channel.notify(
+                dataChannelId, "bufferedamount", dataChannel.bufferedAmount
+            )
 
         elif notification.event == "datachannel.close":
             internal = notification.internal
@@ -370,18 +383,21 @@ class Handler:
 
             value = notification.data
             dataChannel = self._dataChannels[dataChannelId]
-
             dataChannel.bufferedAmountLowThreshold = value
 
         else:
-            Logger.warning(f"unknown notification with event '${notification.event}' received")
+            raise TypeError(
+                f"unknown notification with event '{notification.event}' received"
+            )
 
     """
     Helper functions
     """
 
     def _getTransceiverByMid(self, mid: str) -> Optional[RTCRtpTransceiver]:
-        return next(filter(lambda x: x.mid == mid, self._pc.getTransceivers()), None)
+        return next(
+            filter(lambda x: x.mid == mid, self._pc.getTransceivers()), None
+        )
 
     def _serializeInboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
@@ -546,7 +562,7 @@ class Handler:
 
             track = player.audio if kind == "audio" else player.video
             if track is None:
-                raise Exception("URL stram does not have a track of the given kind")
+                raise Exception("URL does not have a track of the given kind")
 
             return track
 
