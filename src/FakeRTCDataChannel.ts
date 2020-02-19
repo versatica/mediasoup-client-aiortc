@@ -32,7 +32,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	private _readyState: RTCDataChannelState = 'connecting';
 	private _bufferedAmount = 0;
 	private _bufferedAmountLowThreshold = 0;
-	private _binaryType = 'blob';
+	private _binaryType = 'arraybuffer';
 	// NOTE: Deprecated as per spec, but still required by TS/ RTCDataChannel.
 	private _priority: RTCPriorityType = 'high';
 	// NOTE: Event listeners. These are cosmetic public members to make TS happy.
@@ -150,14 +150,10 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 		return this._binaryType;
 	}
 
+	// NOTE: Just 'arraybuffer' is valid for Node.js.
 	set binaryType(value: string)
 	{
-		this._binaryType = value;
-
-		// TODO: Let's see how to deal with this. aiortc does not implement this
-		// since this just makes sense in JS. We should use this setting when
-		// 'message' event is fired (we should generate a "Blob" if "blob" and an
-		// ArrayBuffer if "arraybuffer").
+		logger.warn('binaryType setter not implemented, using "arraybuffer"');
 	}
 
 	// NOTE: Deprecated in the spec but required by RTCDataChannel TS definition.
@@ -185,14 +181,34 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	}
 
 	/**
-	 * We extend the definition of send() to allow Node Buffer.
+	 * We extend the definition of send() to allow Node Buffer. However
+	 * ArrayBufferView and Blob do not exist in Node.
 	 */
-	send(data: string | Blob | ArrayBuffer | ArrayBufferView | Buffer): void
+	send(data: string | ArrayBuffer | Buffer | ArrayBufferView | Blob): void
 	{
 		if (this._readyState !== 'open')
 			throw new InvalidStateError('not open');
 
-		this._channel.notify('datachannel.send', this._internal, data);
+		if (typeof data === 'string')
+		{
+			this._channel.notify('datachannel.send', this._internal, data);
+		}
+		else if (data instanceof ArrayBuffer)
+		{
+			const buffer = new Buffer(data);
+
+			this._channel.notify(
+				'datachannel.sendBinary', this._internal, buffer.toString('base64'));
+		}
+		else if (data instanceof Buffer)
+		{
+			this._channel.notify(
+				'datachannel.sendBinary', this._internal, data.toString('base64'));
+		}
+		else
+		{
+			throw new TypeError('invalid data type');
+		}
 	}
 
 	private _handleWorkerNotifications(): void
@@ -226,19 +242,25 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 					break;
 				}
 
-				case 'stringmessage':
+				case 'message':
 				{
 					this.dispatchEvent({ type: 'message', data });
 
 					break;
 				}
 
-				case 'binarymessage':
+				case 'binary':
 				{
-					// TODO: Must handle binary messages and produce a Blob or an
-					// ArrayBuffer depending on this._binaryType.
+					const buffer = new Buffer(data, 'utf-8');
+					const arrayBuffer = new ArrayBuffer(buffer.length);
+					const view = new Uint8Array(arrayBuffer);
 
-					this.dispatchEvent({ type: 'message', data });
+					for (let i = 0; i < buffer.length; ++i)
+					{
+						view[i] = buffer[i];
+					}
+
+					this.dispatchEvent({ type: 'message', data: arrayBuffer });
 
 					break;
 				}

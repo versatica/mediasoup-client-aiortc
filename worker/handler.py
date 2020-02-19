@@ -1,6 +1,7 @@
 import platform
 from os import getpid
 from typing import Any, Dict, Optional
+import base64
 from aiortc import (
     MediaStreamTrack,
     RTCConfiguration,
@@ -231,9 +232,10 @@ class Handler:
             @dataChannel.on("message")
             async def on_message(message):
                 if isinstance(message, str):
-                    await self._channel.notify(internalId, "stringmessage", message)
+                    await self._channel.notify(internalId, "message", message)
                 if isinstance(message, bytes):
-                    errorLogger.warning("binary message reception not implemented")
+                    message_bytes = base64.b64encode(message)
+                    await self._channel.notify(internalId, "binary", str(message_bytes))
 
             return {
                 "streamId": dataChannel.id,
@@ -266,6 +268,14 @@ class Handler:
             dataChannel = self._dataChannels[dataChannelId]
 
             dataChannel.send(data)
+
+        elif notification.event == "datachannel.sendBinary":
+            internal = notification.internal
+            dataChannelId = internal["dataChannelId"]
+            data = notification.data
+            dataChannel = self._dataChannels[dataChannelId]
+
+            dataChannel.send(base64.b64decode(data))
 
         elif notification.event == "datachannel.close":
             internal = notification.internal

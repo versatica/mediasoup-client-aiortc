@@ -51,9 +51,10 @@ export declare class FakeRTCDataChannel extends EventTarget implements RTCDataCh
     priority: RTCPriorityType;
     close(): void;
     /**
-     * We extend the definition of send() to allow Node Buffer.
+     * We extend the definition of send() to allow Node Buffer. However
+     * ArrayBufferView and Blob do not exist in Node.
      */
-    send(data: string | Blob | ArrayBuffer | ArrayBufferView | Buffer): void;
+    send(data: string | ArrayBuffer | Buffer | ArrayBufferView | Blob): void;
     private _handleWorkerNotifications;
 }
 //# sourceMappingURL=FakeRTCDataChannel.d.ts.map
