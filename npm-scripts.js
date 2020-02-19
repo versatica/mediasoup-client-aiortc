@@ -37,6 +37,7 @@ switch (task)
 	{
 		execute('MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts src/');
 		execute('MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern \'!.eslintrc.js\' .eslintrc.js npm-scripts.js test/');
+		execute('flake8 worker/');
 
 		break;
 	}
@@ -45,13 +46,6 @@ switch (task)
 	{
 		execute('MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --fix --ext=ts src/');
 		execute('MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --fix --ext=js --ignore-pattern \'!.eslintrc.js\' .eslintrc.js npm-scripts.js test/');
-
-		break;
-	}
-
-	case 'lint:worker':
-	{
-		execute('flake8 worker/');
 
 		break;
 	}
