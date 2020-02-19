@@ -117,7 +117,7 @@ if __name__ == "__main__":
         loop.run_until_complete(
             run(channel, handler)
         )
-    # reached after calling loop.stop()
+    # reached after calling loop.stop() or channel failure
     except RuntimeError:
         pass
     finally:
