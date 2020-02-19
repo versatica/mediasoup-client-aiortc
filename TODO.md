@@ -3,6 +3,7 @@
 ## mediasoup-client-aiortc
 
 * CRITICAL: Python process remains as zombie when Node.js process ends iof webcam was active.
+  - Reason why we are calling `loop.close()` instead of gracefully closing `RTCPeerConnection`.
 
 * Properly close aiortc `Players` (all their tracks).
 

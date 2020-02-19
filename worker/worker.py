@@ -123,5 +123,9 @@ if __name__ == "__main__":
     except RuntimeError:
         pass
     finally:
-        loop.run_until_complete(handler.close())
-        loop.run_until_complete(channel.close())
+        # force loop closure, otherwise RTCPeerConnection may not close and
+        # we may end up with a zoombie process
+        loop.close()
+        # ideally we should gracefully close instances like in the lines below
+        #  loop.run_until_complete(handler.close())
+        #  loop.run_until_complete(channel.close())
