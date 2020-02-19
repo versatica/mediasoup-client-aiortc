@@ -200,7 +200,7 @@ class Handler:
 
         elif request.method == "createDataChannel":
             internal = request.internal
-            internalId = internal["dataChannelId"]
+            dataChannelId = internal["dataChannelId"]
             data = request.data
             id = data["id"]
             ordered = data["ordered"]
@@ -219,23 +219,29 @@ class Handler:
             )
 
             # store datachannel in the dictionary
-            self._dataChannels[internalId] = dataChannel
+            self._dataChannels[dataChannelId] = dataChannel
 
             @dataChannel.on("open")
             async def on_open():
-                await self._channel.notify(internalId, "open")
+                await self._channel.notify(dataChannelId, "open")
 
             @dataChannel.on("close")
             async def on_close():
-                await self._channel.notify(internalId, "close")
+                # NOTE: After calling dataChannel.close() aiortc emits "close" event
+                # on the dataChannel. Probably it shouldn't do it. So caution.
+                try:
+                    del self._dataChannels[dataChannelId]
+                    await self._channel.notify(dataChannelId, "close")
+                except KeyError:
+                    pass
 
             @dataChannel.on("message")
             async def on_message(message):
                 if isinstance(message, str):
-                    await self._channel.notify(internalId, "message", message)
+                    await self._channel.notify(dataChannelId, "message", message)
                 if isinstance(message, bytes):
                     message_bytes = base64.b64encode(message)
-                    await self._channel.notify(internalId, "binary", str(message_bytes))
+                    await self._channel.notify(dataChannelId, "binary", str(message_bytes))
 
             return {
                 "streamId": dataChannel.id,
@@ -281,6 +287,13 @@ class Handler:
             internal = notification.internal
             dataChannelId = internal["dataChannelId"]
             dataChannel = self._dataChannels[dataChannelId]
+
+            # NOTE: After calling dataChannel.close() aiortc emits "close" event
+            # on the dataChannel. Probably it shouldn't do it. So caution.
+            try:
+                del self._dataChannels[dataChannelId]
+            except KeyError:
+                pass
 
             dataChannel.close()
 
