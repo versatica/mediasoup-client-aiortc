@@ -95,7 +95,7 @@ class Channel:
 
     # TODO: notify() should receive a Notification instance
     async def notify(self, targetId: str, event: str, data=None):
-        if data:
+        if data is not None:
             await self.send(json.dumps({"targetId": targetId, "event": event, "data": data}))
         else:
             await self.send(json.dumps({"targetId": targetId, "event": event}))
@@ -119,7 +119,7 @@ class Request:
         self._channel = channel
 
     async def succeed(self, data=None) -> None:
-        if data:
+        if data is not None:
             await self._channel.send(json.dumps({
                 "id": self._id,
                 "accepted": True,

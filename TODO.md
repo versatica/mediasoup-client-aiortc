@@ -9,7 +9,6 @@
 
 * DataChannel.
   - No "error" event implemented in aiortc. OK.
-  - We do not update `dc.bufferedAmount` in JS. We may notify its native value from Python to JS for each sent message, received message, 'bufferedamountlow' event, etc. 
   - Need DataChannel tests.
   
 * Integrate Python linter into `npm run lint`. So it must be in `npm-scripts.js` and must allow custom paths for the required Python executables via `env` (same as in "postinstall" task).

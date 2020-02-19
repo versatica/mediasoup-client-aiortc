@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     # create handler
     try:
-        handler = Handler(channel, rtcConfiguration)
+        handler = Handler(channel, loop, rtcConfiguration)
     except Exception as error:
         errorLogger.error(f"invalid RTCConfiguration: {error}")
         sys.exit(42)

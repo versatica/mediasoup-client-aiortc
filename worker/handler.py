@@ -2,6 +2,7 @@ import platform
 from os import getpid
 from typing import Any, Dict, Optional
 import base64
+import asyncio
 from aiortc import (
     MediaStreamTrack,
     RTCConfiguration,
@@ -17,7 +18,7 @@ from logger import debugLogger, errorLogger
 
 
 class Handler:
-    def __init__(self, channel: Channel, configuration: Optional[RTCConfiguration] = None) -> None:
+    def __init__(self, channel: Channel, loop: asyncio.AbstractEventLoop, configuration: Optional[RTCConfiguration] = None) -> None:
         self._channel = channel
         self._pc = RTCPeerConnection(configuration or None)
         # dictionary of transceivers mapped by track id
@@ -44,6 +45,15 @@ class Handler:
             debugLogger.debug(
                 f"signalingstatechange [state:{self._pc.signalingState}]")
             await self._channel.notify(getpid(), "signalingstatechange", self._pc.signalingState)
+
+        async def periodic():
+            while True:
+                for dataChannelId, dataChannel in self._dataChannels.items():
+                    await self._channel.notify(dataChannelId, "bufferedamount", dataChannel.bufferedAmount)
+
+                await asyncio.sleep(1)
+
+        loop.create_task(periodic())
 
     async def close(self) -> None:
         # stop tracks
@@ -223,6 +233,10 @@ class Handler:
             async def on_open():
                 await self._channel.notify(dataChannelId, "open")
 
+            @dataChannel.on("closing")
+            async def on_closing():
+                await self._channel.notify(dataChannelId, "closing")
+
             @dataChannel.on("close")
             async def on_close():
                 # NOTE: After calling dataChannel.close() aiortc emits "close" event
@@ -240,6 +254,10 @@ class Handler:
                 if isinstance(message, bytes):
                     message_bytes = base64.b64encode(message)
                     await self._channel.notify(dataChannelId, "binary", str(message_bytes))
+
+            @dataChannel.on("bufferedamountlow")
+            async def on_bufferedamountlow():
+                await self._channel.notify(dataChannelId, "bufferedamountlow")
 
             return {
                 "streamId": dataChannel.id,
@@ -273,6 +291,9 @@ class Handler:
 
             dataChannel.send(data)
 
+            # Good moment to update bufferedAmount in Node.js side.
+            await self._channel.notify(dataChannelId, "bufferedamount", dataChannel.bufferedAmount)
+
         elif notification.event == "datachannel.sendBinary":
             internal = notification.internal
             dataChannelId = internal["dataChannelId"]
@@ -280,6 +301,9 @@ class Handler:
             dataChannel = self._dataChannels[dataChannelId]
 
             dataChannel.send(base64.b64decode(data))
+
+            # Good moment to update bufferedAmount in Node.js side.
+            await self._channel.notify(dataChannelId, "bufferedamount", dataChannel.bufferedAmount)
 
         elif notification.event == "datachannel.close":
             internal = notification.internal
