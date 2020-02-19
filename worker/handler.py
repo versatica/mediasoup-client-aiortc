@@ -495,7 +495,8 @@ class Handler:
                         "default:none" if sourceValue is None else sourceValue,
                         format="avfoundation" if format is None else format,
                         options={
-                            "framerate": "30", "video_size": "640x480"
+                            "framerate": "30",
+                            "video_size": "640x480"
                         } if options is None else options
                     )
                     return player.video
@@ -513,7 +514,8 @@ class Handler:
                         "/dev/video0" if sourceValue is None else sourceValue,
                         format="v4l2",
                         options={
-                            "framerate": "30", "video_size": "640x480"
+                            "framerate": "30",
+                            "video_size": "640x480"
                         } if options is None else options
                     )
                     return player.video
