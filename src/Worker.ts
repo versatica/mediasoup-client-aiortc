@@ -233,6 +233,7 @@ export class Worker extends EnhancedEventEmitter
 			this._child.removeAllListeners('error');
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			this._child.on('error', () => {});
+			// NOTE: We don't need to kill the child but anyway.
 			this._child.kill('SIGTERM');
 			this._child = undefined;
 		}

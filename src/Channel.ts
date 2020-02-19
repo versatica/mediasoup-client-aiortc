@@ -160,14 +160,11 @@ export class Channel extends EnhancedEventEmitter
 		// eslint-disable-next-line @typescript-eslint/no-empty-function
 		this._sendSocket.on('error', () => {});
 
-		// Destroy the socket after a while to allow pending incoming messages.
-		setTimeout(() =>
-		{
-			try { this._sendSocket.destroy(); }
-			catch (error) {}
-			try { this._recvSocket.destroy(); }
-			catch (error) {}
-		}, 200);
+		// Destroy the socket.
+		try { this._sendSocket.destroy(); }
+		catch (error) {}
+		try { this._recvSocket.destroy(); }
+		catch (error) {}
 	}
 
 	async request(method: string, internal?: object, data?: any): Promise<any>
