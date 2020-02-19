@@ -43,6 +43,10 @@ type WorkerSendResult =
 	trackId: string;
 };
 
+// Whether the Python subprocess should log via PIPE to Node.js or directly to
+// stdout and stderr.
+const PYTHON_LOG_VIA_PIPE = process.env.PYTHON_LOG_TO_STDOUT !== 'true';
+
 const logger = new Logger('aiortc:Worker');
 
 export class Worker extends EnhancedEventEmitter
@@ -98,7 +102,14 @@ export class Worker extends EnhancedEventEmitter
 				// fd 2 (stderr)  : Same as stdout.
 				// fd 3 (channel) : Producer Channel fd.
 				// fd 4 (channel) : Consumer Channel fd.
-				stdio    : [ 'ignore', 'pipe', 'pipe', 'pipe', 'pipe' ]
+				stdio    :
+				[
+					'ignore',
+					PYTHON_LOG_VIA_PIPE ? 'pipe' : 'inherit',
+					PYTHON_LOG_VIA_PIPE ? 'pipe' : 'inherit',
+					'pipe',
+					'pipe'
+				]
 			});
 
 		const pid = this._child.pid;
@@ -189,25 +200,28 @@ export class Worker extends EnhancedEventEmitter
 			}
 		});
 
-		// Be ready for 3rd party worker libraries logging to stdout.
-		this._child.stdout.on('data', (buffer) =>
+		if (PYTHON_LOG_VIA_PIPE)
 		{
-			for (const line of buffer.toString('utf8').split('\n'))
+			// Be ready for 3rd party worker libraries logging to stdout.
+			this._child.stdout.on('data', (buffer) =>
 			{
-				if (line)
-					logger.debug(`(stdout) ${line}`);
-			}
-		});
+				for (const line of buffer.toString('utf8').split('\n'))
+				{
+					if (line)
+						logger.debug(`(stdout) ${line}`);
+				}
+			});
 
-		// In case of a worker bug, mediasoup will log to stderr.
-		this._child.stderr.on('data', (buffer) =>
-		{
-			for (const line of buffer.toString('utf8').split('\n'))
+			// In case of a worker bug, mediasoup will log to stderr.
+			this._child.stderr.on('data', (buffer) =>
 			{
-				if (line)
-					logger.error(`(stderr) ${line}`);
-			}
-		});
+				for (const line of buffer.toString('utf8').split('\n'))
+				{
+					if (line)
+						logger.error(`(stderr) ${line}`);
+				}
+			});
+		}
 	}
 
 	/**
@@ -227,8 +241,11 @@ export class Worker extends EnhancedEventEmitter
 		{
 			// Remove event listeners but leave a fake 'error' hander to avoid
 			// propagation.
-			this._child.stdout.removeAllListeners();
-			this._child.stderr.removeAllListeners();
+			if (PYTHON_LOG_VIA_PIPE)
+			{
+				this._child.stdout.removeAllListeners();
+				this._child.stderr.removeAllListeners();
+			}
 			this._child.removeAllListeners('exit');
 			this._child.removeAllListeners('error');
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
