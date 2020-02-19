@@ -2,6 +2,20 @@
 
 ## mediasoup-client-aiortc
 
+* Regression: This is failing:
+
+```py
+async def on_message(message):
+    if type(message).__name__ == 'str':
+        await self._channel.notify(internalId, "stringmessage", message)
+    elif type(message).__name__ == 'bytes':
+        errorLogger.warning("binary message reception not implemented")
+```
+
+with:
+
+`NameError: free variable 'type' referenced before assignment in enclosing scope`
+
 * DataChannel.
   - No "error" event implemented in aiortc. OK.
   - We do not update `dc.bufferedAmount` in JS. We may notify its native value from Python to JS for each sent message, received message, 'bufferedamountlow' event, etc. 
