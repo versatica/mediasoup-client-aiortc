@@ -55,7 +55,7 @@ class Channel:
 
         self._connected = True
 
-    def close(self) -> None:
+    async def close(self) -> None:
         if self._writer is not None:
             self._writer.close()
             self._reader = None

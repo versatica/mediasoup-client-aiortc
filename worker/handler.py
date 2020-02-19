@@ -79,7 +79,7 @@ class Handler:
                 return result
 
         elif request.method == "addTrack":
-            data = request["data"]
+            data = request.data
             kind = data["kind"]
             sourceType = data["sourceType"]
             sourceValue = data["sourceValue"] if "sourceValue" in data else None

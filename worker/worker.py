@@ -72,6 +72,10 @@ if __name__ == "__main__":
         sys.exit(42)
 
     def shutdown():
+        loop.stop()
+        # TODO: If loop.close() is not called, the channel will continue reading
+        # after the Node side is closed, producing an infinite loop.
+        # However, this produces a log "Cannot close a running event loop".
         loop.close()
 
     async def run(channel: Channel, handler: Handler) -> None:
@@ -93,7 +97,8 @@ if __name__ == "__main__":
                         await request.succeed(result)
                     except Exception as error:
                         errorLogger.error(f"request '{request.method}' failed: '{error}'")
-                        traceback.print_tb(error.__traceback__)
+                        if not isinstance(error, TypeError):
+                            traceback.print_tb(error.__traceback__)
                         await request.failed(error)
 
                 elif "event" in obj:
@@ -102,7 +107,8 @@ if __name__ == "__main__":
                         await handler.processNotification(notification)
                     except Exception as error:
                         errorLogger.error(f"notification '{notification.event}' failed: {error}")
-                        traceback.print_tb(error.__traceback__)
+                        if not isinstance(error, TypeError):
+                            traceback.print_tb(error.__traceback__)
 
             except Exception:
                 shutdown()
@@ -115,7 +121,7 @@ if __name__ == "__main__":
         loop.run_until_complete(
             run(channel, handler)
         )
-    # reached here after loop.stop()
+    # reached after calling loop.stop()
     except RuntimeError:
         pass
     finally:
