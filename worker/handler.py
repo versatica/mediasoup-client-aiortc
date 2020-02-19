@@ -56,7 +56,7 @@ class Handler:
         await self._pc.close()
 
     async def processRequest(self, request: Request) -> Any:
-        debugLogger.debug(f"processRequest() [method:'{request.method}']")
+        debugLogger.debug(f"processRequest() [method:{request.method}]")
 
         if request.method == "getRtpCapabilities":
             pc = RTCPeerConnection()
@@ -251,7 +251,7 @@ class Handler:
             raise TypeError("unknown request with method '%s' received" % request.method)
 
     async def processNotification(self, notification: Notification) -> None:
-        debugLogger.debug(f"processNotification() [event:'{notification.event}']")
+        debugLogger.debug(f"processNotification() [event:{notification.event}]")
 
         if notification.event == "enableTrack":
             errorLogger.warning("enabling track not implemented")

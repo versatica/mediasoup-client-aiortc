@@ -92,7 +92,8 @@ if __name__ == "__main__":
                         result = await handler.processRequest(request)
                         await request.succeed(result)
                     except Exception as error:
-                        errorLogger.error(f"request '{request.method}' failed: '{error}'")
+                        errorStr = f"{error.__class__.__name__}: {error}"
+                        errorLogger.error(f"request '{request.method}' failed: {errorStr}")
                         if not isinstance(error, TypeError):
                             traceback.print_tb(error.__traceback__)
                         await request.failed(error)
@@ -102,7 +103,8 @@ if __name__ == "__main__":
                     try:
                         await handler.processNotification(notification)
                     except Exception as error:
-                        errorLogger.error(f"notification '{notification.event}' failed: {error}")
+                        errorStr = f"{error.__class__.__name__}: {error}"
+                        errorLogger.error(f"notification '{notification.event}' failed: {errorStr}")
                         if not isinstance(error, TypeError):
                             traceback.print_tb(error.__traceback__)
 
