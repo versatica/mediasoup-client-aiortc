@@ -9,7 +9,6 @@ from aiortc import (
     RTCConfiguration,
     RTCIceServer
 )
-from aiortc.contrib.media import MediaPlayer
 from channel import Request, Notification, Channel
 from handler import Handler
 from logger import rootLogger, debugLogger, errorLogger

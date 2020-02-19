@@ -12,5 +12,6 @@ setuptools.setup(
     install_requires=[
         'aiortc>=0.9.23',
         'pynetstring',
+        'flake8',
     ],
 )

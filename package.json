@@ -29,6 +29,7 @@
     "typescript:watch": "node npm-scripts.js typescript:watch",
     "lint": "node npm-scripts.js lint",
     "lint:fix": "node npm-scripts.js lint:fix",
+    "lint:worker": "node npm-scripts.js lint:worker",
     "test": "node npm-scripts.js test",
     "coverage": "node npm-scripts.js coverage",
     "postinstall": "node npm-scripts.js postinstall"

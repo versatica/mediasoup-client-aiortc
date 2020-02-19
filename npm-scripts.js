@@ -49,6 +49,13 @@ switch (task)
 		break;
 	}
 
+	case 'lint:worker':
+	{
+		execute('flake8 worker/');
+
+		break;
+	}
+
 	case 'test':
 	{
 		taskReplaceVersion();
