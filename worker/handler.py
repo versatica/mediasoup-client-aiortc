@@ -25,6 +25,7 @@ class Handler:
         self._transceivers = dict()  # type: Dict[str, RTCRtpTransceiver]
         # dictionary of dataChannelds mapped by internal id
         self._dataChannels = dict()  # type: Dict[str, RTCDataChannel]
+        # function returning a track given a player ID and a kind
         self._getTrack = getTrack
 
         @self._pc.on("track")
@@ -96,14 +97,6 @@ class Handler:
 
     async def processRequest(self, request: Request) -> Any:
         Logger.debug(f"processRequest() [method:{request.method}]")
-
-        if request.method == "handler.getRtpCapabilities":
-            pc = RTCPeerConnection()
-            pc.addTransceiver("audio", "sendonly")
-            pc.addTransceiver("video", "sendonly")
-            offer = await pc.createOffer()
-            await pc.close()
-            return offer.sdp
 
         elif request.method == "handler.getLocalDescription":
             localDescription = self._pc.localDescription

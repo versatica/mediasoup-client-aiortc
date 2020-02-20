@@ -6,9 +6,8 @@ import signal
 import sys
 from os import getpid
 from typing import Any, Dict, Optional
-from aiortc import RTCConfiguration, RTCIceServer
+from aiortc import  RTCConfiguration, RTCPeerConnection
 from aiortc.contrib.media import MediaPlayer
-
 from channel import Request, Notification, Channel
 from handler import Handler
 from logger import Logger
@@ -100,10 +99,13 @@ if __name__ == "__main__":
 
             players[playerId] = player
 
-        if request.method == "handler.getRtpCapabilities":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
+        if request.method == "getRtpCapabilities":
+            pc = RTCPeerConnection()
+            pc.addTransceiver("audio", "sendonly")
+            pc.addTransceiver("video", "sendonly")
+            offer = await pc.createOffer()
+            await pc.close()
+            return offer.sdp
 
         elif request.method == "handler.getLocalDescription":
             internal = data.internal
