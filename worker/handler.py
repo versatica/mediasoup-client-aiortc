@@ -1,10 +1,8 @@
-import platform
 from os import getpid
 from typing import Any, Dict, Optional
 import base64
 import asyncio
 from aiortc import (
-    MediaStreamTrack,
     RTCConfiguration,
     RTCDataChannel,
     RTCPeerConnection,
@@ -75,20 +73,6 @@ class Handler:
             if sender.track is not None:
                 sender.track.stop()
 
-        # stop file players
-        for player in self._filePlayers.values():
-            if player.audio is not None:
-                player.audio.stop()
-            if player.video is not None:
-                player.video.stop()
-
-        # stop URL players
-        for player in self._urlPlayers.values():
-            if player.audio is not None:
-                player.audio.stop()
-            if player.video is not None:
-                player.video.stop()
-
         # close peerconnection
         await self._pc.close()
 
@@ -98,7 +82,7 @@ class Handler:
     async def processRequest(self, request: Request) -> Any:
         Logger.debug(f"processRequest() [method:{request.method}]")
 
-        elif request.method == "handler.getLocalDescription":
+        if request.method == "handler.getLocalDescription":
             localDescription = self._pc.localDescription
             result = None
 

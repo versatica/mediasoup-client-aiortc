@@ -1,17 +1,14 @@
 import argparse
 import traceback
 import asyncio
-import json
 import signal
-import sys
 from os import getpid
-from typing import Any, Dict, Optional
-from aiortc import  RTCConfiguration, RTCIceServer, RTCPeerConnection
+from typing import Any, Dict
+from aiortc import RTCConfiguration, RTCIceServer, RTCPeerConnection
 from aiortc.contrib.media import MediaPlayer, MediaStreamTrack
 from channel import Request, Notification, Channel
 from handler import Handler
 from logger import Logger
-
 
 # File descriptors to communicate with the Node.js process
 READ_FD = 3
