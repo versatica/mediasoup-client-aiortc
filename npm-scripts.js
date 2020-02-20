@@ -38,6 +38,7 @@ switch (task)
 		execute('MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts src/');
 		execute('MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern \'!.eslintrc.js\' .eslintrc.js npm-scripts.js test/');
 		execute('flake8 worker/');
+		execute('mypy worker/');
 
 		break;
 	}

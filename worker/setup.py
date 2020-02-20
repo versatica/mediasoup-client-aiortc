@@ -13,5 +13,6 @@ setuptools.setup(
         'aiortc>=0.9.23',
         'pynetstring',
         'flake8',
+        'mypy',
     ],
 )

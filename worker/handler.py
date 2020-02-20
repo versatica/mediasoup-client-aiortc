@@ -23,11 +23,9 @@ class Handler:
         self._channel = channel
         self._pc = RTCPeerConnection(configuration or None)
         # dictionary of transceivers mapped by track id
-        # type: Dict[str, RTCRtpTransceiver]
-        self._transceivers = dict()
+        self._transceivers = dict()  # type: Dict[str, RTCRtpTransceiver]
         # dictionary of dataChannelds mapped by internal id
-        # type: Dict[str, RTCDataChannel]
-        self._dataChannels = dict()
+        self._dataChannels = dict()  # type: Dict[str, RTCDataChannel]
         # dictionary of file players mapped by path
         # type: Dict[str, MediaPlayer]
         self._filePlayers = dict()
