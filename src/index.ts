@@ -14,17 +14,17 @@ let worker: Worker | undefined;
 export const version = '__VERSION__';
 
 /**
- * Run the Worker.
+ * Load the module. Spawn the worker subprocess.
  */
-export async function runWorker(
+export async function load(
 	{ logLevel = 'error' }:
 	WorkerSettings = {}
 ): Promise<void>
 {
-	logger.debug('runWorker()');
+	logger.debug('load()');
 
-	if (isWorkerRunning())
-		throw new InvalidStateError('worker already running');
+	if (isModuleLoaded())
+		throw new InvalidStateError('already loaded');
 
 	worker = new Worker({ logLevel });
 
@@ -32,24 +32,20 @@ export async function runWorker(
 
 	return new Promise((resolve, reject) =>
 	{
-		worker.on('@success', () =>
-		{
-			resolve();
-		});
-
+		worker.on('@success', resolve);
 		worker.on('@failure', reject);
 	});
 }
 
 /**
- * Close the Worker.
+ * Unload the module. Close the worker subprocess.
  */
-export function closeWorker(): void
+export function unload(): void
 {
-	logger.debug('closeWorker()');
+	logger.debug('unload()');
 
-	if (!isWorkerRunning())
-		logger.debug('closeWorker() | worker not running');
+	if (!isModuleLoaded())
+		logger.debug('unload() | module not loaded');
 
 	if (worker)
 		worker.close();
@@ -62,13 +58,18 @@ export function createHandlerFactory(): HandlerFactory
 {
 	logger.debug('createHandlerFactory()');
 
-	if (!isWorkerRunning())
-		throw new InvalidStateError('worker not running');
+	assertModuleLoaded();
 
 	return worker.createHandlerFactory();
 }
 
-function isWorkerRunning(): boolean
+function isModuleLoaded(): boolean
 {
 	return worker && !worker.closed;
+}
+
+function assertModuleLoaded(): void
+{
+	if (!isModuleLoaded())
+		throw new InvalidStateError('module not loaded');
 }

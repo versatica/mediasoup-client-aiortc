@@ -5,13 +5,13 @@ import { WorkerSettings } from './Worker';
  */
 export declare const version = "__VERSION__";
 /**
- * Run the Worker.
+ * Load the module. Spawn the worker subprocess.
  */
-export declare function runWorker({ logLevel }?: WorkerSettings): Promise<void>;
+export declare function load({ logLevel }?: WorkerSettings): Promise<void>;
 /**
- * Close the Worker.
+ * Unload the module. Close the worker subprocess.
  */
-export declare function closeWorker(): void;
+export declare function unload(): void;
 /**
  * Create a mediasoup-client HandlerFactory.
  */
