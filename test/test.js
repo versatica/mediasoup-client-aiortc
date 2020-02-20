@@ -131,6 +131,9 @@ test('worker.getLocalDescription() resolves with a RTCSessionDescription', async
 
 test('worker.setRemoteDescription() succeeds', async () =>
 {
+	// NOTE: Let's hack the local SDP offer to make it a SDP answer.
+	localDescription.sdp = localDescription.sdp.replace(/actpass/g, 'active');
+
 	await worker.setRemoteDescription({ type: 'answer', sdp: localDescription.sdp });
 }, 3000);
 
