@@ -5,7 +5,9 @@ import json
 import signal
 import sys
 from os import getpid
+from typing import Any, Dict, Optional
 from aiortc import RTCConfiguration, RTCIceServer
+from aiortc.contrib.media import MediaPlayer
 
 from channel import Request, Notification, Channel
 from handler import Handler
@@ -54,23 +56,187 @@ if __name__ == "__main__":
     """
     Initialization
     """
+    # dictionary of players indexed by id
+    players = dict()  # type: Dict[str, MediaPlayer]
+    # dictionary of handlers indexed by id
+    handlers = dict()  # type: Dict[str, Handler]
+
     # run event loop
     loop = asyncio.get_event_loop()
 
     # create channel
     channel = Channel(loop, READ_FD, WRITE_FD)
 
-    # create handler
-    try:
-        handler = Handler(channel, loop, rtcConfiguration)
-    except Exception as error:
-        Logger.error(
-            f"invalid RTCConfiguration: {error.__class__.__name__}: {error}"
-        )
-        sys.exit(42)
-
     def shutdown():
         loop.stop()
+
+    def getHandler(handlerId: str):
+        return handlers.get(handlerId)
+
+    def getTrack(playerId: str, kind: str):
+        player = players.get(playerId)
+        return player.audio if kind == "audio" else player.video
+
+    async def processRequest(request: Request) -> Any:
+        Logger.debug(f"processRequest() [method:{request.method}]")
+
+        if request.method == "createHandler":
+            internal = request.internal
+            handlerId = internal["handler"]
+            data = request.data
+            handler = Handler(channel, loop, getTrack, data["rtcConfiguration"])
+
+            handlers[handlerId] = handler
+
+        if request.method == "createPlayer":
+            internal = request.internal
+            playerId = internal["playerId"]
+            data = request.data
+            player = MediaPlayer(
+                data["file"],
+                data["format"] if "format" in data else None,
+                data["options"] if "options" in data else None
+            )
+
+            players[playerId] = player
+
+        if request.method == "handler.getRtpCapabilities":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.getLocalDescription":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.addTrack":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.removeTrack":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.setLocalDescription":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.setRemoteDescription":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.createOffer":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.createAnswer":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.getMid":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.getTransportStats":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.getSenderStats":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.getReceiverStats":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        elif request.method == "handler.createDataChannel":
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
+
+        else:
+            raise TypeError(
+                f"unknown notification with method '{request.method}' received"
+            )
+
+    async def processNotification(notification: Notification) -> None:
+        Logger.debug(f"processNotification() [event:{notification.event}]")
+
+        if notification.event == "handler.close":
+            internal = notification.internal
+            handlerId = internal["handlerId"]
+            handler = handlers.get(handlerId)
+
+            handler.close()
+
+            del handlers[handlerId]
+
+        if notification.event == "player.close":
+            internal = notification.internal
+            playerId = internal["playerId"]
+            player = players.get(playerId)
+
+            if player.audio:
+                player.audio.stop()
+            if player.video:
+                player.video.stop()
+
+            del players[playerId]
+
+        elif notification.event == "player.stopTrack":
+            internal = notification.internal
+            playerId = internal["playerId"]
+            data = notification.data
+            kind = data["kind"]
+
+            player = players.get(playerId)
+
+            if kind == "audio":
+                player.audio.stop()
+            else:
+                player.video.stop()
+
+        elif notification.event == "handler.enableTrack":
+            Logger.warning("enabling track not implemented")
+
+        elif notification.event == "handler.disableTrack":
+            Logger.warning("disabling track not implemented")
+
+        elif notification.event == "datachannel.send":
+            internal = notification.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processNotification(notification)
+
+        elif notification.event == "datachannel.sendBinary":
+            internal = notification.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processNotification(notification)
+
+        elif notification.event == "datachannel.close":
+            internal = notification.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processNotification(notification)
+
+        elif notification.event == "datachannel.setBufferedAmountLowThreshold":
+            internal = notification.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processNotification(notification)
+
+        else:
+            raise TypeError(
+                f"unknown notification with event '{notification.event}' received"
+            )
 
     async def run(channel: Channel, handler: Handler) -> None:
         # tell the Node process that we are running
@@ -87,7 +253,7 @@ if __name__ == "__main__":
                     request = Request(**obj)
                     request.setChannel(channel)
                     try:
-                        result = await handler.processRequest(request)
+                        result = await processRequest(request)
                         await request.succeed(result)
                     except Exception as error:
                         errorStr = f"{error.__class__.__name__}: {error}"
@@ -101,7 +267,7 @@ if __name__ == "__main__":
                 elif "event" in obj:
                     notification = Notification(**obj)
                     try:
-                        await handler.processNotification(notification)
+                        await processNotification(notification)
                     except Exception as error:
                         errorStr = f"{error.__class__.__name__}: {error}"
                         Logger.error(

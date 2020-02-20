@@ -12,26 +12,20 @@ from aiortc import (
     RTCSessionDescription,
     RTCStatsReport
 )
-from aiortc.contrib.media import MediaPlayer
 
 from channel import Request, Notification, Channel
 from logger import Logger
 
 
 class Handler:
-    def __init__(self, channel: Channel, loop: asyncio.AbstractEventLoop, configuration: Optional[RTCConfiguration] = None) -> None:
+    def __init__(self, channel: Channel, loop: asyncio.AbstractEventLoop, getTrack, configuration: Optional[RTCConfiguration] = None) -> None:
         self._channel = channel
         self._pc = RTCPeerConnection(configuration or None)
         # dictionary of transceivers mapped by track id
         self._transceivers = dict()  # type: Dict[str, RTCRtpTransceiver]
         # dictionary of dataChannelds mapped by internal id
         self._dataChannels = dict()  # type: Dict[str, RTCDataChannel]
-        # dictionary of file players mapped by path
-        # type: Dict[str, MediaPlayer]
-        self._filePlayers = dict()
-        # dictionary of URL players mapped by URL
-        # type: Dict[str, MediaPlayer]
-        self._urlPlayers = dict()
+        self._getTrack = getTrack
 
         @self._pc.on("track")
         def on_track(track):
@@ -103,7 +97,7 @@ class Handler:
     async def processRequest(self, request: Request) -> Any:
         Logger.debug(f"processRequest() [method:{request.method}]")
 
-        if request.method == "getRtpCapabilities":
+        if request.method == "handler.getRtpCapabilities":
             pc = RTCPeerConnection()
             pc.addTransceiver("audio", "sendonly")
             pc.addTransceiver("video", "sendonly")
@@ -111,7 +105,7 @@ class Handler:
             await pc.close()
             return offer.sdp
 
-        elif request.method == "getLocalDescription":
+        elif request.method == "handler.getLocalDescription":
             localDescription = self._pc.localDescription
             result = None
 
@@ -121,14 +115,11 @@ class Handler:
                 result["sdp"] = localDescription.sdp
                 return result
 
-        elif request.method == "addTrack":
+        elif request.method == "handler.addTrack":
             data = request.data
+            playerId = data.get("playerId")
             kind = data.get("kind")
-            sourceType = data.get("sourceType")
-            sourceValue = data.get("sourceValue")
-            format = data.get("format")
-            options = data.get("options")
-            track = self._getTrack(kind, sourceType, sourceValue, format, options)
+            track = self._getTrack(playerId, kind)
             transceiver = self._pc.addTransceiver(track)
 
             # store transceiver in the dictionary
@@ -138,7 +129,7 @@ class Handler:
             result["trackId"] = track.id
             return result
 
-        elif request.method == "removeTrack":
+        elif request.method == "handler.removeTrack":
             data = request.data
             trackId = data.get("trackId")
             if trackId is None:
@@ -146,13 +137,12 @@ class Handler:
 
             transceiver = self._transceivers[trackId]
             transceiver.direction = "inactive"
-            transceiver.sender.track.stop()
             transceiver.sender.replaceTrack(None)
 
             # remove transceiver from the dictionary
             del self._transceivers[trackId]
 
-        elif request.method == "setLocalDescription":
+        elif request.method == "handler.setLocalDescription":
             data = request.data
             if isinstance(data, RTCSessionDescription):
                 raise TypeError("request data not a RTCSessionDescription")
@@ -160,7 +150,7 @@ class Handler:
             description = RTCSessionDescription(**data)
             await self._pc.setLocalDescription(description)
 
-        elif request.method == "setRemoteDescription":
+        elif request.method == "handler.setRemoteDescription":
             data = request.data
             if isinstance(data, RTCSessionDescription):
                 raise TypeError("request data not a RTCSessionDescription")
@@ -168,21 +158,21 @@ class Handler:
             description = RTCSessionDescription(**data)
             await self._pc.setRemoteDescription(description)
 
-        elif request.method == "createOffer":
+        elif request.method == "handler.createOffer":
             offer = await self._pc.createOffer()
             result = {}
             result["type"] = offer.type
             result["sdp"] = offer.sdp
             return result
 
-        elif request.method == "createAnswer":
+        elif request.method == "handler.createAnswer":
             answer = await self._pc.createAnswer()
             result = {}
             result["type"] = answer.type
             result["sdp"] = answer.sdp
             return result
 
-        elif request.method == "getMid":
+        elif request.method == "handler.getMid":
             data = request.data
             trackId = data.get("trackId")
             if trackId is None:
@@ -191,7 +181,7 @@ class Handler:
             transceiver = self._transceivers[trackId]
             return transceiver.mid
 
-        elif request.method == "getTransportStats":
+        elif request.method == "handler.getTransportStats":
             result = {}
             stats = await self._pc.getStats()
             for key in stats:
@@ -209,7 +199,7 @@ class Handler:
 
             return result
 
-        elif request.method == "getSenderStats":
+        elif request.method == "handler.getSenderStats":
             data = request.data
             mid = data.get("mid")
             if mid is None:
@@ -230,7 +220,7 @@ class Handler:
 
             return result
 
-        elif request.method == "getReceiverStats":
+        elif request.method == "handler.getReceiverStats":
             data = request.data
             mid = data.get("mid")
             if mid is None:
@@ -251,7 +241,7 @@ class Handler:
 
             return result
 
-        elif request.method == "createDataChannel":
+        elif request.method == "handler.createDataChannel":
             internal = request.internal
             dataChannelId = internal.get("dataChannelId")
             data = request.data
@@ -485,89 +475,3 @@ class Handler:
             "iceRole": stats.iceRole,
             "dtlsState": stats.dtlsState
         }
-
-    def _getTrack(
-        self,
-        kind: str,
-        sourceType: str,
-        sourceValue: Optional[str],
-        format: Optional[str],
-        options: Optional[Any]
-    ) -> MediaStreamTrack:
-        if kind not in ['audio', 'video']:
-            raise TypeError("invalid/missing kind")
-
-        if sourceType == "device":
-            system = platform.system()
-
-            if system == "Darwin":
-                if kind == 'audio':
-                    player = MediaPlayer(
-                        "none:0" if sourceValue is None else sourceValue,
-                        format="avfoundation" if format is None else format,
-                        options={} if options is None else options
-                    )
-                    return player.audio
-
-                elif kind == 'video':
-                    player = MediaPlayer(
-                        "default:none" if sourceValue is None else sourceValue,
-                        format="avfoundation" if format is None else format,
-                        options={
-                            "framerate": "30",
-                            "video_size": "640x480"
-                        } if options is None else options
-                    )
-                    return player.video
-
-            elif system == "Linux":
-                if kind == 'audio':
-                    player = MediaPlayer(
-                        "hw:0" if sourceValue is None else sourceValue,
-                        format="alsa" if format is None else format,
-                        options={} if options is None else options
-                    )
-                    return player.audio
-                elif kind == 'video':
-                    player = MediaPlayer(
-                        "/dev/video0" if sourceValue is None else sourceValue,
-                        format="v4l2",
-                        options={
-                            "framerate": "30",
-                            "video_size": "640x480"
-                        } if options is None else options
-                    )
-                    return player.video
-
-        elif sourceType == "file":
-            player = None
-
-            try:
-                player = self._filePlayers[sourceValue]
-            except KeyError:
-                player = MediaPlayer(sourceValue)
-                self._filePlayers[sourceValue] = player
-
-            track = player.audio if kind == "audio" else player.video
-            if track is None:
-                raise Exception("file does not have a track of the given kind")
-
-            return track
-
-        elif sourceType == "url":
-            player = None
-
-            try:
-                player = self._urlPlayers[sourceValue]
-            except KeyError:
-                player = MediaPlayer(sourceValue)
-                self._urlPlayers[sourceValue] = player
-
-            track = player.audio if kind == "audio" else player.video
-            if track is None:
-                raise Exception("URL does not have a track of the given kind")
-
-            return track
-
-        else:
-            raise TypeError("invalid/missing sourceType")
