@@ -45,7 +45,7 @@ if __name__ == "__main__":
     channel = Channel(loop, READ_FD, WRITE_FD)
 
     def shutdown() -> None:
-        loop.stop()
+        loop.close()
 
     def getHandler(handlerId: str) -> Handler:
         return handlers[handlerId]
