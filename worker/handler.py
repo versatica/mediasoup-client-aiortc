@@ -26,11 +26,11 @@ class Handler:
         # function returning a track given a player ID and a kind
         self._getTrack = getTrack
 
-        @self._pc.on("track")
-        def on_track(track):
+        @self._pc.on("track")  # type: ignore
+        def on_track(track) -> None:
             Logger.debug(f"ontrack [kind:{track.kind}, id:{track.id}]")
 
-        @self._pc.on("iceconnectionstatechange")
+        @self._pc.on("iceconnectionstatechange")  # type: ignore
         async def on_iceconnectionstatechange() -> None:
             Logger.debug(
                 f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]"
@@ -39,7 +39,7 @@ class Handler:
                 str(getpid()), "iceconnectionstatechange", self._pc.iceConnectionState
             )
 
-        @self._pc.on("icegatheringstatechange")
+        @self._pc.on("icegatheringstatechange")  # type: ignore
         async def on_icegatheringstatechange() -> None:
             Logger.debug(
                 f"icegatheringstatechange [state:{self._pc.iceGatheringState}]"
@@ -48,7 +48,7 @@ class Handler:
                 str(getpid()), "icegatheringstatechange", self._pc.iceGatheringState
             )
 
-        @self._pc.on("signalingstatechange")
+        @self._pc.on("signalingstatechange")  # type: ignore
         async def on_signalingstatechange() -> None:
             Logger.debug(
                 f"signalingstatechange [state:{self._pc.signalingState}]"
@@ -241,15 +241,15 @@ class Handler:
             # store datachannel in the dictionary
             self._dataChannels[dataChannelId] = dataChannel
 
-            @dataChannel.on("open")
+            @dataChannel.on("open")  # type: ignore
             async def on_open() -> None:
                 await self._channel.notify(dataChannelId, "open")
 
-            @dataChannel.on("closing")
+            @dataChannel.on("closing")  # type: ignore
             async def on_closing() -> None:
                 await self._channel.notify(dataChannelId, "closing")
 
-            @dataChannel.on("close")
+            @dataChannel.on("close")  # type: ignore
             async def on_close() -> None:
                 # NOTE: After calling dataChannel.close() aiortc emits "close"event
                 # on the dataChannel. Probably it shouldn't do it. So caution.
@@ -259,7 +259,7 @@ class Handler:
                 except KeyError:
                     pass
 
-            @dataChannel.on("message")
+            @dataChannel.on("message")  # type: ignore
             async def on_message(message) -> None:
                 if isinstance(message, str):
                     await self._channel.notify(dataChannelId, "message", message)
@@ -268,7 +268,7 @@ class Handler:
                     await self._channel.notify(
                         dataChannelId, "binary", str(message_bytes))
 
-            @dataChannel.on("bufferedamountlow")
+            @dataChannel.on("bufferedamountlow")  # type: ignore
             async def on_bufferedamountlow() -> None:
                 await self._channel.notify(dataChannelId, "bufferedamountlow")
 
