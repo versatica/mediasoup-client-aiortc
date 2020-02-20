@@ -7,7 +7,6 @@
   - However, I (ibc) still see zombie processes from time to time.
 
 * Properly close aiortc `Players` (all their tracks).
-  - This is done, right?
   - However it indeed crashes. For instance, if the same file is used for audio and video, closing the video track makes the Python process crash.
 
 * Need DataChannel tests.
