@@ -34,9 +34,9 @@ if __name__ == "__main__":
     Initialization
     """
     # dictionary of players indexed by id
-    players = dict()  # type: Dict[str, MediaPlayer]
+    players: Dict[str, MediaPlayer] = ({})
     # dictionary of handlers indexed by id
-    handlers = dict()  # type: Dict[str, Handler]
+    handlers: Dict[str, Handler] = ({})
 
     # run event loop
     loop = asyncio.get_event_loop()
@@ -48,10 +48,10 @@ if __name__ == "__main__":
         loop.stop()
 
     def getHandler(handlerId: str) -> Handler:
-        return handlers.get(handlerId)
+        return handlers[handlerId]
 
     def getTrack(playerId: str, kind: str) -> MediaStreamTrack:
-        player = players.get(playerId)
+        player = players[playerId]
         return player.audio if kind == "audio" else player.video
 
     async def processRequest(request: Request) -> Any:
@@ -173,7 +173,7 @@ if __name__ == "__main__":
         if notification.event == "handler.close":
             internal = notification.internal
             handlerId = internal["handlerId"]
-            handler = handlers.get(handlerId)
+            handler = handlers[handlerId]
 
             handler.close()
 
@@ -182,7 +182,7 @@ if __name__ == "__main__":
         if notification.event == "player.close":
             internal = notification.internal
             playerId = internal["playerId"]
-            player = players.get(playerId)
+            player = players[playerId]
 
             if player.audio:
                 player.audio.stop()
@@ -237,7 +237,7 @@ if __name__ == "__main__":
 
     async def run(channel: Channel) -> None:
         # tell the Node process that we are running
-        await channel.notify(getpid(), "running")
+        await channel.notify(str(getpid()), "running")
 
         while True:
             try:
