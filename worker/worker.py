@@ -238,7 +238,7 @@ if __name__ == "__main__":
                 f"unknown notification with event '{notification.event}' received"
             )
 
-    async def run(channel: Channel, handler: Handler) -> None:
+    async def run(channel: Channel) -> None:
         # tell the Node process that we are running
         await channel.notify(getpid(), "running")
 
@@ -285,7 +285,7 @@ if __name__ == "__main__":
 
     try:
         loop.run_until_complete(
-            run(channel, handler)
+            run(channel)
         )
     # reached after calling loop.stop() or channel failure
     except RuntimeError:
