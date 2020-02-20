@@ -102,70 +102,10 @@ if __name__ == "__main__":
             await pc.close()
             return offer.sdp
 
-        elif request.method == "handler.getLocalDescription":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.addTrack":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.removeTrack":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.setLocalDescription":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.setRemoteDescription":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.createOffer":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.createAnswer":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.getMid":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.getTransportStats":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.getSenderStats":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.getReceiverStats":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
-        elif request.method == "handler.createDataChannel":
-            internal = data.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processRequest(request)
-
         else:
-            raise TypeError(
-                f"unknown notification with method '{request.method}' received"
-            )
+            internal = data.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processRequest(request)
 
     async def processNotification(notification: Notification) -> None:
         Logger.debug(f"processNotification() [event:{notification.event}]")
@@ -204,36 +144,10 @@ if __name__ == "__main__":
             else:
                 player.video.stop()
 
-        elif notification.event == "handler.enableTrack":
-            Logger.warning("enabling track not implemented")
-
-        elif notification.event == "handler.disableTrack":
-            Logger.warning("disabling track not implemented")
-
-        elif notification.event == "datachannel.send":
-            internal = notification.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processNotification(notification)
-
-        elif notification.event == "datachannel.sendBinary":
-            internal = notification.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processNotification(notification)
-
-        elif notification.event == "datachannel.close":
-            internal = notification.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processNotification(notification)
-
-        elif notification.event == "datachannel.setBufferedAmountLowThreshold":
-            internal = notification.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processNotification(notification)
-
         else:
-            raise TypeError(
-                f"unknown notification with event '{notification.event}' received"
-            )
+            internal = notification.internal
+            handler = getHandler(internal["handlerId"])
+            return await handler.processNotification(notification)
 
     async def run(channel: Channel) -> None:
         # tell the Node process that we are running
