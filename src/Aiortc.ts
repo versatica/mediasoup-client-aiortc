@@ -547,7 +547,7 @@ export class Aiortc extends HandlerInterface
 		// NOTE: This should be localDtlsRole: 'client'. However aiortc fails to
 		// honor given DTLS role and assumes it must always be 'server'.
 		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
 
 		logger.debug(
 			'receive() | calling worker.setLocalDescription() [answer:%o]',
