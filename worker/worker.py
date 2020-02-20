@@ -7,7 +7,7 @@ import sys
 from os import getpid
 from typing import Any, Dict, Optional
 from aiortc import  RTCConfiguration, RTCIceServer, RTCPeerConnection
-from aiortc.contrib.media import MediaPlayer
+from aiortc.contrib.media import MediaPlayer, MediaStreamTrack
 from channel import Request, Notification, Channel
 from handler import Handler
 from logger import Logger
@@ -47,13 +47,13 @@ if __name__ == "__main__":
     # create channel
     channel = Channel(loop, READ_FD, WRITE_FD)
 
-    def shutdown():
+    def shutdown() -> None:
         loop.stop()
 
-    def getHandler(handlerId: str):
+    def getHandler(handlerId: str) -> Handler:
         return handlers.get(handlerId)
 
-    def getTrack(playerId: str, kind: str):
+    def getTrack(playerId: str, kind: str) -> MediaStreamTrack:
         player = players.get(playerId)
         return player.audio if kind == "audio" else player.video
 
