@@ -27,6 +27,6 @@ export declare class Worker extends EnhancedEventEmitter {
     /**
      * Create a mediasoup-client HandlerFactory.
      */
-    createHandlerFactory(): Promise<HandlerFactory>;
+    createHandlerFactory(): HandlerFactory;
 }
 //# sourceMappingURL=Worker.d.ts.map

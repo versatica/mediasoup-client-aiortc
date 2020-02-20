@@ -15,5 +15,5 @@ export declare function closeWorker(): void;
 /**
  * Create a mediasoup-client HandlerFactory.
  */
-export declare function createHandlerFactory(): Promise<HandlerFactory>;
+export declare function createHandlerFactory(): HandlerFactory;
 //# sourceMappingURL=index.d.ts.map

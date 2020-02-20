@@ -37,6 +37,15 @@ const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 
 export class Handler extends HandlerInterface
 {
+	// Internal data.
+	// - .handlerId
+	private readonly _internal: any;
+	// Channel instance.
+	private readonly _channel: Channel;
+	// onClose callback.
+	private readonly _onClose: () => void;
+	// Closed flag.
+	private _closed = false;
 	// Handler direction.
 	private _direction: 'send' | 'recv';
 	// Remote SDP handler.
@@ -63,15 +72,26 @@ export class Handler extends HandlerInterface
 	constructor(
 		{
 			internal,
-			channel
+			channel,
+			onClose
 		}:
 		{
 			internal: any;
 			channel: Channel;
+			onClose: () => void;
 		}
 	)
 	{
 		super();
+
+		this._internal = internal;
+		this._channel = channel;
+		this._onClose = onClose;
+	}
+
+	get closed(): boolean
+	{
+		return this._closed;
 	}
 
 	get name(): string
@@ -83,6 +103,11 @@ export class Handler extends HandlerInterface
 	{
 		logger.debug('close()');
 
+		if (this._closed)
+			return;
+
+		this._closed = true;
+
 		// Deregister sending tracks events and emit 'ended' in remote tracks.
 		for (const track of this._mapLocalIdTracks.values())
 		{
@@ -92,46 +117,27 @@ export class Handler extends HandlerInterface
 			}
 			else
 			{
+				// TODO: Not here!
 				track.removeEventListener(
 					'@enabledchange', track.data.enabledChangeListener);
 			}
 		}
 
-		// Close the worker.
-		if (this._worker)
-			this._worker.close();
+		// Tell the Worker.
+		this._onClose();
 	}
 
 	async getNativeRtpCapabilities(): Promise<RtpCapabilities>
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
-		const worker = new Worker({ logLevel: this._workerLogLevel });
+		const sdp = await this._channel.request(
+			'handler.getNativeRtpCapabilities', this._internal);
 
-		try
-		{
-			await new Promise((resolve, reject) =>
-			{
-				worker.on('open', resolve);
-				worker.on('failed', reject);
-			});
+		const sdpObject = sdpTransform.parse(sdp);
+		const caps = sdpCommonUtils.extractRtpCapabilities({ sdpObject });
 
-			const sdp = await worker.getRtpCapabilities();
-			const sdpObject = sdpTransform.parse(sdp);
-			const caps = sdpCommonUtils.extractRtpCapabilities({ sdpObject });
-
-			worker.close();
-
-			return caps;
-		}
-		catch (error)
-		{
-			logger.error('getNativeRtpCapabilities | failed: %o', error);
-
-			worker.close();
-
-			throw error;
-		}
+		return caps;
 	}
 
 	async getNativeSctpCapabilities(): Promise<SctpCapabilities>

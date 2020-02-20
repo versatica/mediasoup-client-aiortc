@@ -58,7 +58,7 @@ export function closeWorker(): void
 /**
  * Create a mediasoup-client HandlerFactory.
  */
-export async function createHandlerFactory(): Promise<HandlerFactory>
+export function createHandlerFactory(): HandlerFactory
 {
 	logger.debug('createHandlerFactory()');
 

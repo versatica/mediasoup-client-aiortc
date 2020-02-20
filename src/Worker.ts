@@ -242,25 +242,37 @@ export class Worker extends EnhancedEventEmitter
 	/**
 	 * Create a mediasoup-client HandlerFactory.
 	 */
-	async createHandlerFactory(): Promise<HandlerFactory>
+	createHandlerFactory(): HandlerFactory
 	{
 		logger.debug('createHandlerFactory()');
 
-		const internal = { handlerId: uuidv4() };
-
-		await this._channel.request('worker.createHandler', internal);
-
 		return (): Handler =>
 		{
+			const internal = { handlerId: uuidv4() };
 			const handler = new Handler(
 				{
 					internal,
-					channel : this._channel
+					channel : this._channel,
+					onClose : () => this._handlers.delete(handler)
 				});
 
 			this._handlers.add(handler);
-			// TODO: The Handler must emit this.
-			handler.on('@close', () => this._handlers.delete(handler));
+
+			// NOTE: Due the HandleFactory signature (sync) we cannot await here so
+			// let's assume this will work.
+			this._channel.request('worker.createHandler', internal)
+				.catch((error) =>
+				{
+					if (!handler.closed)
+						return;
+
+					logger.error(`worker.createHandler() failed: ${error}`);
+
+					handler.close();
+
+					// Throw the error somewhere.
+					throw new Error(`worker.createHandler() failed: ${error}`);
+				});
 
 			return handler;
 		};

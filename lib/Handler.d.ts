@@ -3,6 +3,10 @@ import { IceParameters, RtpCapabilities, SctpCapabilities } from 'mediasoup-clie
 import { Channel } from './Channel';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 export declare class Handler extends HandlerInterface {
+    private readonly _internal;
+    private readonly _channel;
+    private readonly _onClose;
+    private _closed;
     private _direction;
     private _remoteSdp;
     private _sendingRtpParametersByKind;
@@ -13,10 +17,12 @@ export declare class Handler extends HandlerInterface {
     private _transportReady;
     private _hasDataChannelMediaSection;
     private _nextSendSctpStreamId;
-    constructor({ internal, channel }: {
+    constructor({ internal, channel, onClose }: {
         internal: any;
         channel: Channel;
+        onClose: () => void;
     });
+    readonly closed: boolean;
     readonly name: string;
     close(): void;
     getNativeRtpCapabilities(): Promise<RtpCapabilities>;
