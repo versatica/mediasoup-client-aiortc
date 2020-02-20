@@ -11,19 +11,19 @@ _errorLogger.addHandler(logging.StreamHandler(sys.stderr))
 
 class Logger:
     @staticmethod
-    def setLogLevel(logLevel: str):
+    def setLogLevel(logLevel: str) -> None:
         _rootLogger.setLevel(logLevel.upper())
         _debugLogger.setLevel(logLevel.upper())
         _errorLogger.setLevel(logLevel.upper())
 
     @staticmethod
-    def debug(*args):
+    def debug(*args) -> None:
         _debugLogger.debug(*args)
 
     @staticmethod
-    def warning(*args):
+    def warning(*args) -> None:
         _errorLogger.warning(*args)
 
     @staticmethod
-    def error(*args):
+    def error(*args) -> None:
         _errorLogger.error(*args)
