@@ -43,7 +43,8 @@
     "event-target-shim": "^5.0.1",
     "fake-mediastreamtrack": "^1.1.2",
     "netstring": "^0.3.0",
-    "sdp-transform": "^2.14.0"
+    "sdp-transform": "^2.14.0",
+    "uuid": "^3.4.0"
   },
   "devDependencies": {
     "@types/node": "^13.7.4",
@@ -58,8 +59,7 @@
     "mediasoup-client": "github:versatica/mediasoup-client#v3",
     "open-cli": "^5.0.0",
     "tsc-watch": "^4.1.0",
-    "typescript": "~3.6.4",
-    "uuid": "^3.4.0"
+    "typescript": "~3.6.4"
   },
   "peerDependencies": {
     "mediasoup-client": "^3.3.16"
