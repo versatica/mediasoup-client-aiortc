@@ -85,6 +85,12 @@ switch (task)
 
 function taskReplaceVersion()
 {
+	replaceJsVersion();
+	replacePyVersion();
+}
+
+function replaceJsVersion()
+{
 	const file = 'lib/index.js';
 	const text = fs.readFileSync(file, { encoding: 'utf8' });
 	const result = text.replace(/__VERSION__/g, version);
@@ -92,6 +98,14 @@ function taskReplaceVersion()
 	fs.writeFileSync(file, result, { encoding: 'utf8' });
 }
 
+function replacePyVersion()
+{
+	const file = 'worker/setup.py';
+	const text = fs.readFileSync(file, { encoding: 'utf8' });
+	const result = text.replace(/version='\d\.\d\.\d\'/g, `version='${version}'`);
+
+	fs.writeFileSync(file, result, { encoding: 'utf8' });
+}
 function execute(command)
 {
 	// eslint-disable-next-line no-console
