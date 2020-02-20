@@ -6,7 +6,7 @@ import signal
 import sys
 from os import getpid
 from typing import Any, Dict, Optional
-from aiortc import  RTCConfiguration, RTCPeerConnection
+from aiortc import  RTCConfiguration, RTCIceServer, RTCPeerConnection
 from aiortc.contrib.media import MediaPlayer
 from channel import Request, Notification, Channel
 from handler import Handler
@@ -23,8 +23,6 @@ if __name__ == "__main__":
         description="aiortc mediasoup-client handler")
     parser.add_argument(
         "--logLevel", "-l", choices=["debug", "warn", "error", "none"])
-    parser.add_argument(
-        "--rtcConfiguration", "-c", help="RTCConfiguration string")
     args = parser.parse_args()
 
     """
@@ -34,23 +32,6 @@ if __name__ == "__main__":
         Logger.setLogLevel(args.logLevel)
 
     Logger.debug("starting mediasoup-client aiortc worker")
-
-    # use RTCConfiguration if given
-    rtcConfiguration = None
-
-    if args.rtcConfiguration:
-        jsonRtcConfiguration = json.loads(args.rtcConfiguration)
-        if "iceServers" in jsonRtcConfiguration:
-            iceServers = []
-            for entry in jsonRtcConfiguration["iceServers"]:
-                iceServer = RTCIceServer(
-                    urls=entry.get("urls"),
-                    username=entry.get("username"),
-                    credential=entry.get("credential"),
-                    credentialType=entry.get("credentialType")
-                )
-                iceServers.append(iceServer)
-            rtcConfiguration = RTCConfiguration(iceServers)
 
     """
     Initialization
@@ -83,8 +64,25 @@ if __name__ == "__main__":
             internal = request.internal
             handlerId = internal["handler"]
             data = request.data
-            handler = Handler(channel, loop, getTrack, data["rtcConfiguration"])
 
+            # use RTCConfiguration if given
+            jsonRtcConfiguration = data.get("rtcConfiguration")
+            rtcConfiguration = None
+
+            if jsonRtcConfiguration:
+                if "iceServers" in jsonRtcConfiguration:
+                    iceServers = []
+                    for entry in jsonRtcConfiguration["iceServers"]:
+                        iceServer = RTCIceServer(
+                            urls=entry.get("urls"),
+                            username=entry.get("username"),
+                            credential=entry.get("credential"),
+                            credentialType=entry.get("credentialType")
+                        )
+                        iceServers.append(iceServer)
+                    rtcConfiguration = RTCConfiguration(iceServers)
+
+            handler = Handler(channel, loop, getTrack, rtcConfiguration)
             handlers[handlerId] = handler
 
         if request.method == "createPlayer":
