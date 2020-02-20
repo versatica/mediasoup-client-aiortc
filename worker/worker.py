@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     async def run(channel: Channel, handler: Handler) -> None:
         # tell the Node process that we are running
-        await channel.notify(getpid(), "running")
+        await channel.notify(str(getpid()), "running")
 
         while True:
             try:

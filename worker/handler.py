@@ -27,11 +27,9 @@ class Handler:
         # dictionary of dataChannelds mapped by internal id
         self._dataChannels = dict()  # type: Dict[str, RTCDataChannel]
         # dictionary of file players mapped by path
-        # type: Dict[str, MediaPlayer]
-        self._filePlayers = dict()
+        self._filePlayers = dict()  # type: Dict[str, MediaPlayer]
         # dictionary of URL players mapped by URL
-        # type: Dict[str, MediaPlayer]
-        self._urlPlayers = dict()
+        self._urlPlayers = dict()  # type: Dict[str, MediaPlayer]
 
         @self._pc.on("track")
         def on_track(track):
@@ -43,7 +41,7 @@ class Handler:
                 f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]"
             )
             await self._channel.notify(
-                getpid(), "iceconnectionstatechange", self._pc.iceConnectionState
+                str(getpid()), "iceconnectionstatechange", self._pc.iceConnectionState
             )
 
         @self._pc.on("icegatheringstatechange")
@@ -52,7 +50,7 @@ class Handler:
                 f"icegatheringstatechange [state:{self._pc.iceGatheringState}]"
             )
             await self._channel.notify(
-                getpid(), "icegatheringstatechange", self._pc.iceGatheringState
+                str(getpid()), "icegatheringstatechange", self._pc.iceGatheringState
             )
 
         @self._pc.on("signalingstatechange")
@@ -61,7 +59,7 @@ class Handler:
                 f"signalingstatechange [state:{self._pc.signalingState}]"
             )
             await self._channel.notify(
-                getpid(), "signalingstatechange", self._pc.signalingState
+                str(getpid()), "signalingstatechange", self._pc.signalingState
             )
 
         async def checkDataChannelsBufferedAmount() -> None:
