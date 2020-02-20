@@ -7,7 +7,6 @@ import * as ortc from 'mediasoup-client/lib/ortc';
 import * as sdpCommonUtils from 'mediasoup-client/lib/handlers/sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from 'mediasoup-client/lib/handlers/sdp/unifiedPlanUtils';
 import {
-	HandlerFactory,
 	HandlerInterface,
 	HandlerRunOptions,
 	HandlerSendOptions,
@@ -29,17 +28,15 @@ import {
 	SctpCapabilities,
 	SctpStreamParameters
 } from 'mediasoup-client/lib/types';
-import { WorkerLogLevel, WorkerSendOptions, Worker } from './Worker';
+import { Channel } from './Channel';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 
-const logger = new Logger('aiortc');
+const logger = new Logger('aiortc:Handler');
 
 const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 
-export class Aiortc extends HandlerInterface
+export class Handler extends HandlerInterface
 {
-	// Log level for spawned Workers.
-	private readonly _workerLogLevel: WorkerLogLevel;
 	// Handler direction.
 	private _direction: 'send' | 'recv';
 	// Remote SDP handler.
@@ -62,19 +59,19 @@ export class Aiortc extends HandlerInterface
 	// Next DataChannel id.
 	private _nextSendSctpStreamId = 0;
 
-	/**
-	 * Creates a factory function.
-	 */
-	static createFactory(logLevel?: WorkerLogLevel): HandlerFactory
-	{
-		return (): Aiortc => new Aiortc(logLevel);
-	}
-
-	constructor(logLevel?: WorkerLogLevel)
+	// TODO: Inherit from EventEmitter and emit @close
+	constructor(
+		{
+			internal,
+			channel
+		}:
+		{
+			internal: any;
+			channel: Channel;
+		}
+	)
 	{
 		super();
-
-		this._workerLogLevel = logLevel || 'none';
 	}
 
 	get name(): string

@@ -39,7 +39,7 @@ const {
 } = require('mediasoup-client-aiortc');
 ```
 
-#### `createFactory(logLevel: WorkerLogLevel = 'none'): HandlerFactory`
+#### `createFactory(logLevel: WorkerLogLevel = 'error'): HandlerFactory`
 
 A function that creates a mediasoup-client handler factory, suitable for the [handlerFactory](https://mediasoup.org/documentation/v3/mediasoup-client/api/#Device-dictionaries) argument when instantiating a mediasoup-client [Device](https://mediasoup.org/documentation/v3/mediasoup-client/api/#mediasoupClient-Device).
 
