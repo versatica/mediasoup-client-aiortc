@@ -10,6 +10,7 @@ from logger import Logger
 
 def object_from_string(message_str) -> Optional[Dict[str, Any]]:
     message = json.loads(message_str)
+
     if "method" in message:
         if "id" in message:
             return message
