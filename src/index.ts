@@ -1,16 +1,16 @@
-import { HandlerFactory } from 'mediasoup-client/lib/handlers/HandlerInterface';
+import { Logger } from 'mediasoup-client/lib/Logger';
 import {
-	createWorker,
 	Worker,
 	WorkerSettings,
 	WorkerLogLevel
 } from './Worker';
+import { AppMediaStream } from './AppMediaStream';
 import {
-	createMediaStream,
-	FakeMediaStreamOptions,
-	FakeMediaStreamKindOptions
+	AppMediaStreamConstraints,
+	AppMediaTrackConstraints
 } from './media';
-import { FakeMediaStream } from './FakeMediaStream';
+
+const logger = new Logger('aiortc');
 
 /**
  * Expose version.
@@ -18,29 +18,38 @@ import { FakeMediaStream } from './FakeMediaStream';
 export const version = '__VERSION__';
 
 /**
- * Expose Worker factory and related types.
+ * Expose Worker factory.
+ */
+export async function createWorker(
+	{ logLevel = 'error' }:
+	WorkerSettings = {}
+): Promise<Worker>
+{
+	logger.debug('createWorker()');
+
+	const worker = new Worker({ logLevel });
+
+	return new Promise((resolve, reject) =>
+	{
+		worker.on('@success', () => resolve(worker));
+		worker.on('@failure', reject);
+	});
+}
+
+/**
+ * Expose Worker class and related types.
  */
 export {
-	createWorker,
 	Worker,
 	WorkerSettings,
 	WorkerLogLevel
 };
 
 /**
- * Exponse a function to create a HandlerFactory.
- */
-export function createHandlerFactory(worker: Worker): HandlerFactory
-{
-	return worker.createHandlerFactory();
-}
-
-/**
- * Expose FakeMediaStream factory and related types.
+ * Expose AppMediaStream class and related types.
  */
 export {
-	createMediaStream,
-	FakeMediaStream,
-	FakeMediaStreamOptions,
-	FakeMediaStreamKindOptions
+	AppMediaStream,
+	AppMediaStreamConstraints,
+	AppMediaTrackConstraints
 };

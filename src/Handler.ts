@@ -43,8 +43,6 @@ export class Handler extends HandlerInterface
 	private readonly _internal: { handlerId: string };
 	// Channel instance.
 	private readonly _channel: Channel;
-	// Closure callback.
-	private readonly _onClose: () => void;
 	// Closed flag.
 	private _closed = false;
 	// Running flag. It means that the handler has been told to the worker.
@@ -69,16 +67,19 @@ export class Handler extends HandlerInterface
 	// Next DataChannel id.
 	private _nextSendSctpStreamId = 0;
 
+	/**
+	 * Addicional events.
+	 *
+	 * @emits @close
+	 */
 	constructor(
 		{
 			internal,
-			channel,
-			onClose
+			channel
 		}:
 		{
 			internal: { handlerId: string };
 			channel: Channel;
-			onClose: () => void;
 		}
 	)
 	{
@@ -86,7 +87,6 @@ export class Handler extends HandlerInterface
 
 		this._internal = internal;
 		this._channel = channel;
-		this._onClose = onClose;
 	}
 
 	get closed(): boolean
@@ -130,7 +130,7 @@ export class Handler extends HandlerInterface
 			this._channel.notify('handler.close', this._internal);
 
 		// Tell the parent.
-		this._onClose();
+		this.emit('@close');
 	}
 
 	async getNativeRtpCapabilities(): Promise<RtpCapabilities>

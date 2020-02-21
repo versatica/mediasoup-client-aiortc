@@ -1,18 +1,17 @@
 import * as os from 'os';
 import uuidv4 from 'uuid/v4';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
-import { Logger } from 'mediasoup-client/lib/Logger';
 import { clone } from 'mediasoup-client/lib/utils';
-import { Worker } from './Worker';
-import { FakeMediaStream } from './FakeMediaStream';
+import { Channel } from './Channel';
+import { AppMediaStream } from './AppMediaStream';
 
-export type FakeMediaStreamOptions =
+export type AppMediaStreamConstraints =
 {
-	audio?: FakeMediaStreamKindOptions;
-	video?: FakeMediaStreamKindOptions;
+	audio?: AppMediaTrackConstraints | boolean;
+	video?: AppMediaTrackConstraints | boolean;
 }
 
-export type FakeMediaStreamKindOptions =
+export type AppMediaTrackConstraints =
 {
 	source: 'device' | 'file' | 'url';
 	device?: string;
@@ -35,19 +34,14 @@ type MediaPlayerOptions =
 	options?: object;
 };
 
-const logger = new Logger('aiortc:media');
-
-export async function createMediaStream(
-	worker: Worker,
-	options: FakeMediaStreamOptions = {}
-): Promise<FakeMediaStream>
+export async function getAppMedia(
+	channel: Channel,
+	constraints: AppMediaStreamConstraints = {}
+): Promise<AppMediaStream>
 {
-	logger.debug('createMediaStream() [options:%o]', options);
+	constraints = clone(constraints) as AppMediaStreamConstraints;
 
-	options = clone(options) as FakeMediaStreamOptions;
-
-	const channel = worker.channel;
-	const { audio, video } = options;
+	let { audio, video } = constraints;
 	let audioPlayerInternal: MediaPlayerInternal;
 	let videoPlayerInternal: MediaPlayerInternal;
 	let audioPlayerOptions: MediaPlayerOptions;
@@ -55,11 +49,14 @@ export async function createMediaStream(
 	const tracks: FakeMediaStreamTrack[] = [];
 
 	if (!audio && !video)
-		throw new TypeError('at least audio or video options must be given');
+		throw new TypeError('at least audio or video constraints must be given');
 
 	if (audio)
 	{
 		audioPlayerInternal = { playerId: uuidv4() };
+
+		if (audio === true)
+			audio = { source: 'device' };
 
 		switch (audio.source)
 		{
@@ -127,6 +124,9 @@ export async function createMediaStream(
 	if (video)
 	{
 		videoPlayerInternal = { playerId: uuidv4() };
+
+		if (video === true)
+			video = { source: 'device' };
 
 		switch (video.source)
 		{
@@ -264,16 +264,16 @@ export async function createMediaStream(
 		tracks.push(track);
 	}
 
-	return new FakeMediaStream(
-		{
-			tracks,
-			onClose : (): void =>
-			{
-				if (audioPlayerInternal)
-					channel.notify('player.close', audioPlayerInternal);
+	const stream = new AppMediaStream(tracks);
 
-				if (videoPlayerInternal && !areSamePlayer)
-					channel.notify('player.close', videoPlayerInternal);
-			}
-		});
+	stream.addEventListener('@close', () =>
+	{
+		if (audioPlayerInternal)
+			channel.notify('player.close', audioPlayerInternal);
+
+		if (videoPlayerInternal && !areSamePlayer)
+			channel.notify('player.close', videoPlayerInternal);
+	});
+
+	return stream;
 }

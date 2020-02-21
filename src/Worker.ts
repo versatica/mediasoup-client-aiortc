@@ -5,6 +5,8 @@ import { Logger } from 'mediasoup-client/lib/Logger';
 import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
 import { HandlerFactory } from 'mediasoup-client/lib/handlers/HandlerInterface';
 import { Channel } from './Channel';
+import * as media from './media';
+import { AppMediaStream } from './AppMediaStream';
 import { Handler } from './Handler';
 
 // Whether the Python subprocess should log via PIPE to Node.js or directly to
@@ -33,11 +35,12 @@ export class Worker extends EnhancedEventEmitter
 	private readonly _channel: Channel;
 	// Closed flag.
 	private _closed = false;
+	// AppMediaStreams set.
+	private readonly _streams: Set<AppMediaStream> = new Set();
 	// Handlers set.
 	private readonly _handlers: Set<Handler> = new Set();
 
 	/**
-	 * @private
 	 * @emits died - (error: Error)
 	 * @emits @success
 	 * @emits @failure - (error: Error)
@@ -211,14 +214,6 @@ export class Worker extends EnhancedEventEmitter
 	}
 
 	/**
-	 * Channel instance. Required by the media module.
-	 */
-	get channel(): Channel
-	{
-		return this._channel;
-	}
-
-	/**
 	 * Close the Worker.
 	 */
 	close(): void
@@ -247,8 +242,12 @@ export class Worker extends EnhancedEventEmitter
 			this._child = undefined;
 		}
 
-		// Close the Channel instance.
-		this._channel.close();
+		// Close every AppMediaStream.
+		for (const stream of this._streams)
+		{
+			stream.close();
+		}
+		this._streams.clear();
 
 		// Close every Handler.
 		for (const handler of this._handlers)
@@ -256,6 +255,26 @@ export class Worker extends EnhancedEventEmitter
 			handler.close();
 		}
 		this._handlers.clear();
+
+		// Close the Channel instance.
+		this._channel.close();
+	}
+
+	/**
+	 * Create a AppMediaStream with audio/video tracks.
+	 */
+	async getAppMedia(
+		constraints: media.AppMediaStreamConstraints
+	): Promise<AppMediaStream>
+	{
+		logger.debug('createMediaStream() [constraints:%o]', constraints);
+
+		const stream = await media.getAppMedia(this._channel, constraints);
+
+		this._streams.add(stream);
+		stream.addEventListener('@close', () => this._streams.delete(stream));
+
+		return stream;
 	}
 
 	/**
@@ -271,29 +290,13 @@ export class Worker extends EnhancedEventEmitter
 			const handler = new Handler(
 				{
 					internal,
-					channel : this._channel,
-					onClose : (): boolean => this._handlers.delete(handler as Handler)
+					channel : this._channel
 				});
 
 			this._handlers.add(handler);
+			handler.on('@close', () => this._handlers.delete(handler));
 
 			return handler;
 		};
 	}
-}
-
-export async function createWorker(
-	{ logLevel = 'error' }:
-	WorkerSettings = {}
-): Promise<Worker>
-{
-	logger.debug('createWorker()');
-
-	const worker = new Worker({ logLevel });
-
-	return new Promise((resolve, reject) =>
-	{
-		worker.on('@success', () => resolve(worker));
-		worker.on('@failure', reject);
-	});
 }

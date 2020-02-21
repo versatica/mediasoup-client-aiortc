@@ -1,10 +1,10 @@
-import { Worker } from './Worker';
-import { FakeMediaStream } from './FakeMediaStream';
-export declare type FakeMediaStreamOptions = {
-    audio?: FakeMediaStreamKindOptions;
-    video?: FakeMediaStreamKindOptions;
+import { Channel } from './Channel';
+import { AppMediaStream } from './AppMediaStream';
+export declare type AppMediaStreamConstraints = {
+    audio?: AppMediaTrackConstraints | boolean;
+    video?: AppMediaTrackConstraints | boolean;
 };
-export declare type FakeMediaStreamKindOptions = {
+export declare type AppMediaTrackConstraints = {
     source: 'device' | 'file' | 'url';
     device?: string;
     file?: string;
@@ -12,5 +12,5 @@ export declare type FakeMediaStreamKindOptions = {
     format?: string;
     options?: object;
 };
-export declare function createMediaStream(worker: Worker, options?: FakeMediaStreamOptions): Promise<FakeMediaStream>;
+export declare function getAppMedia(channel: Channel, constraints?: AppMediaStreamConstraints): Promise<AppMediaStream>;
 //# sourceMappingURL=media.d.ts.map

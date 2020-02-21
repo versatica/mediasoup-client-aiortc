@@ -1,21 +1,20 @@
-import { HandlerFactory } from 'mediasoup-client/lib/handlers/HandlerInterface';
-import { createWorker, Worker, WorkerSettings, WorkerLogLevel } from './Worker';
-import { createMediaStream, FakeMediaStreamOptions, FakeMediaStreamKindOptions } from './media';
-import { FakeMediaStream } from './FakeMediaStream';
+import { Worker, WorkerSettings, WorkerLogLevel } from './Worker';
+import { AppMediaStream } from './AppMediaStream';
+import { AppMediaStreamConstraints, AppMediaTrackConstraints } from './media';
 /**
  * Expose version.
  */
 export declare const version = "__VERSION__";
 /**
- * Expose Worker factory and related types.
+ * Expose Worker factory.
  */
-export { createWorker, Worker, WorkerSettings, WorkerLogLevel };
+export declare function createWorker({ logLevel }?: WorkerSettings): Promise<Worker>;
 /**
- * Exponse a function to create a HandlerFactory.
+ * Expose Worker class and related types.
  */
-export declare function createHandlerFactory(worker: Worker): HandlerFactory;
+export { Worker, WorkerSettings, WorkerLogLevel };
 /**
- * Expose FakeMediaStream factory and related types.
+ * Expose AppMediaStream class and related types.
  */
-export { createMediaStream, FakeMediaStream, FakeMediaStreamOptions, FakeMediaStreamKindOptions };
+export { AppMediaStream, AppMediaStreamConstraints, AppMediaTrackConstraints };
 //# sourceMappingURL=index.d.ts.map

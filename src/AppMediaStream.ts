@@ -1,33 +1,22 @@
 import uuidv4 from 'uuid/v4';
-import { EventTarget } from 'event-target-shim';
+import { EventTarget, defineEventAttribute } from 'event-target-shim';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 
-export class FakeMediaStream extends EventTarget implements MediaStream
+export class AppMediaStream extends EventTarget implements MediaStream
 {
 	private readonly _id: string;
 	private readonly _tracks: Map<string, FakeMediaStreamTrack> = new Map();
-	private readonly _onClose: () => void;
 
-	// NOTE: Event listeners. These are cosmetic public members to make TS happy.
-	// We never emit these events.
+	// Event listeners. These are cosmetic public members to make TS happy.
+	// NOTE: We never emit these events.
 	public onaddtrack: (this: MediaStream, ev: Event) => any;
 	public onremovetrack: (this: MediaStream, ev: Event) => any;
 
-	constructor(
-		{
-			tracks,
-			onClose
-		}:
-		{
-			tracks: FakeMediaStreamTrack[];
-			onClose: () => void;
-		}
-	)
+	constructor(tracks: FakeMediaStreamTrack[])
 	{
 		super();
 
 		this._id = uuidv4();
-		this._onClose = onClose;
 
 		for (const track of tracks)
 		{
@@ -53,10 +42,10 @@ export class FakeMediaStream extends EventTarget implements MediaStream
 	{
 		for (const track of this._tracks.values())
 		{
-			track.remoteStop();
+			track.stop();
 		}
 
-		this._onClose();
+		this.dispatchEvent({ type: '@close' });
 	}
 
 	getAudioTracks(): FakeMediaStreamTrack[]
@@ -98,3 +87,10 @@ export class FakeMediaStream extends EventTarget implements MediaStream
 		throw new Error('not implemented');
 	}
 }
+
+// Define EventTarget properties.
+// NOTE: These are not implemented/dispatched.
+defineEventAttribute(AppMediaStream.prototype, 'addtrack');
+defineEventAttribute(AppMediaStream.prototype, 'removetrack');
+// Custom EventTarget properties.
+defineEventAttribute(AppMediaStream.prototype, '@close');

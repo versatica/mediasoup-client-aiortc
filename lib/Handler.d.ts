@@ -5,7 +5,6 @@ import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 export declare class Handler extends HandlerInterface {
     private readonly _internal;
     private readonly _channel;
-    private readonly _onClose;
     private _closed;
     private _running;
     private _direction;
@@ -17,12 +16,16 @@ export declare class Handler extends HandlerInterface {
     private _transportReady;
     private _hasDataChannelMediaSection;
     private _nextSendSctpStreamId;
-    constructor({ internal, channel, onClose }: {
+    /**
+     * Addicional events.
+     *
+     * @emits @close
+     */
+    constructor({ internal, channel }: {
         internal: {
             handlerId: string;
         };
         channel: Channel;
-        onClose: () => void;
     });
     readonly closed: boolean;
     readonly name: string;
