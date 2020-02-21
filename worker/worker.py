@@ -59,7 +59,9 @@ if __name__ == "__main__":
         return track
 
     async def processRequest(request: Request) -> Any:
-        Logger.debug(f"processRequest() [method:{request.method}]")
+        Logger.debug(
+            f"processRequest() [method:{request.method}, internal:{request.internal}, data:{request.data}]"
+        )
 
         if request.method == "createHandler":
             internal = request.internal
@@ -70,23 +72,24 @@ if __name__ == "__main__":
             jsonRtcConfiguration = data.get("rtcConfiguration")
             rtcConfiguration = None
 
-            if jsonRtcConfiguration:
-                if "iceServers" in jsonRtcConfiguration:
-                    iceServers = []
-                    for entry in jsonRtcConfiguration["iceServers"]:
-                        iceServer = RTCIceServer(
-                            urls=entry.get("urls"),
-                            username=entry.get("username"),
-                            credential=entry.get("credential"),
-                            credentialType=entry.get("credentialType")
-                        )
-                        iceServers.append(iceServer)
-                    rtcConfiguration = RTCConfiguration(iceServers)
+            if jsonRtcConfiguration and "iceServers" in jsonRtcConfiguration:
+                iceServers = []
+                for entry in jsonRtcConfiguration["iceServers"]:
+                    iceServer = RTCIceServer(
+                        urls=entry.get("urls"),
+                        username=entry.get("username"),
+                        credential=entry.get("credential"),
+                        credentialType=entry.get("credentialType")
+                    )
+                    iceServers.append(iceServer)
+                rtcConfiguration = RTCConfiguration(iceServers)
 
             handler = Handler(handlerId, channel, loop, getTrack, rtcConfiguration)
-            handlers[handlerId] = handler
 
-        if request.method == "createPlayer":
+            handlers[handlerId] = handler
+            return
+
+        elif request.method == "createPlayer":
             internal = request.internal
             playerId = internal["playerId"]
             data = request.data
@@ -97,8 +100,9 @@ if __name__ == "__main__":
             )
 
             players[playerId] = player
+            return
 
-        if request.method == "getRtpCapabilities":
+        elif request.method == "getRtpCapabilities":
             pc = RTCPeerConnection()
             pc.addTransceiver("audio", "sendonly")
             pc.addTransceiver("video", "sendonly")
@@ -107,12 +111,14 @@ if __name__ == "__main__":
             return offer.sdp
 
         else:
-            internal = data.internal
+            internal = request.internal
             handler = getHandler(internal["handlerId"])
             return await handler.processRequest(request)
 
     async def processNotification(notification: Notification) -> None:
-        Logger.debug(f"processNotification() [event:{notification.event}]")
+        Logger.debug(
+            f"processNotification() [event:{notification.event}, internal:{notification.internal}, data:{notification.data}]"
+        )
 
         if notification.event == "handler.close":
             internal = notification.internal
@@ -123,7 +129,7 @@ if __name__ == "__main__":
 
             del handlers[handlerId]
 
-        if notification.event == "player.close":
+        elif notification.event == "player.close":
             internal = notification.internal
             playerId = internal["playerId"]
             player = players[playerId]

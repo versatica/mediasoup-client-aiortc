@@ -281,3 +281,19 @@ export class Worker extends EnhancedEventEmitter
 		};
 	}
 }
+
+export async function createWorker(
+	{ logLevel = 'error' }:
+	WorkerSettings = {}
+): Promise<Worker>
+{
+	logger.debug('createWorker()');
+
+	const worker = new Worker({ logLevel });
+
+	return new Promise((resolve, reject) =>
+	{
+		worker.on('@success', () => resolve(worker));
+		worker.on('@failure', reject);
+	});
+}

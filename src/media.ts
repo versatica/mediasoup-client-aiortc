@@ -6,13 +6,13 @@ import { clone } from 'mediasoup-client/lib/utils';
 import { Worker } from './Worker';
 import { FakeMediaStream } from './FakeMediaStream';
 
-export type MediaStreamOptions =
+export type FakeMediaStreamOptions =
 {
-	audio?: MediaStreamTrackOptions;
-	video?: MediaStreamTrackOptions;
+	audio?: FakeMediaStreamKindOptions;
+	video?: FakeMediaStreamKindOptions;
 }
 
-export type MediaStreamTrackOptions =
+export type FakeMediaStreamKindOptions =
 {
 	source: 'device' | 'file' | 'url';
 	device?: string;
@@ -39,12 +39,12 @@ const logger = new Logger('aiortc:media');
 
 export async function createMediaStream(
 	worker: Worker,
-	options: MediaStreamOptions = {}
+	options: FakeMediaStreamOptions = {}
 ): Promise<FakeMediaStream>
 {
 	logger.debug('createMediaStream() [options:%o]', options);
 
-	options = clone(options) as MediaStreamOptions;
+	options = clone(options) as FakeMediaStreamOptions;
 
 	const channel = worker.channel;
 	const { audio, video } = options;
@@ -134,7 +134,7 @@ export async function createMediaStream(
 			{
 				if (os.platform() === 'darwin')
 				{
-					audioPlayerOptions =
+					videoPlayerOptions =
 					{
 						source  : 'device',
 						file    : video.device || 'default:none',
@@ -145,7 +145,7 @@ export async function createMediaStream(
 				}
 				else
 				{
-					audioPlayerOptions =
+					videoPlayerOptions =
 					{
 						source  : 'device',
 						file    : video.device || '/dev/video0',
@@ -163,7 +163,7 @@ export async function createMediaStream(
 				if (!video.file)
 					throw new TypeError('missing video.file');
 
-				audioPlayerOptions =
+				videoPlayerOptions =
 				{
 					source : 'file',
 					file   : video.file
@@ -177,7 +177,7 @@ export async function createMediaStream(
 				if (!video.url)
 					throw new TypeError('missing video.url');
 
-				audioPlayerOptions =
+				videoPlayerOptions =
 				{
 					source : 'url',
 					file   : video.url
@@ -247,7 +247,7 @@ export async function createMediaStream(
 		tracks.push(track);
 	}
 
-	if (audioPlayerInternal)
+	if (videoPlayerInternal)
 	{
 		const track = new FakeMediaStreamTrack(
 			{

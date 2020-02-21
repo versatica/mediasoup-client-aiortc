@@ -93,8 +93,6 @@ class Handler:
         self._dataChannelsBufferedAmountTask.cancel()
 
     async def processRequest(self, request: Request) -> Any:
-        Logger.debug(f"processRequest() [method:{request.method}]")
-
         if request.method == "handler.getLocalDescription":
             localDescription = self._pc.localDescription
             result = None
@@ -305,8 +303,6 @@ class Handler:
             )
 
     async def processNotification(self, notification: Notification) -> None:
-        Logger.debug(f"processNotification() [event:{notification.event}]")
-
         if notification.event == "enableTrack":
             Logger.warning("enabling track not implemented")
 

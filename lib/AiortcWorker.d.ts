@@ -42,5 +42,4 @@ export declare class Worker extends EnhancedEventEmitter {
      */
     createHandlerFactory(): HandlerFactory;
 }
-export declare function createWorker({ logLevel }?: WorkerSettings): Promise<Worker>;
-//# sourceMappingURL=Worker.d.ts.map
+//# sourceMappingURL=AiortcWorker.d.ts.map

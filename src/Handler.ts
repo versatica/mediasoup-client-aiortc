@@ -127,7 +127,7 @@ export class Handler extends HandlerInterface
 
 		// If running notify the worker.
 		if (this._running)
-			this._channel.notify('handler.close()', this._internal);
+			this._channel.notify('handler.close', this._internal);
 
 		// Tell the parent.
 		this._onClose();
@@ -137,7 +137,7 @@ export class Handler extends HandlerInterface
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
-		const sdp = await this._channel.request('getNativeRtpCapabilities');
+		const sdp = await this._channel.request('getRtpCapabilities');
 
 		const sdpObject = sdpTransform.parse(sdp);
 		const caps = sdpCommonUtils.extractRtpCapabilities({ sdpObject });
@@ -247,7 +247,8 @@ export class Handler extends HandlerInterface
 			'send() [kind:%s, track.id:%s, track.data:%o]',
 			track.kind, track.id, (track as FakeMediaStreamTrack).data);
 
-		const { playerId, kind } = (track as FakeMediaStreamTrack).data;
+		const { playerId } = (track as FakeMediaStreamTrack).data;
+		const kind = track.kind;
 		const { trackId } = await this._channel.request(
 			'handler.addTrack', this._internal, { playerId, kind });
 
