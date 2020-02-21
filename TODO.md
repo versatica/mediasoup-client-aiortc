@@ -2,6 +2,9 @@
 
 ## mediasoup-client-aiortc
 
+* CRITICAL: Sometimes Python process remains as zombie when Node.js process ends.
+  - Usually just when webcam was active.
+
 * Rebuild the test (copy it from mediasoup-client project).
 
 * Missing `replaceTrack()` API and others.

@@ -66,8 +66,6 @@ class Channel:
     async def close(self) -> None:
         if self._writer is not None:
             self._writer.close()
-            self._reader = None
-            self._writer = None
 
     # TODO: receive() should return a Request or Notification instance instead of
     # a dictionary
