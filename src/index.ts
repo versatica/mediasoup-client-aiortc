@@ -4,10 +4,10 @@ import {
 	WorkerSettings,
 	WorkerLogLevel
 } from './Worker';
-import { AppMediaStream } from './AppMediaStream';
+import { AiortcMediaStream } from './AiortcMediaStream';
 import {
-	AppMediaStreamConstraints,
-	AppMediaTrackConstraints
+	AiortcMediaStreamConstraints,
+	AiortcMediaTrackConstraints
 } from './media';
 
 const logger = new Logger('aiortc');
@@ -46,10 +46,10 @@ export {
 };
 
 /**
- * Expose AppMediaStream class and related types.
+ * Expose AiortcMediaStream class and related types.
  */
 export {
-	AppMediaStream,
-	AppMediaStreamConstraints,
-	AppMediaTrackConstraints
+	AiortcMediaStream,
+	AiortcMediaStreamConstraints,
+	AiortcMediaTrackConstraints
 };

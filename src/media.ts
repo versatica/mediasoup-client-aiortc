@@ -3,15 +3,15 @@ import uuidv4 from 'uuid/v4';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import { clone } from 'mediasoup-client/lib/utils';
 import { Channel } from './Channel';
-import { AppMediaStream } from './AppMediaStream';
+import { AiortcMediaStream } from './AiortcMediaStream';
 
-export type AppMediaStreamConstraints =
+export type AiortcMediaStreamConstraints =
 {
-	audio?: AppMediaTrackConstraints | boolean;
-	video?: AppMediaTrackConstraints | boolean;
+	audio?: AiortcMediaTrackConstraints | boolean;
+	video?: AiortcMediaTrackConstraints | boolean;
 }
 
-export type AppMediaTrackConstraints =
+export type AiortcMediaTrackConstraints =
 {
 	source: 'device' | 'file' | 'url';
 	device?: string;
@@ -34,12 +34,12 @@ type MediaPlayerOptions =
 	options?: object;
 };
 
-export async function getAppMedia(
+export async function getUserMedia(
 	channel: Channel,
-	constraints: AppMediaStreamConstraints = {}
-): Promise<AppMediaStream>
+	constraints: AiortcMediaStreamConstraints = {}
+): Promise<AiortcMediaStream>
 {
-	constraints = clone(constraints) as AppMediaStreamConstraints;
+	constraints = clone(constraints) as AiortcMediaStreamConstraints;
 
 	let { audio, video } = constraints;
 	let audioPlayerInternal: MediaPlayerInternal;
@@ -264,7 +264,7 @@ export async function getAppMedia(
 		tracks.push(track);
 	}
 
-	const stream = new AppMediaStream(tracks);
+	const stream = new AiortcMediaStream(tracks);
 
 	stream.addEventListener('@close', () =>
 	{

@@ -2,7 +2,7 @@ import uuidv4 from 'uuid/v4';
 import { EventTarget, defineEventAttribute } from 'event-target-shim';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 
-export class AppMediaStream extends EventTarget implements MediaStream
+export class AiortcMediaStream extends EventTarget implements MediaStream
 {
 	private readonly _id: string;
 	private readonly _tracks: Map<string, FakeMediaStreamTrack> = new Map();
@@ -90,7 +90,7 @@ export class AppMediaStream extends EventTarget implements MediaStream
 
 // Define EventTarget properties.
 // NOTE: These are not implemented/dispatched.
-defineEventAttribute(AppMediaStream.prototype, 'addtrack');
-defineEventAttribute(AppMediaStream.prototype, 'removetrack');
+defineEventAttribute(AiortcMediaStream.prototype, 'addtrack');
+defineEventAttribute(AiortcMediaStream.prototype, 'removetrack');
 // Custom EventTarget properties.
-defineEventAttribute(AppMediaStream.prototype, '@close');
+defineEventAttribute(AiortcMediaStream.prototype, '@close');

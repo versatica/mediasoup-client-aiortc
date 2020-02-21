@@ -1,6 +1,6 @@
 import { Worker, WorkerSettings, WorkerLogLevel } from './Worker';
-import { AppMediaStream } from './AppMediaStream';
-import { AppMediaStreamConstraints, AppMediaTrackConstraints } from './media';
+import { AiortcMediaStream } from './AiortcMediaStream';
+import { AiortcMediaStreamConstraints, AiortcMediaTrackConstraints } from './media';
 /**
  * Expose version.
  */
@@ -14,7 +14,7 @@ export declare function createWorker({ logLevel }?: WorkerSettings): Promise<Wor
  */
 export { Worker, WorkerSettings, WorkerLogLevel };
 /**
- * Expose AppMediaStream class and related types.
+ * Expose AiortcMediaStream class and related types.
  */
-export { AppMediaStream, AppMediaStreamConstraints, AppMediaTrackConstraints };
+export { AiortcMediaStream, AiortcMediaStreamConstraints, AiortcMediaTrackConstraints };
 //# sourceMappingURL=index.d.ts.map

@@ -1,15 +1,11 @@
 import { EventTarget } from 'event-target-shim';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
-export declare class FakeMediaStream extends EventTarget implements MediaStream {
+export declare class AiortcMediaStream extends EventTarget implements MediaStream {
     private readonly _id;
     private readonly _tracks;
-    private readonly _onClose;
     onaddtrack: (this: MediaStream, ev: Event) => any;
     onremovetrack: (this: MediaStream, ev: Event) => any;
-    constructor({ tracks, onClose }: {
-        tracks: FakeMediaStreamTrack[];
-        onClose: () => void;
-    });
+    constructor(tracks: FakeMediaStreamTrack[]);
     readonly id: string;
     readonly active: boolean;
     /**
@@ -24,4 +20,4 @@ export declare class FakeMediaStream extends EventTarget implements MediaStream 
     removeTrack(track: FakeMediaStreamTrack): void;
     clone(): MediaStream;
 }
-//# sourceMappingURL=FakeMediaStream.d.ts.map
+//# sourceMappingURL=AiortcMediaStream.d.ts.map

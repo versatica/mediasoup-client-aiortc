@@ -6,7 +6,7 @@ import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter'
 import { HandlerFactory } from 'mediasoup-client/lib/handlers/HandlerInterface';
 import { Channel } from './Channel';
 import * as media from './media';
-import { AppMediaStream } from './AppMediaStream';
+import { AiortcMediaStream } from './AiortcMediaStream';
 import { Handler } from './Handler';
 
 // Whether the Python subprocess should log via PIPE to Node.js or directly to
@@ -35,8 +35,8 @@ export class Worker extends EnhancedEventEmitter
 	private readonly _channel: Channel;
 	// Closed flag.
 	private _closed = false;
-	// AppMediaStreams set.
-	private readonly _streams: Set<AppMediaStream> = new Set();
+	// AiortcMediaStreams set.
+	private readonly _streams: Set<AiortcMediaStream> = new Set();
 	// Handlers set.
 	private readonly _handlers: Set<Handler> = new Set();
 
@@ -242,7 +242,7 @@ export class Worker extends EnhancedEventEmitter
 			this._child = undefined;
 		}
 
-		// Close every AppMediaStream.
+		// Close every AiortcMediaStream.
 		for (const stream of this._streams)
 		{
 			stream.close();
@@ -261,15 +261,15 @@ export class Worker extends EnhancedEventEmitter
 	}
 
 	/**
-	 * Create a AppMediaStream with audio/video tracks.
+	 * Create a AiortcMediaStream with audio/video tracks.
 	 */
-	async getAppMedia(
-		constraints: media.AppMediaStreamConstraints
-	): Promise<AppMediaStream>
+	async getUserMedia(
+		constraints: media.AiortcMediaStreamConstraints
+	): Promise<AiortcMediaStream>
 	{
-		logger.debug('createMediaStream() [constraints:%o]', constraints);
+		logger.debug('getUserMedia() [constraints:%o]', constraints);
 
-		const stream = await media.getAppMedia(this._channel, constraints);
+		const stream = await media.getUserMedia(this._channel, constraints);
 
 		this._streams.add(stream);
 		stream.addEventListener('@close', () => this._streams.delete(stream));

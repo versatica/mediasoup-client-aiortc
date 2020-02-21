@@ -1,10 +1,10 @@
 import { Channel } from './Channel';
-import { AppMediaStream } from './AppMediaStream';
-export declare type AppMediaStreamConstraints = {
-    audio?: AppMediaTrackConstraints | boolean;
-    video?: AppMediaTrackConstraints | boolean;
+import { AiortcMediaStream } from './AiortcMediaStream';
+export declare type AiortcMediaStreamConstraints = {
+    audio?: AiortcMediaTrackConstraints | boolean;
+    video?: AiortcMediaTrackConstraints | boolean;
 };
-export declare type AppMediaTrackConstraints = {
+export declare type AiortcMediaTrackConstraints = {
     source: 'device' | 'file' | 'url';
     device?: string;
     file?: string;
@@ -12,5 +12,5 @@ export declare type AppMediaTrackConstraints = {
     format?: string;
     options?: object;
 };
-export declare function getAppMedia(channel: Channel, constraints?: AppMediaStreamConstraints): Promise<AppMediaStream>;
+export declare function getUserMedia(channel: Channel, constraints?: AiortcMediaStreamConstraints): Promise<AiortcMediaStream>;
 //# sourceMappingURL=media.d.ts.map
