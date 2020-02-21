@@ -69,7 +69,7 @@ export async function getAppMedia(
 						source  : 'device',
 						file    : audio.device || 'none:0',
 						format  : audio.format || 'avfoundation',
-						options : audio.options || {}
+						options : audio.options
 					};
 				}
 				else
@@ -79,7 +79,7 @@ export async function getAppMedia(
 						source  : 'device',
 						file    : audio.device || 'hw:0',
 						format  : audio.format || 'alsa',
-						options : audio.options || {}
+						options : audio.options
 					};
 				}
 

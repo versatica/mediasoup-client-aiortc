@@ -2,7 +2,7 @@
 
 ## mediasoup-client-aiortc
 
-* Sometimes Python process remains as zombie when Node.js process ends.
+* CRITICAL: Sometimes Python process remains as zombie when Node.js process ends.
   - Usually just when webcam was active.
   - Reason why we are calling `loop.close()` instead of gracefully closing `RTCPeerConnection`.
 
