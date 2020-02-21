@@ -6,17 +6,28 @@ export class FakeMediaStream extends EventTarget implements MediaStream
 {
 	private readonly _id: string;
 	private readonly _tracks: Map<string, FakeMediaStreamTrack> = new Map();
+	private readonly _onClose: () => void;
 
 	// NOTE: Event listeners. These are cosmetic public members to make TS happy.
 	// We never emit these events.
 	public onaddtrack: (this: MediaStream, ev: Event) => any;
 	public onremovetrack: (this: MediaStream, ev: Event) => any;
 
-	constructor(tracks: FakeMediaStreamTrack[])
+	constructor(
+		{
+			tracks,
+			onClose
+		}:
+		{
+			tracks: FakeMediaStreamTrack[];
+			onClose: () => void;
+		}
+	)
 	{
 		super();
 
 		this._id = uuidv4();
+		this._onClose = onClose;
 
 		for (const track of tracks)
 		{
@@ -33,6 +44,19 @@ export class FakeMediaStream extends EventTarget implements MediaStream
 	{
 		return Array.from(this._tracks.values())
 			.some((track) => track.readyState === 'live');
+	}
+
+	/**
+	 * Custom method to close associated MediaPlayers in aiortc.
+	 */
+	close(): void
+	{
+		for (const track of this._tracks.values())
+		{
+			track.remoteStop();
+		}
+
+		this._onClose();
 	}
 
 	getAudioTracks(): FakeMediaStreamTrack[]

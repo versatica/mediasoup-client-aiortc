@@ -1,6 +1,15 @@
 import { Logger } from 'mediasoup-client/lib/Logger';
 import { HandlerFactory } from 'mediasoup-client/lib/handlers/HandlerInterface';
-import { Worker, WorkerSettings } from './Worker';
+import {
+	Worker,
+	WorkerSettings,
+	WorkerLogLevel
+} from './Worker';
+import {
+	createMediaStream,
+	MediaStreamOptions,
+	MediaStreamTrackOptions
+} from './media';
 
 const logger = new Logger('aiortc');
 
@@ -10,7 +19,7 @@ const logger = new Logger('aiortc');
 export const version = '__VERSION__';
 
 /**
- * Create a Worker.
+ * Expose Worker factory.
  */
 export async function createWorker(
 	{ logLevel = 'error' }:
@@ -29,7 +38,15 @@ export async function createWorker(
 }
 
 /**
- * Create a mediasoup-client HandlerFactory.
+ * Expose Worker related type.
+ */
+export {
+	WorkerSettings,
+	WorkerLogLevel
+};
+
+/**
+ * Exponse a function to create a HandlerFactory.
  */
 export function createHandlerFactory(worker: Worker): HandlerFactory
 {
@@ -37,3 +54,12 @@ export function createHandlerFactory(worker: Worker): HandlerFactory
 
 	return worker.createHandlerFactory();
 }
+
+/**
+ * Expose FakeMediaStream factory and related types.
+ */
+export {
+	createMediaStream,
+	MediaStreamOptions,
+	MediaStreamTrackOptions
+};

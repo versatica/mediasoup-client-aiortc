@@ -138,10 +138,9 @@ if __name__ == "__main__":
         elif notification.event == "player.stopTrack":
             internal = notification.internal
             playerId = internal["playerId"]
+            player = players[playerId]
             data = notification.data
             kind = data["kind"]
-
-            player = players.get(playerId)
 
             if kind == "audio" and player.audio:
                 player.audio.stop()

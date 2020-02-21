@@ -5,6 +5,12 @@ import { Logger } from 'mediasoup-client/lib/Logger';
 import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
 import { InvalidStateError } from 'mediasoup-client/lib/errors';
 
+// netstring length for a 4194304 bytes payload.
+const NS_MESSAGE_MAX_LEN = 4194313;
+const NS_PAYLOAD_MAX_LEN = 4194304;
+
+const logger = new Logger('aiortc:Channel');
+
 interface Sent
 {
 	id: number;
@@ -14,12 +20,6 @@ interface Sent
 	timer: NodeJS.Timer;
 	close: () => void;
 }
-
-// netstring length for a 4194304 bytes payload.
-const NS_MESSAGE_MAX_LEN = 4194313;
-const NS_PAYLOAD_MAX_LEN = 4194304;
-
-const logger = new Logger('aiortc:Channel');
 
 export class Channel extends EnhancedEventEmitter
 {

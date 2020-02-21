@@ -13,8 +13,6 @@ const PYTHON_LOG_VIA_PIPE = process.env.PYTHON_LOG_TO_STDOUT !== 'true';
 
 const logger = new Logger('aiortc:Worker');
 
-export type WorkerLogLevel = 'debug' | 'warn' | 'error' | 'none';
-
 export type WorkerSettings =
 {
 	/**
@@ -22,6 +20,8 @@ export type WorkerSettings =
 	 */
 	logLevel?: WorkerLogLevel;
 }
+
+export type WorkerLogLevel = 'debug' | 'warn' | 'error' | 'none';
 
 export class Worker extends EnhancedEventEmitter
 {
@@ -202,9 +202,20 @@ export class Worker extends EnhancedEventEmitter
 		return this._pid;
 	}
 
+	/**
+	 * Whether the Worker is closed.
+	 */
 	get closed(): boolean
 	{
 		return this._closed;
+	}
+
+	/**
+	 * Channel instance. Required by the media module.
+	 */
+	get channel(): Channel
+	{
+		return this._channel;
 	}
 
 	/**

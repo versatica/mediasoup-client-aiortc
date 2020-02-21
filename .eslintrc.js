@@ -192,6 +192,7 @@ switch (process.env.MEDIASOUP_NODE_LANGUAGE)
 		eslintConfig.rules =
 		{
 			...eslintConfig.rules,
+			'camelcase'                                 : 0,
 			'no-unused-vars'                            : 0,
 			'@typescript-eslint/ban-ts-ignore'          : 0,
 			'@typescript-eslint/member-delimiter-style' : [ 2,
