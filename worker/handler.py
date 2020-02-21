@@ -35,12 +35,12 @@ class Handler:
 
         @self._pc.on("track")  # type: ignore
         def on_track(track) -> None:
-            Logger.debug(f"ontrack [kind:{track.kind}, id:{track.id}]")
+            Logger.debug(f"handler: ontrack [kind:{track.kind}, id:{track.id}]")
 
         @self._pc.on("signalingstatechange")  # type: ignore
         async def on_signalingstatechange() -> None:
             Logger.debug(
-                f"signalingstatechange [state:{self._pc.signalingState}]"
+                f"handler: signalingstatechange [state:{self._pc.signalingState}]"
             )
             await self._channel.notify(
                 self._handlerId,
@@ -51,7 +51,7 @@ class Handler:
         @self._pc.on("icegatheringstatechange")  # type: ignore
         async def on_icegatheringstatechange() -> None:
             Logger.debug(
-                f"icegatheringstatechange [state:{self._pc.iceGatheringState}]"
+                f"handler: icegatheringstatechange [state:{self._pc.iceGatheringState}]"
             )
             await self._channel.notify(
                 self._handlerId,
@@ -62,7 +62,7 @@ class Handler:
         @self._pc.on("iceconnectionstatechange")  # type: ignore
         async def on_iceconnectionstatechange() -> None:
             Logger.debug(
-                f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]"
+                f"handler: iceconnectionstatechange [state:{self._pc.iceConnectionState}]"
             )
             await self._channel.notify(
                 self._handlerId,
@@ -299,10 +299,10 @@ class Handler:
 
     async def processNotification(self, notification: Notification) -> None:
         if notification.event == "enableTrack":
-            Logger.warning("enabling track not implemented")
+            Logger.warning("handler: enabling track not implemented")
 
         elif notification.event == "disableTrack":
-            Logger.warning("disabling track not implemented")
+            Logger.warning("handler: disabling track not implemented")
 
         elif notification.event == "datachannel.send":
             internal = notification.internal

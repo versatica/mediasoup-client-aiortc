@@ -1,7 +1,6 @@
 import argparse
 import traceback
 import asyncio
-import signal
 from os import getpid
 from typing import Any, Dict
 from aiortc import RTCConfiguration, RTCIceServer, RTCPeerConnection
@@ -28,7 +27,7 @@ if __name__ == "__main__":
     if args.logLevel and args.logLevel != "none":
         Logger.setLogLevel(args.logLevel)
 
-    Logger.debug("starting mediasoup-client aiortc worker")
+    Logger.debug("worker: starting mediasoup-client aiortc worker")
 
     """
     Initialization
@@ -38,14 +37,31 @@ if __name__ == "__main__":
     # dictionary of handlers indexed by id
     handlers: Dict[str, Handler] = ({})
 
-    # run event loop
+    # get/create event loop
     loop = asyncio.get_event_loop()
 
     # create channel
     channel = Channel(loop, READ_FD, WRITE_FD)
 
-    def shutdown() -> None:
-        loop.close()
+    async def shutdown() -> None:
+        # close channel
+        await channel.close()
+
+        # close all players
+        for player in players.values():
+            if player.audio:
+                player.audio.stop()
+            if player.video:
+                player.video.stop()
+        players.clear()
+
+        # close all handlers
+        for handler in handlers.values():
+            await handler.close()
+        handlers.clear()
+
+        # stop the loop (just in case)
+        loop.stop()
 
     def getTrack(playerId: str, kind: str) -> MediaStreamTrack:
         player = players[playerId]
@@ -56,7 +72,7 @@ if __name__ == "__main__":
         return track
 
     async def processRequest(request: Request) -> Any:
-        Logger.debug(f"processRequest() [method:{request.method}]")
+        Logger.debug(f"worker: processRequest() [method:{request.method}]")
 
         if request.method == "createPlayer":
             internal = request.internal
@@ -114,7 +130,7 @@ if __name__ == "__main__":
             return await handler.processRequest(request)
 
     async def processNotification(notification: Notification) -> None:
-        Logger.debug(f"processNotification() [event:{notification.event}]")
+        Logger.debug(f"worker: processNotification() [event:{notification.event}]")
 
         if notification.event == "player.close":
             internal = notification.internal
@@ -183,7 +199,7 @@ if __name__ == "__main__":
                     except Exception as error:
                         errorStr = f"{error.__class__.__name__}: {error}"
                         Logger.error(
-                            f"request '{request.method}' failed: {errorStr}"
+                            f"worker: request '{request.method}' failed: {errorStr}"
                         )
                         if not isinstance(error, TypeError):
                             traceback.print_tb(error.__traceback__)
@@ -196,17 +212,13 @@ if __name__ == "__main__":
                     except Exception as error:
                         errorStr = f"{error.__class__.__name__}: {error}"
                         Logger.error(
-                            f"notification '{notification.event}' failed: {errorStr}"
+                            f"worker: notification '{notification.event}' failed: {errorStr}"
                         )
                         if not isinstance(error, TypeError):
                             traceback.print_tb(error.__traceback__)
 
             except Exception:
                 break
-
-    # signal handler
-    loop.add_signal_handler(signal.SIGINT, shutdown)
-    loop.add_signal_handler(signal.SIGTERM, shutdown)
 
     try:
         loop.run_until_complete(
@@ -216,9 +228,6 @@ if __name__ == "__main__":
     except RuntimeError:
         pass
     finally:
-        # TODO: we force loop closure, otherwise RTCPeerConnection may not close
-        # and we may end up with a zoombie process
-        loop.close()
-        # TODO: Ideally we should gracefully close instances as follows
-        # loop.run_until_complete(handler.close())
-        # loop.run_until_complete(channel.close())
+        loop.run_until_complete(
+            shutdown()
+        )

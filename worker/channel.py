@@ -15,7 +15,7 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
             return message
         else:
             Logger.error(
-                "invalid messsage, missing 'method' and 'event' fields"
+                "channel: invalid messsage, missing 'method' and 'event' fields"
             )
             return None
 
@@ -24,7 +24,7 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
 
     else:
         Logger.error(
-            "invalid messsage, missing 'method' and 'event' fields"
+            "channel: invalid messsage, missing 'method' and 'event' fields"
         )
         return None
 
@@ -78,7 +78,7 @@ class Channel:
             # retrieve chunks of 50 bytes
             data = await self._reader.read(50)
             if len(data) == 0:
-                Logger.debug("channel socket closed, exiting")
+                Logger.debug("channel: socket closed, exiting")
                 raise Exception("socket closed")
 
             decoded_list = self._nsDecoder.feed(data)
@@ -100,13 +100,20 @@ class Channel:
 
     # TODO: notify() should receive a Notification instance
     async def notify(self, targetId: str, event: str, data=None) -> None:
-        if data is not None:
-            await self.send(
-                json.dumps({"targetId": targetId, "event": event, "data": data})
-            )
-        else:
-            await self.send(
-                json.dumps({"targetId": targetId, "event": event})
+        try:
+            if data is not None:
+                await self.send(
+                    json.dumps({"targetId": targetId, "event": event, "data": data})
+                )
+            else:
+                await self.send(
+                    json.dumps({"targetId": targetId, "event": event})
+                )
+
+        except Exception as error:
+            errorStr = f"{error.__class__.__name__}: {error}"
+            Logger.warning(
+                f"channel: notify() failed [targetId:{targetId}, event:{event}]]: {errorStr}"
             )
 
 
