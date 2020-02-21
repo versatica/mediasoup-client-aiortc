@@ -2,9 +2,6 @@
 
 ## mediasoup-client-aiortc
 
-* CRITICAL: Sometimes Python process remains as zombie when Node.js process ends.
-  - Usually just when webcam was active.
-
 * Rebuild the test (copy it from mediasoup-client project).
 
 * Missing `replaceTrack()` API and others.
@@ -13,6 +10,9 @@
 ## aiortc
 
 Things that must be verified, asked or even reported in aiortc project.
+
+* CRITICAL: Python zombie process. `await pc.close()` does not complete if its sending tracks were `stopped()` before.
+  - Issue: https://github.com/aiortc/aiortc/issues/283
 
 * Crash when using MediaPlayer.
   - Issue: https://github.com/aiortc/aiortc/issues/274

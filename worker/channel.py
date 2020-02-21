@@ -67,8 +67,6 @@ class Channel:
         if self._writer is not None:
             self._writer.close()
 
-    # TODO: receive() should return a Request or Notification instance instead of
-    # a dictionary
     async def receive(self) -> Optional[Dict[str, Any]]:
         await self._connect()
 
@@ -96,7 +94,6 @@ class Channel:
 
         self._writer.write(data)
 
-    # TODO: notify() should receive a Notification instance
     async def notify(self, targetId: str, event: str, data=None) -> None:
         try:
             if data is not None:
@@ -127,8 +124,6 @@ class Request:
         self.internal = internal
         self.data = data
 
-    # TODO: This should be given in the constructor but I don't know how to deal
-    # with it given that the constructor is called with **obj as single argument
     def setChannel(self, channel: Channel):
         self._channel = channel
 

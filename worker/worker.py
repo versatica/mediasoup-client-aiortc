@@ -43,26 +43,6 @@ if __name__ == "__main__":
     # create channel
     channel = Channel(loop, READ_FD, WRITE_FD)
 
-    async def shutdown() -> None:
-        # close channel
-        await channel.close()
-
-        # close all players
-        for player in players.values():
-            if player.audio:
-                player.audio.stop()
-            if player.video:
-                player.video.stop()
-        players.clear()
-
-        # close all handlers
-        for handler in handlers.values():
-            await handler.close()
-        handlers.clear()
-
-        # stop the loop (just in case)
-        loop.stop()
-
     def getTrack(playerId: str, kind: str) -> MediaStreamTrack:
         player = players[playerId]
         track = player.audio if kind == "audio" else player.video
@@ -180,6 +160,8 @@ if __name__ == "__main__":
             await handler.processNotification(notification)
 
     async def run(channel: Channel) -> None:
+        Logger.debug("worker: run()")
+
         # tell the Node process that we are running
         await channel.notify(str(getpid()), "running")
 
@@ -220,11 +202,39 @@ if __name__ == "__main__":
             except Exception:
                 break
 
+        Logger.debug("worker: run() done")
+
+    async def shutdown() -> None:
+        Logger.debug("worker: shutdown()")
+
+        # close channel
+        await channel.close()
+
+        # close all handlers
+        # NOTE: Do this before closing pcs due to a bug:
+        #   https://github.com/aiortc/aiortc/issues/283
+        for handler in handlers.values():
+            await handler.close()
+        handlers.clear()
+
+        # close all players
+        for player in players.values():
+            if player.audio:
+                player.audio.stop()
+            if player.video:
+                player.video.stop()
+        players.clear()
+
+        # stop the loop (just in case)
+        loop.stop()
+
+        Logger.debug("worker: shutdown() done")
+
     try:
         loop.run_until_complete(
             run(channel)
         )
-    # reached after calling loop.stop() or channel failure
+    # reached after calling channel closure
     except RuntimeError:
         pass
     finally:
