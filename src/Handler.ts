@@ -1,3 +1,4 @@
+import uuidv4 from 'uuid/v4';
 import * as sdpTransform from 'sdp-transform';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import { Logger } from 'mediasoup-client/lib/Logger';
@@ -20,7 +21,6 @@ import {
 } from 'mediasoup-client/lib/handlers/HandlerInterface';
 import { RemoteSdp } from 'mediasoup-client/lib/handlers/sdp/RemoteSdp';
 import {
-	MediaKind,
 	IceParameters,
 	DtlsRole,
 	RtpCapabilities,
@@ -30,6 +30,7 @@ import {
 } from 'mediasoup-client/lib/types';
 import { Channel } from './Channel';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
+import { FakeRTCDataChannel } from './FakeRTCDataChannel';
 
 const logger = new Logger('aiortc:Handler');
 
@@ -39,13 +40,15 @@ export class Handler extends HandlerInterface
 {
 	// Internal data.
 	// - .handlerId
-	private readonly _internal: any;
+	private readonly _internal: { handlerId: string };
 	// Channel instance.
 	private readonly _channel: Channel;
-	// onClose callback.
+	// Closure callback.
 	private readonly _onClose: () => void;
 	// Closed flag.
 	private _closed = false;
+	// Running flag. It means that the handler has been told to the worker.
+	private _running = false;
 	// Handler direction.
 	private _direction: 'send' | 'recv';
 	// Remote SDP handler.
@@ -55,8 +58,6 @@ export class Handler extends HandlerInterface
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
 	private _sendingRemoteRtpParametersByKind: { [key: string]: RtpParameters };
-	// Worker instance.
-	private _worker: Worker;
 	// Map of sending and receiving tracks indexed by localId.
 	private readonly _mapLocalIdTracks: Map<string, FakeMediaStreamTrack> = new Map();
 	// Map of MID indexed by local ids.
@@ -68,7 +69,6 @@ export class Handler extends HandlerInterface
 	// Next DataChannel id.
 	private _nextSendSctpStreamId = 0;
 
-	// TODO: Inherit from EventEmitter and emit @close
 	constructor(
 		{
 			internal,
@@ -76,7 +76,7 @@ export class Handler extends HandlerInterface
 			onClose
 		}:
 		{
-			internal: any;
+			internal: { handlerId: string };
 			channel: Channel;
 			onClose: () => void;
 		}
@@ -117,13 +117,19 @@ export class Handler extends HandlerInterface
 			}
 			else
 			{
-				// TODO: Not here!
 				track.removeEventListener(
 					'@enabledchange', track.data.enabledChangeListener);
 			}
 		}
 
-		// Tell the Worker.
+		// Remove notification subscriptions.
+		this._channel.removeAllListeners(this._internal.handlerId);
+
+		// If running notify the worker.
+		if (this._running)
+			this._channel.notify('handler.close()', this._internal);
+
+		// Tell the parent.
 		this._onClose();
 	}
 
@@ -131,8 +137,7 @@ export class Handler extends HandlerInterface
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
-		const sdp = await this._channel.request(
-			'handler.getNativeRtpCapabilities', this._internal);
+		const sdp = await this._channel.request('getNativeRtpCapabilities');
 
 		const sdpObject = sdpTransform.parse(sdp);
 		const caps = sdpCommonUtils.extractRtpCapabilities({ sdpObject });
@@ -191,39 +196,24 @@ export class Handler extends HandlerInterface
 			video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
 		};
 
-		this._worker = new Worker(
+		const options =
+		{
+			rtcConfiguration : { iceServers }
+		};
+
+		// Notify the worker so it will create a handler.
+		this._channel.request('createHandler', this._internal, options)
+			.catch((error) =>
 			{
-				rtcConfiguration : { iceServers },
-				logLevel         : this._workerLogLevel
+				logger.error(`handler creation in the worker failed: ${error}`);
+
+				this.close();
 			});
 
-		this._worker.on('error', (error: Error) =>
-		{
-			logger.error('worker error: %s', error.toString());
-		});
+		// Set the running flag.
+		this._running = true;
 
-		this._worker.on('iceconnectionstatechange', (state: RTCIceConnectionState) =>
-		{
-			switch (state)
-			{
-				case 'checking':
-					this.emit('@connectionstatechange', 'connecting');
-					break;
-				case 'connected':
-				case 'completed':
-					this.emit('@connectionstatechange', 'connected');
-					break;
-				case 'failed':
-					this.emit('@connectionstatechange', 'failed');
-					break;
-				case 'disconnected':
-					this.emit('@connectionstatechange', 'disconnected');
-					break;
-				case 'closed':
-					this.emit('@connectionstatechange', 'closed');
-					break;
-			}
-		});
+		this._handleWorkerNotifications();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -240,9 +230,10 @@ export class Handler extends HandlerInterface
 
 	async getTransportStats(): Promise<FakeRTCStatsReport>
 	{
-		this._waitForReady();
+		const data = await this._channel.request(
+			'handler.getTransportStats', this._internal);
 
-		return this._worker.getTransportStats();
+		return new FakeRTCStatsReport(data);
 	}
 
 	async send(
@@ -251,25 +242,19 @@ export class Handler extends HandlerInterface
 	): Promise<HandlerSendResult>
 	{
 		this._assertSendDirection();
-		this._waitForReady();
 
 		logger.debug(
 			'send() [kind:%s, track.id:%s, track.data:%o]',
 			track.kind, track.id, (track as FakeMediaStreamTrack).data);
 
-		const { sourceType, sourceValue, format, options } =
-			(track as FakeMediaStreamTrack).data;
+		const { playerId, kind } = (track as FakeMediaStreamTrack).data;
+		const { trackId } = await this._channel.request(
+			'handler.addTrack', this._internal, { playerId, kind });
 
-		const { trackId } = await this._worker.addTrack(
-			{
-				kind : track.kind as MediaKind,
-				sourceType,
-				sourceValue,
-				format,
-				options
-			} as WorkerSendOptions);
 		const localId = trackId;
-		let offer = await this._worker.createOffer();
+		let offer = await this._channel.request(
+			'handler.createOffer', this._internal);
+
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 		const sendingRtpParameters =
 			utils.clone(this._sendingRtpParametersByKind[track.kind]);
@@ -278,15 +263,23 @@ export class Handler extends HandlerInterface
 			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
 
 		logger.debug(
-			'send() | calling worker.setLocalDescription() [offer:%o]',
+			'send() | calling handler.setLocalDescription() [offer:%o]',
 			offer);
 
-		await this._worker.setLocalDescription(offer as RTCSessionDescription);
+		await this._channel.request(
+			'handler.setLocalDescription',
+			this._internal,
+			offer as RTCSessionDescription);
 
 		// Get the MID and the corresponding m= section.
-		const mid = await this._worker.getMid(trackId);
+		const mid = await this._channel.request(
+			'handler.getMid',
+			this._internal,
+			{ trackId });
 
-		offer = await this._worker.getLocalDescription();
+		offer = await this._channel.request(
+			'handler.getLocalDescription', this._internal);
+
 		localSdpObject = sdpTransform.parse(offer.sdp);
 
 		const offerMediaObject = localSdpObject.media.find((m) => (
@@ -314,22 +307,23 @@ export class Handler extends HandlerInterface
 		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'send() | calling worker.setRemoteDescription() [answer:%o]',
+			'send() | calling handler.setRemoteDescription() [answer:%o]',
 			answer);
 
-		await this._worker.setRemoteDescription(answer as RTCSessionDescription);
+		await this._channel.request(
+			'handler.setRemoteDescription',
+			this._internal,
+			answer as RTCSessionDescription);
 
 		// Store the original track into our map and listen for events.
 		this._mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
 
 		(track as FakeMediaStreamTrack).data.enabledChangeListener = (): void =>
 		{
-			logger.debug('sending track %s', track.enabled ? 'enabled' : 'disabled');
-
 			if (track.enabled)
-				this._worker.enableTrack(trackId);
+				this._channel.notify('handler.enableTrack', this._internal, { trackId });
 			else
-				this._worker.disableTrack(trackId);
+				this._channel.notify('handler.disableTrack', this._internal, { trackId });
 		};
 
 		track.addEventListener(
@@ -348,7 +342,6 @@ export class Handler extends HandlerInterface
 	async stopSending(localId: string): Promise<void>
 	{
 		this._assertSendDirection();
-		this._waitForReady();
 
 		logger.debug('stopSending() [localId:%s]', localId);
 
@@ -372,25 +365,33 @@ export class Handler extends HandlerInterface
 
 		const trackId = localId;
 
-		await this._worker.removeTrack(trackId);
+		await this._channel.request(
+			'handler.removeTrack', this._internal, { trackId });
 
 		this._remoteSdp.disableMediaSection(mid);
 
-		const offer = await this._worker.createOffer();
+		const offer =
+			await this._channel.request('handler.createOffer', this._internal);
 
 		logger.debug(
-			'stopSending() | calling worker.setLocalDescription() [offer:%o]',
+			'stopSending() | calling handler.setLocalDescription() [offer:%o]',
 			offer);
 
-		await this._worker.setLocalDescription(offer as RTCSessionDescription);
+		await this._channel.request(
+			'handler.setLocalDescription',
+			this._internal,
+			offer as RTCSessionDescription);
 
 		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'stopSending() | calling worker.setRemoteDescription() [answer:%o]',
+			'stopSending() | calling handler.setRemoteDescription() [answer:%o]',
 			answer);
 
-		await this._worker.setRemoteDescription(answer as RTCSessionDescription);
+		await this._channel.request(
+			'handler.setRemoteDescription',
+			this._internal,
+			answer as RTCSessionDescription);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -414,14 +415,16 @@ export class Handler extends HandlerInterface
 	async getSenderStats(localId: string): Promise<FakeRTCStatsReport>
 	{
 		this._assertSendDirection();
-		this._waitForReady();
 
 		const mid = this._mapLocalIdMid.get(localId);
 
 		if (!mid)
 			throw new Error('associated MID not found');
 
-		return this._worker.getSenderStats(mid);
+		const data = await this._channel.request(
+			'handler.getSenderStats', this._internal, { mid });
+
+		return new FakeRTCStatsReport(data);
 	}
 
 	async sendDataChannel(
@@ -431,27 +434,53 @@ export class Handler extends HandlerInterface
 			maxRetransmits,
 			label,
 			protocol,
-			priority
+			priority // eslint-disable-line @typescript-eslint/no-unused-vars
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
 		this._assertSendDirection();
 
+		const internal =
+		{
+			handlerId     : this._internal.handlerId,
+			dataChannelId : uuidv4()
+		};
+
 		const options =
 		{
-			negotiated : true,
-			streamId   : this._nextSendSctpStreamId,
+			negotiated        : true,
+			id                : this._nextSendSctpStreamId,
 			ordered,
-			maxPacketLifeTime,
-			maxRetransmits,
+			maxPacketLifeTime : maxPacketLifeTime || null, // Important.
+			maxRetransmits    : maxRetransmits || null, // Important.
 			label,
-			protocol,
-			priority
+			protocol
 		};
 
 		logger.debug('sendDataChannel() [options:%o]', options);
 
-		const dataChannel = await this._worker.createDataChannel(options);
+		const result = await this._channel.request(
+			'handler.createDataChannel', internal, options);
+
+		const dataChannel = new FakeRTCDataChannel(
+			internal,
+			this._channel,
+			// options.
+			{
+				id                : result.streamId,
+				ordered           : result.ordered,
+				maxPacketLifeTime : result.maxPacketLifeTime,
+				maxRetransmits    : result.maxRetransmits,
+				label             : result.label,
+				protocol          : result.protocol
+			},
+			// status.
+			{
+				readyState                 : result.readyState,
+				bufferedAmount             : result.bufferedAmount,
+				bufferedAmountLowThreshold : result.bufferedAmountLowThreshold
+			}
+		);
 
 		// Increase next id.
 		this._nextSendSctpStreamId =
@@ -461,7 +490,9 @@ export class Handler extends HandlerInterface
 		// m=application section.
 		if (!this._hasDataChannelMediaSection)
 		{
-			const offer = await this._worker.createOffer();
+			const offer = await this._channel.request(
+				'handler.createOffer', this._internal);
+
 			const localSdpObject = sdpTransform.parse(offer.sdp);
 			const offerMediaObject = localSdpObject.media
 				.find((m: any) => m.type === 'application');
@@ -470,30 +501,36 @@ export class Handler extends HandlerInterface
 				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
 
 			logger.debug(
-				'sendDataChannel() | calling worker.setLocalDescription() [offer:%o]',
+				'sendDataChannel() | calling handler.setLocalDescription() [offer:%o]',
 				offer);
 
-			await this._worker.setLocalDescription(offer);
+			await this._channel.request(
+				'handler.setLocalDescription',
+				this._internal,
+				offer as RTCSessionDescription);
 
 			this._remoteSdp.sendSctpAssociation({ offerMediaObject });
 
 			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
 
 			logger.debug(
-				'sendDataChannel() | calling worker.setRemoteDescription() [answer:%o]',
+				'sendDataChannel() | calling handler.setRemoteDescription() [answer:%o]',
 				answer);
 
-			await this._worker.setRemoteDescription(answer as RTCSessionDescription);
+			await this._channel.request(
+				'handler.setRemoteDescription',
+				this._internal,
+				answer as RTCSessionDescription);
 
 			this._hasDataChannelMediaSection = true;
 		}
 
 		const sctpStreamParameters: SctpStreamParameters =
 		{
-			streamId          : options.streamId,
-			ordered           : options.ordered,
-			maxPacketLifeTime : options.maxPacketLifeTime,
-			maxRetransmits    : options.maxRetransmits
+			streamId          : result.streamId,
+			ordered           : result.ordered,
+			maxPacketLifeTime : result.maxPacketLifeTime,
+			maxRetransmits    : result.maxRetransmits
 		};
 
 		return { dataChannel, sctpStreamParameters };
@@ -504,7 +541,6 @@ export class Handler extends HandlerInterface
 	): Promise<HandlerReceiveResult>
 	{
 		this._assertRecvDirection();
-		this._waitForReady();
 
 		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
@@ -523,12 +559,17 @@ export class Handler extends HandlerInterface
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'receive() | calling worker.setRemoteDescription() [offer:%o]',
+			'receive() | calling handler.setRemoteDescription() [offer:%o]',
 			offer);
 
-		await this._worker.setRemoteDescription(offer as RTCSessionDescription);
+		await this._channel.request(
+			'handler.setRemoteDescription',
+			this._internal,
+			offer as RTCSessionDescription);
 
-		let answer = await this._worker.createAnswer();
+		let answer = await this._channel.request(
+			'handler.createAnswer', this._internal);
+
 		const localSdpObject = sdpTransform.parse(answer.sdp);
 		const answerMediaObject = localSdpObject.media
 			.find((m: any) => String(m.mid) === localId);
@@ -551,10 +592,13 @@ export class Handler extends HandlerInterface
 			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
 
 		logger.debug(
-			'receive() | calling worker.setLocalDescription() [answer:%o]',
+			'receive() | calling handler.setLocalDescription() [answer:%o]',
 			answer);
 
-		await this._worker.setLocalDescription(answer as RTCSessionDescription);
+		await this._channel.request(
+			'handler.setLocalDescription',
+			this._internal,
+			answer as RTCSessionDescription);
 
 		// Create a fake remote track to be returned.
 		const track = new FakeMediaStreamTrack(
@@ -576,7 +620,6 @@ export class Handler extends HandlerInterface
 	async stopReceiving(localId: string): Promise<void>
 	{
 		this._assertRecvDirection();
-		this._waitForReady();
 
 		logger.debug('stopReceiving() [localId:%s]', localId);
 
@@ -599,31 +642,40 @@ export class Handler extends HandlerInterface
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
-			'stopReceiving() | calling worker.setRemoteDescription() [offer:%o]',
+			'stopReceiving() | calling handler.setRemoteDescription() [offer:%o]',
 			offer);
 
-		await this._worker.setRemoteDescription(offer as RTCSessionDescription);
+		await this._channel.request(
+			'handler.setRemoteDescription',
+			this._internal,
+			offer as RTCSessionDescription);
 
-		const answer = await this._worker.createAnswer();
+		const answer = await this._channel.request(
+			'handler.createAnswer', this._internal);
 
 		logger.debug(
-			'stopReceiving() | calling worker.setLocalDescription() [answer:%o]',
+			'stopReceiving() | calling handler.setLocalDescription() [answer:%o]',
 			answer);
 
-		await this._worker.setLocalDescription(answer as RTCSessionDescription);
+		await this._channel.request(
+			'handler.setLocalDescription',
+			this._internal,
+			answer as RTCSessionDescription);
 	}
 
 	async getReceiverStats(localId: string): Promise<FakeRTCStatsReport>
 	{
 		this._assertRecvDirection();
-		this._waitForReady();
 
 		const mid = this._mapLocalIdMid.get(localId);
 
 		if (!mid)
 			throw new Error('associated MID not found');
 
-		return this._worker.getReceiverStats(mid);
+		const data = await this._channel.request(
+			'handler.getReceiverStats', this._internal, { mid });
+
+		return new FakeRTCStatsReport(data);
 	}
 
 	async receiveDataChannel(
@@ -639,20 +691,47 @@ export class Handler extends HandlerInterface
 			maxRetransmits
 		}: SctpStreamParameters = sctpStreamParameters;
 
+		const internal =
+		{
+			handlerId     : this._internal.handlerId,
+			dataChannelId : uuidv4()
+		};
+
 		const options =
 		{
-			negotiated : true,
-			streamId,
+			negotiated        : true,
+			id                : streamId,
 			ordered,
-			maxPacketLifeTime,
-			maxRetransmits,
+			maxPacketLifeTime : maxPacketLifeTime || null, // Important.
+			maxRetransmits    : maxRetransmits || null, // Important.
 			label,
 			protocol
 		};
 
 		logger.debug('receiveDataChannel() [options:%o]', options);
 
-		const dataChannel = await this._worker.createDataChannel(options);
+		const result = await this._channel.request(
+			'handler.createDataChannel', internal, options);
+
+		const dataChannel = new FakeRTCDataChannel(
+			internal,
+			this._channel,
+			// options.
+			{
+				id                : result.streamId,
+				ordered           : result.ordered,
+				maxPacketLifeTime : result.maxPacketLifeTime,
+				maxRetransmits    : result.maxRetransmits,
+				label             : result.label,
+				protocol          : result.protocol
+			},
+			// status.
+			{
+				readyState                 : result.readyState,
+				bufferedAmount             : result.bufferedAmount,
+				bufferedAmountLowThreshold : result.bufferedAmountLowThreshold
+			}
+		);
 
 		// If this is the first DataChannel we need to create the SDP offer with
 		// m=application section.
@@ -663,12 +742,16 @@ export class Handler extends HandlerInterface
 			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 			logger.debug(
-				'receiveDataChannel() | calling worker.setRemoteDescription() [offer:%o]',
+				'receiveDataChannel() | calling handler.setRemoteDescription() [offer:%o]',
 				offer);
 
-			await this._worker.setRemoteDescription(offer as RTCSessionDescription);
+			await this._channel.request(
+				'handler.setRemoteDescription',
+				this._internal,
+				offer as RTCSessionDescription);
 
-			const answer = await this._worker.createAnswer();
+			const answer = await this._channel.request(
+				'handler.createAnswer', this._internal);
 
 			if (!this._transportReady)
 			{
@@ -678,10 +761,13 @@ export class Handler extends HandlerInterface
 			}
 
 			logger.debug(
-				'receiveDataChannel() | calling worker.setRemoteDescription() [answer:%o]',
+				'receiveDataChannel() | calling handler.setRemoteDescription() [answer:%o]',
 				answer);
 
-			await this._worker.setLocalDescription(answer);
+			await this._channel.request(
+				'handler.setLocalDescription',
+				this._internal,
+				answer as RTCSessionDescription);
 
 			this._hasDataChannelMediaSection = true;
 		}
@@ -702,7 +788,8 @@ export class Handler extends HandlerInterface
 	{
 		if (!localSdpObject)
 		{
-			const offer = await this._worker.getLocalDescription();
+			const offer = await this._channel.request(
+				'handler.getLocalDescription', this._internal);
 
 			localSdpObject = sdpTransform.parse(offer.sdp);
 		}
@@ -742,33 +829,45 @@ export class Handler extends HandlerInterface
 		}
 	}
 
-	private async _waitForReady(): Promise<void>
+	private _handleWorkerNotifications(): void
 	{
-		if (!this._worker)
-			throw new Error('called with worker member unset');
-
-		switch (this._worker.getState())
+		this._channel.on(this._internal.handlerId, (event: string, data?: any) =>
 		{
-			case 'connecting':
+			// TODO: More events: 'icegatheringblablabla...'
+			switch (event)
 			{
-				await new Promise((resolve, reject) =>
+				case 'iceconnectionstatechange':
 				{
-					this._worker.on('open', resolve);
-					this._worker.on('failed', reject);
-				});
+					const state = data as RTCIceConnectionState;
 
-				break;
-			}
+					switch (state)
+					{
+						case 'checking':
+							this.emit('@connectionstatechange', 'connecting');
+							break;
+						case 'connected':
+						case 'completed':
+							this.emit('@connectionstatechange', 'connected');
+							break;
+						case 'failed':
+							this.emit('@connectionstatechange', 'failed');
+							break;
+						case 'disconnected':
+							this.emit('@connectionstatechange', 'disconnected');
+							break;
+						case 'closed':
+							this.emit('@connectionstatechange', 'closed');
+							break;
+					}
 
-			case 'open':
-			{
-				return;
-			}
+					break;
+				}
 
-			case 'closed':
-			{
-				throw new Error('worker closed');
+				default:
+				{
+					logger.error('ignoring unknown event "%s"', event);
+				}
 			}
-		}
+		});
 	}
 }

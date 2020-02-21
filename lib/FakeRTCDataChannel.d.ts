@@ -31,6 +31,7 @@ export declare class FakeRTCDataChannel extends EventTarget implements RTCDataCh
     onbufferedamountlow: (this: RTCDataChannel, ev: Event) => any;
     onerror: (this: RTCDataChannel, ev: RTCErrorEvent) => any;
     constructor(internal: {
+        handlerId: string;
         dataChannelId: string;
     }, channel: Channel, { id, ordered, maxPacketLifeTime, maxRetransmits, label, protocol }: FakeRTCDataChannelOptions, status: {
         readyState: RTCDataChannelState;

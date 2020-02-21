@@ -18,7 +18,7 @@ export type FakeRTCDataChannelOptions =
 export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 {
 	// Internal data
-	private readonly _internal: { dataChannelId: string };
+	private readonly _internal: { handlerId: string; dataChannelId: string };
 	// Channel.
 	private readonly _channel: Channel;
 	// Members for RTCDataChannel standard public getters/setters.
@@ -46,10 +46,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	public onerror: (this: RTCDataChannel, ev: RTCErrorEvent) => any;
 
 	constructor(
-		internal:
-		{
-			dataChannelId: string;
-		},
+		internal: { handlerId: string; dataChannelId: string },
 		channel: Channel,
 		{
 			id,
@@ -176,6 +173,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 		// Remove notification subscriptions.
 		this._channel.removeAllListeners(this._internal.dataChannelId);
 
+		// Notify the worker.
 		this._channel.notify('datachannel.close', this._internal);
 	}
 

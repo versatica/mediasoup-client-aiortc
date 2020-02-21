@@ -200,8 +200,9 @@ switch (process.env.MEDIASOUP_NODE_LANGUAGE)
 					singleline : { delimiter: 'semi', requireLast: false }
 				}
 			],
-			'@typescript-eslint/no-explicit-any' : 0,
-			'@typescript-eslint/no-unused-vars'  : [ 2,
+			'@typescript-eslint/no-empty-function' : 0,
+			'@typescript-eslint/no-explicit-any'   : 0,
+			'@typescript-eslint/no-unused-vars'    : [ 2,
 				{
 					vars               : 'all',
 					args               : 'after-used',

@@ -27,6 +27,8 @@ export class Worker extends EnhancedEventEmitter
 {
 	// Python worker child process.
 	private _child?: ChildProcess;
+	// Worker process PID.
+	private readonly _pid: number;
 	// Channel instance.
 	private readonly _channel: Channel;
 	// Closed flag.
@@ -36,9 +38,9 @@ export class Worker extends EnhancedEventEmitter
 
 	/**
 	 * @private
+	 * @emits died - (error: Error)
 	 * @emits @success
 	 * @emits @failure - (error: Error)
-	 * @emits @close
 	 */
 	constructor({ logLevel }: WorkerSettings)
 	{
@@ -82,24 +84,25 @@ export class Worker extends EnhancedEventEmitter
 				]
 			});
 
-		const pid = this._child.pid;
+		this._pid = this._child.pid;
 
 		this._channel = new Channel(
 			{
 				sendSocket : this._child.stdio[3],
-				recvSocket : this._child.stdio[4]
+				recvSocket : this._child.stdio[4],
+				pid        : this._pid
 			});
 
 		let spawnDone = false;
 
 		// Listen for 'running' notification.
-		this._channel.once(String(pid), (event: string) =>
+		this._channel.once(String(this._pid), (event: string) =>
 		{
 			if (!spawnDone && event === 'running')
 			{
 				spawnDone = true;
 
-				logger.debug('worker process running [pid:%s]', pid);
+				logger.debug('worker process running [pid:%s]', this._pid);
 
 				this.emit('@success');
 			}
@@ -117,7 +120,7 @@ export class Worker extends EnhancedEventEmitter
 				if (code === 42)
 				{
 					logger.error(
-						'worker process failed due to wrong settings [pid:%s]', pid);
+						'worker process failed due to wrong settings [pid:%s]', this._pid);
 
 					this.emit('@failure', new TypeError('wrong settings'));
 				}
@@ -125,22 +128,22 @@ export class Worker extends EnhancedEventEmitter
 				{
 					logger.error(
 						'worker process failed unexpectedly [pid:%s, code:%s, signal:%s]',
-						pid, code, signal);
+						this._pid, code, signal);
 
 					this.emit(
 						'@failure',
-						new Error(`[pid:${pid}, code:${code}, signal:${signal}]`));
+						new Error(`[pid:${this._pid}, code:${code}, signal:${signal}]`));
 				}
 			}
 			else
 			{
 				logger.error(
 					'worker process died unexpectedly [pid:%s, code:%s, signal:%s]',
-					pid, code, signal);
+					this._pid, code, signal);
 
-				// Throw the error somewhere.
-				throw new Error(
-					`worker process died [pid:${pid}, code:${code}, signal:${signal}]`);
+				this.safeEmit(
+					'died',
+					new Error(`[pid:${this._pid}, code:${code}, signal:${signal}]`));
 			}
 		});
 
@@ -154,17 +157,16 @@ export class Worker extends EnhancedEventEmitter
 				spawnDone = true;
 
 				logger.error(
-					'worker process failed [pid:%s]: %s', pid, error.message);
+					'worker process failed [pid:%s]: %s', this._pid, error.message);
 
 				this.emit('@failure', error);
 			}
 			else
 			{
 				logger.error(
-					'worker process error [pid:%s]: %s', pid, error.message);
+					'worker process error [pid:%s]: %s', this._pid, error.message);
 
-				// Throw the error somewhere.
-				throw new Error(`worker process died: ${error.message}`);
+				this.safeEmit('died', error);
 			}
 		});
 
@@ -190,6 +192,14 @@ export class Worker extends EnhancedEventEmitter
 				}
 			});
 		}
+	}
+
+	/**
+	 * Worker process identifier (PID).
+	 */
+	get pid(): number
+	{
+		return this._pid;
 	}
 
 	get closed(): boolean
@@ -232,11 +242,9 @@ export class Worker extends EnhancedEventEmitter
 		// Close every Handler.
 		for (const handler of this._handlers)
 		{
-			handler.workerClosed();
+			handler.close();
 		}
 		this._handlers.clear();
-
-		this.emit('@close');
 	}
 
 	/**
@@ -253,26 +261,10 @@ export class Worker extends EnhancedEventEmitter
 				{
 					internal,
 					channel : this._channel,
-					onClose : () => this._handlers.delete(handler)
+					onClose : (): boolean => this._handlers.delete(handler as Handler)
 				});
 
 			this._handlers.add(handler);
-
-			// NOTE: Due the HandleFactory signature (sync) we cannot await here so
-			// let's assume this will work.
-			this._channel.request('worker.createHandler', internal)
-				.catch((error) =>
-				{
-					if (!handler.closed)
-						return;
-
-					logger.error(`worker.createHandler() failed: ${error}`);
-
-					handler.close();
-
-					// Throw the error somewhere.
-					throw new Error(`worker.createHandler() failed: ${error}`);
-				});
 
 			return handler;
 		};

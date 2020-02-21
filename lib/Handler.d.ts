@@ -7,18 +7,20 @@ export declare class Handler extends HandlerInterface {
     private readonly _channel;
     private readonly _onClose;
     private _closed;
+    private _running;
     private _direction;
     private _remoteSdp;
     private _sendingRtpParametersByKind;
     private _sendingRemoteRtpParametersByKind;
-    private _worker;
     private readonly _mapLocalIdTracks;
     private readonly _mapLocalIdMid;
     private _transportReady;
     private _hasDataChannelMediaSection;
     private _nextSendSctpStreamId;
     constructor({ internal, channel, onClose }: {
-        internal: any;
+        internal: {
+            handlerId: string;
+        };
         channel: Channel;
         onClose: () => void;
     });
@@ -48,6 +50,6 @@ export declare class Handler extends HandlerInterface {
     private _setupTransport;
     private _assertSendDirection;
     private _assertRecvDirection;
-    private _waitForReady;
+    private _handleWorkerNotifications;
 }
 //# sourceMappingURL=Handler.d.ts.map

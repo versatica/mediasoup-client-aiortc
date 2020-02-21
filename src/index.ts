@@ -1,12 +1,8 @@
 import { Logger } from 'mediasoup-client/lib/Logger';
-import { InvalidStateError } from 'mediasoup-client/lib/errors';
 import { HandlerFactory } from 'mediasoup-client/lib/handlers/HandlerInterface';
 import { Worker, WorkerSettings } from './Worker';
 
 const logger = new Logger('aiortc');
-
-// Worker singleton.
-let worker: Worker | undefined;
 
 /**
  * Expose version.
@@ -14,62 +10,30 @@ let worker: Worker | undefined;
 export const version = '__VERSION__';
 
 /**
- * Load the module. Spawn the worker subprocess.
+ * Create a Worker.
  */
-export async function load(
+export async function createWorker(
 	{ logLevel = 'error' }:
 	WorkerSettings = {}
-): Promise<void>
+): Promise<Worker>
 {
-	logger.debug('load()');
+	logger.debug('createWorker()');
 
-	if (isModuleLoaded())
-		throw new InvalidStateError('already loaded');
-
-	worker = new Worker({ logLevel });
-
-	worker.on('@close', () => { worker = undefined; });
+	const worker = new Worker({ logLevel });
 
 	return new Promise((resolve, reject) =>
 	{
-		worker.on('@success', resolve);
+		worker.on('@success', () => resolve(worker));
 		worker.on('@failure', reject);
 	});
 }
 
 /**
- * Unload the module. Close the worker subprocess.
- */
-export function unload(): void
-{
-	logger.debug('unload()');
-
-	if (!isModuleLoaded())
-		logger.debug('unload() | module not loaded');
-
-	if (worker)
-		worker.close();
-}
-
-/**
  * Create a mediasoup-client HandlerFactory.
  */
-export function createHandlerFactory(): HandlerFactory
+export function createHandlerFactory(worker: Worker): HandlerFactory
 {
 	logger.debug('createHandlerFactory()');
 
-	assertModuleLoaded();
-
 	return worker.createHandlerFactory();
-}
-
-function isModuleLoaded(): boolean
-{
-	return worker && !worker.closed;
-}
-
-function assertModuleLoaded(): void
-{
-	if (!isModuleLoaded())
-		throw new InvalidStateError('module not loaded');
 }

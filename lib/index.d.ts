@@ -1,19 +1,15 @@
 import { HandlerFactory } from 'mediasoup-client/lib/handlers/HandlerInterface';
-import { WorkerSettings } from './Worker';
+import { Worker, WorkerSettings } from './Worker';
 /**
  * Expose version.
  */
 export declare const version = "__VERSION__";
 /**
- * Load the module. Spawn the worker subprocess.
+ * Create a Worker.
  */
-export declare function load({ logLevel }?: WorkerSettings): Promise<void>;
-/**
- * Unload the module. Close the worker subprocess.
- */
-export declare function unload(): void;
+export declare function createWorker({ logLevel }?: WorkerSettings): Promise<Worker>;
 /**
  * Create a mediasoup-client HandlerFactory.
  */
-export declare function createHandlerFactory(): HandlerFactory;
+export declare function createHandlerFactory(worker: Worker): HandlerFactory;
 //# sourceMappingURL=index.d.ts.map

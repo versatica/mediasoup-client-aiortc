@@ -9,16 +9,21 @@ export declare type WorkerSettings = {
 };
 export declare class Worker extends EnhancedEventEmitter {
     private _child?;
+    private readonly _pid;
     private readonly _channel;
     private _closed;
     private readonly _handlers;
     /**
      * @private
+     * @emits died - (error: Error)
      * @emits @success
      * @emits @failure - (error: Error)
-     * @emits @close
      */
     constructor({ logLevel }: WorkerSettings);
+    /**
+     * Worker process identifier (PID).
+     */
+    readonly pid: number;
     readonly closed: boolean;
     /**
      * Close the Worker.

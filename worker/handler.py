@@ -155,6 +155,7 @@ class Handler:
             if trackId is None:
                 raise TypeError("missing trackId")
 
+            # raise on purpose if the key is not found
             transceiver = self._transceivers[trackId]
             return transceiver.mid
 

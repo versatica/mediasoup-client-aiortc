@@ -39,11 +39,13 @@ export class Channel extends EnhancedEventEmitter
 	constructor(
 		{
 			sendSocket,
-			recvSocket
+			recvSocket,
+			pid
 		}:
 		{
 			sendSocket: any;
 			recvSocket: any;
+			pid: number;
 		})
 	{
 		super();
@@ -88,7 +90,8 @@ export class Channel extends EnhancedEventEmitter
 				catch (error)
 				{
 					logger.error(
-						'invalid netstring data received from the worker process: %s', String(error));
+						'invalid netstring data received from the worker process: %s',
+						String(error));
 
 					// Reset the buffer and exit.
 					this._recvBuffer = undefined;
@@ -110,7 +113,8 @@ export class Channel extends EnhancedEventEmitter
 				{
 					// eslint-disable-next-line no-console
 					console.warn(
-						'unexpected data received via Channel: %s', nsPayload.toString('utf8', 1));
+						`worker[pid:${pid}] unexpected data: %s`,
+						nsPayload.toString('utf8', 1));
 				}
 
 				// Remove the read payload from the buffer.
@@ -126,11 +130,21 @@ export class Channel extends EnhancedEventEmitter
 			}
 		});
 
-		this._recvSocket.on('end', () => logger.debug('Receive Channel ended by the worker process'));
-		this._recvSocket.on('error', (error) => logger.error('Receive Channel error: %s', String(error)));
+		this._sendSocket.on('end', () => (
+			logger.debug('send Channel ended by the worker process')
+		));
 
-		this._sendSocket.on('end', () => logger.debug('Send Channel ended by the worker process'));
-		this._sendSocket.on('error', (error) => logger.error('Send Channel error: %s', String(error)));
+		this._sendSocket.on('error', (error) => (
+			logger.error('send Channel error: %s', String(error))
+		));
+
+		this._recvSocket.on('end', () => (
+			logger.debug('receive Channel ended by the worker process')
+		));
+
+		this._recvSocket.on('error', (error) => (
+			logger.error('receive Channel error: %s', String(error))
+		));
 	}
 
 	close(): void
@@ -152,19 +166,20 @@ export class Channel extends EnhancedEventEmitter
 		// propagation.
 		this._sendSocket.removeAllListeners('end');
 		this._sendSocket.removeAllListeners('error');
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
 		this._sendSocket.on('error', () => {});
 
 		this._recvSocket.removeAllListeners('end');
 		this._recvSocket.removeAllListeners('error');
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
 		this._recvSocket.on('error', () => {});
 
-		// Destroy the socket.
-		try { this._sendSocket.destroy(); }
-		catch (error) {}
-		try { this._recvSocket.destroy(); }
-		catch (error) {}
+		// Destroy the socket after a while to allow pending incoming messages.
+		setTimeout(() =>
+		{
+			try { this._sendSocket.destroy(); }
+			catch (error) {}
+			try { this._recvSocket.destroy(); }
+			catch (error) {}
+		}, 200);
 	}
 
 	async request(method: string, internal?: object, data?: any): Promise<any>
