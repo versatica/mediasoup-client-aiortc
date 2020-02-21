@@ -15,9 +15,7 @@ def object_from_string(message_str) -> Optional[Dict[str, Any]]:
         if "id" in message:
             return message
         else:
-            Logger.error(
-                "channel: invalid messsage, missing 'method' and 'event' fields"
-            )
+            Logger.error("channel: invalid request, missing 'id' field")
             return None
 
     elif "event" in message:
