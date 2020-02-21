@@ -112,14 +112,7 @@ export class Handler extends HandlerInterface
 		for (const track of this._mapLocalIdTracks.values())
 		{
 			if (track.data.remote)
-			{
 				track.remoteStop();
-			}
-			else
-			{
-				track.removeEventListener(
-					'@enabledchange', track.data.enabledChangeListener);
-			}
 		}
 
 		// Remove notification subscriptions.
@@ -319,17 +312,22 @@ export class Handler extends HandlerInterface
 		// Store the original track into our map and listen for events.
 		this._mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
 
-		(track as FakeMediaStreamTrack).data.enabledChangeListener = (): void =>
+		track.addEventListener('@enabledchange', () =>
 		{
+			// Ensure we are still sending this track.
+			if (
+				this._mapLocalIdTracks.get(localId) !== track ||
+				track.readyState === 'ended'
+			)
+			{
+				return;
+			}
+
 			if (track.enabled)
 				this._channel.notify('handler.enableTrack', this._internal, { trackId });
 			else
 				this._channel.notify('handler.disableTrack', this._internal, { trackId });
-		};
-
-		track.addEventListener(
-			'@enabledchange',
-			(track as FakeMediaStreamTrack).data.enabledChangeListener);
+		});
 
 		// Store the MID into the map.
 		this._mapLocalIdMid.set(localId, mid);
@@ -353,8 +351,6 @@ export class Handler extends HandlerInterface
 			throw new Error('associated track not found');
 
 		this._mapLocalIdTracks.delete(localId);
-		track.removeEventListener(
-			'@enabledchange', track.data.enabledChangeListener);
 
 		// Remove the MID from the map.
 		const mid = this._mapLocalIdMid.get(localId);
