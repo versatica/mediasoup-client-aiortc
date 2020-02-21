@@ -81,16 +81,11 @@ class Handler:
         )
 
     async def close(self) -> None:
-        # stop tracks
-        for sender in self._pc.getSenders():
-            if sender.track is not None:
-                sender.track.stop()
+        # stop the periodic task
+        self._dataChannelsBufferedAmountTask.cancel()
 
         # close peerconnection
         await self._pc.close()
-
-        # stop the periodic task
-        self._dataChannelsBufferedAmountTask.cancel()
 
     async def processRequest(self, request: Request) -> Any:
         if request.method == "handler.getLocalDescription":
@@ -344,8 +339,9 @@ class Handler:
             dataChannelId = internal.get("dataChannelId")
             if dataChannelId is None:
                 raise TypeError("missing dataChannelId")
-
-            dataChannel = self._dataChannels[dataChannelId]
+            dataChannel = self._dataChannels.get(dataChannelId)
+            if dataChannel is None:
+                return
 
             # NOTE: After calling dataChannel.close() aiortc emits "close" event
             # on the dataChannel. Probably it shouldn't do it. So caution.

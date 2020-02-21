@@ -47,9 +47,6 @@ if __name__ == "__main__":
     def shutdown() -> None:
         loop.close()
 
-    def getHandler(handlerId: str) -> Handler:
-        return handlers[handlerId]
-
     def getTrack(playerId: str, kind: str) -> MediaStreamTrack:
         player = players[playerId]
         track = player.audio if kind == "audio" else player.video
@@ -59,11 +56,30 @@ if __name__ == "__main__":
         return track
 
     async def processRequest(request: Request) -> Any:
-        Logger.debug(
-            f"processRequest() [method:{request.method}, internal:{request.internal}, data:{request.data}]"
-        )
+        Logger.debug(f"processRequest() [method:{request.method}]")
 
-        if request.method == "createHandler":
+        if request.method == "createPlayer":
+            internal = request.internal
+            playerId = internal["playerId"]
+            data = request.data
+            player = MediaPlayer(
+                data["file"],
+                data["format"] if "format" in data else None,
+                data["options"] if "options" in data else None
+            )
+
+            players[playerId] = player
+            return
+
+        elif request.method == "getRtpCapabilities":
+            pc = RTCPeerConnection()
+            pc.addTransceiver("audio", "sendonly")
+            pc.addTransceiver("video", "sendonly")
+            offer = await pc.createOffer()
+            await pc.close()
+            return offer.sdp
+
+        elif request.method == "createHandler":
             internal = request.internal
             handlerId = internal["handlerId"]
             data = request.data
@@ -89,53 +105,24 @@ if __name__ == "__main__":
             handlers[handlerId] = handler
             return
 
-        elif request.method == "createPlayer":
-            internal = request.internal
-            playerId = internal["playerId"]
-            data = request.data
-            player = MediaPlayer(
-                data["file"],
-                data["format"] if "format" in data else None,
-                data["options"] if "options" in data else None
-            )
-
-            players[playerId] = player
-            return
-
-        elif request.method == "getRtpCapabilities":
-            pc = RTCPeerConnection()
-            pc.addTransceiver("audio", "sendonly")
-            pc.addTransceiver("video", "sendonly")
-            offer = await pc.createOffer()
-            await pc.close()
-            return offer.sdp
-
         else:
             internal = request.internal
-            handler = getHandler(internal["handlerId"])
+            handler = handlers.get(internal["handlerId"])
+            if handler is None:
+                raise Exception("hander not found")
+
             return await handler.processRequest(request)
 
     async def processNotification(notification: Notification) -> None:
-        Logger.debug(
-            f"processNotification() [event:{notification.event}, internal:{notification.internal}, data:{notification.data}]"
-        )
+        Logger.debug(f"processNotification() [event:{notification.event}]")
 
-        if notification.event == "handler.close":
-            internal = notification.internal
-            handlerId = internal["handlerId"]
-            handler = handlers[handlerId]
-
-            handler.close()
-
-            del handlers[handlerId]
-
-        elif notification.event == "player.close":
+        if notification.event == "player.close":
             internal = notification.internal
             playerId = internal["playerId"]
             player = players.get(playerId)
-
-            if not player:
+            if player is None:
                 return
+
             if player.audio:
                 player.audio.stop()
             if player.video:
@@ -149,18 +136,32 @@ if __name__ == "__main__":
             data = notification.data
             kind = data["kind"]
             player = players.get(playerId)
-
-            if not player:
+            if player is None:
                 return
+
             if kind == "audio" and player.audio:
                 player.audio.stop()
             elif kind == "video" and player.video:
                 player.video.stop()
 
+        elif notification.event == "handler.close":
+            internal = notification.internal
+            handlerId = internal["handlerId"]
+            handler = handlers.get(handlerId)
+            if handler is None:
+                return
+
+            await handler.close()
+
+            del handlers[handlerId]
+
         else:
             internal = notification.internal
-            handler = getHandler(internal["handlerId"])
-            return await handler.processNotification(notification)
+            handler = handlers.get(internal["handlerId"])
+            if handler is None:
+                return
+
+            await handler.processNotification(notification)
 
     async def run(channel: Channel) -> None:
         # tell the Node process that we are running
