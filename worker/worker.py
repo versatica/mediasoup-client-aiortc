@@ -52,14 +52,18 @@ if __name__ == "__main__":
 
     def getTrack(playerId: str, kind: str) -> MediaStreamTrack:
         player = players[playerId]
-        return player.audio if kind == "audio" else player.video
+        track = player.audio if kind == "audio" else player.video
+        if not track:
+            raise Exception("no track found")
+
+        return track
 
     async def processRequest(request: Request) -> Any:
         Logger.debug(f"processRequest() [method:{request.method}]")
 
         if request.method == "createHandler":
             internal = request.internal
-            handlerId = internal["handler"]
+            handlerId = internal["handlerId"]
             data = request.data
 
             # use RTCConfiguration if given
@@ -79,7 +83,7 @@ if __name__ == "__main__":
                         iceServers.append(iceServer)
                     rtcConfiguration = RTCConfiguration(iceServers)
 
-            handler = Handler(channel, loop, getTrack, rtcConfiguration)
+            handler = Handler(handlerId, channel, loop, getTrack, rtcConfiguration)
             handlers[handlerId] = handler
 
         if request.method == "createPlayer":
@@ -139,9 +143,9 @@ if __name__ == "__main__":
 
             player = players.get(playerId)
 
-            if kind == "audio":
+            if kind == "audio" and player.audio:
                 player.audio.stop()
-            else:
+            elif kind == "video" and player.video:
                 player.video.stop()
 
         else:

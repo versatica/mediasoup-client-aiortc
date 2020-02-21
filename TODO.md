@@ -9,7 +9,9 @@
 * Properly close aiortc `Players` (all their tracks).
   - However it indeed crashes. For instance, if the same file is used for audio and video, closing the video track makes the Python process crash.
 
-* Need DataChannel tests.
+* Rebuild the test (copy it from mediasoup-client project).
+
+* `handler.py`: `close()` is async. However, `worker.py` is not doing `await handler.close()`. I expect it to fail in runtime.
   
 
 ## aiortc

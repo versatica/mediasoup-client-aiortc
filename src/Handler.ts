@@ -833,9 +833,22 @@ export class Handler extends HandlerInterface
 	{
 		this._channel.on(this._internal.handlerId, (event: string, data?: any) =>
 		{
-			// TODO: More events: 'icegatheringblablabla...'
 			switch (event)
 			{
+				case 'signalingstatechange':
+				{
+					// Do nothing.
+
+					break;
+				}
+
+				case 'icegatheringstatechange':
+				{
+					// Do nothing.
+
+					break;
+				}
+
 				case 'iceconnectionstatechange':
 				{
 					const state = data as RTCIceConnectionState;

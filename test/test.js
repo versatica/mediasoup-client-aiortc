@@ -1,6 +1,10 @@
 const { toBeType } = require('jest-tobetype');
 const pkg = require('../package.json');
-const { version, createWorker, createHandlerFactory } = require('../');
+// TOOD: No.
+const { version } = require('../');
+const { Worker } = require('../lib/Worker');
+// TODO: Yes.
+// const { version, createWorker, createHandlerFactory } = require('../');
 
 expect.extend({ toBeType });
 

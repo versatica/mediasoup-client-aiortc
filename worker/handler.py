@@ -1,4 +1,3 @@
-from os import getpid
 from typing import Any, Dict, Optional
 import base64
 import asyncio
@@ -16,7 +15,15 @@ from logger import Logger
 
 
 class Handler:
-    def __init__(self, channel: Channel, loop: asyncio.AbstractEventLoop, getTrack, configuration: Optional[RTCConfiguration] = None) -> None:
+    def __init__(
+        self,
+        handlerId: str,
+        channel: Channel,
+        loop: asyncio.AbstractEventLoop,
+        getTrack,
+        configuration: Optional[RTCConfiguration] = None
+    ) -> None:
+        self._handlerId = handlerId
         self._channel = channel
         self._pc = RTCPeerConnection(configuration or None)
         # dictionary of transceivers mapped by track id
@@ -30,13 +37,15 @@ class Handler:
         def on_track(track) -> None:
             Logger.debug(f"ontrack [kind:{track.kind}, id:{track.id}]")
 
-        @self._pc.on("iceconnectionstatechange")  # type: ignore
-        async def on_iceconnectionstatechange() -> None:
+        @self._pc.on("signalingstatechange")  # type: ignore
+        async def on_signalingstatechange() -> None:
             Logger.debug(
-                f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]"
+                f"signalingstatechange [state:{self._pc.signalingState}]"
             )
             await self._channel.notify(
-                str(getpid()), "iceconnectionstatechange", self._pc.iceConnectionState
+                self._handlerId,
+                "signalingstatechange",
+                self._pc.signalingState
             )
 
         @self._pc.on("icegatheringstatechange")  # type: ignore
@@ -45,16 +54,20 @@ class Handler:
                 f"icegatheringstatechange [state:{self._pc.iceGatheringState}]"
             )
             await self._channel.notify(
-                str(getpid()), "icegatheringstatechange", self._pc.iceGatheringState
+                self._handlerId,
+                "icegatheringstatechange",
+                self._pc.iceGatheringState
             )
 
-        @self._pc.on("signalingstatechange")  # type: ignore
-        async def on_signalingstatechange() -> None:
+        @self._pc.on("iceconnectionstatechange")  # type: ignore
+        async def on_iceconnectionstatechange() -> None:
             Logger.debug(
-                f"signalingstatechange [state:{self._pc.signalingState}]"
+                f"iceconnectionstatechange [state:{self._pc.iceConnectionState}]"
             )
             await self._channel.notify(
-                str(getpid()), "signalingstatechange", self._pc.signalingState
+                self._handlerId,
+                "iceconnectionstatechange",
+                self._pc.iceConnectionState
             )
 
         async def checkDataChannelsBufferedAmount() -> None:
@@ -94,8 +107,8 @@ class Handler:
 
         elif request.method == "handler.addTrack":
             data = request.data
-            playerId = data.get("playerId")
-            kind = data.get("kind")
+            playerId = data["playerId"]
+            kind = data["kind"]
             track = self._getTrack(playerId, kind)
             transceiver = self._pc.addTransceiver(track)
 
@@ -252,7 +265,7 @@ class Handler:
 
             @dataChannel.on("close")  # type: ignore
             async def on_close() -> None:
-                # NOTE: After calling dataChannel.close() aiortc emits "close"event
+                # NOTE: After calling dataChannel.close() aiortc emits "close" event
                 # on the dataChannel. Probably it shouldn't do it. So caution.
                 try:
                     del self._dataChannels[dataChannelId]
@@ -280,6 +293,7 @@ class Handler:
                 "maxRetransmits": dataChannel.maxRetransmits,
                 "label": dataChannel.label,
                 "protocol": dataChannel.protocol,
+                # status fields
                 "readyState": dataChannel.readyState,
                 "bufferedAmount": dataChannel.bufferedAmount,
                 "bufferedAmountLowThreshold": dataChannel.bufferedAmountLowThreshold
@@ -309,7 +323,7 @@ class Handler:
             dataChannel = self._dataChannels[dataChannelId]
             dataChannel.send(data)
 
-            # Good moment to update bufferedAmount in Node.js side.
+            # Good moment to update bufferedAmount in Node.js side
             await self._channel.notify(
                 dataChannelId, "bufferedamount", dataChannel.bufferedAmount
             )
@@ -324,7 +338,7 @@ class Handler:
             dataChannel = self._dataChannels[dataChannelId]
             dataChannel.send(base64.b64decode(data))
 
-            # Good moment to update bufferedAmount in Node.js side.
+            # Good moment to update bufferedAmount in Node.js side
             await self._channel.notify(
                 dataChannelId, "bufferedamount", dataChannel.bufferedAmount
             )
