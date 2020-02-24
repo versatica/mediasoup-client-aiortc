@@ -279,6 +279,9 @@ export class Handler extends HandlerInterface
 			String(m.mid) === String(mid)
 		));
 
+		// Set MID.
+		sendingRtpParameters.mid = mid;
+
 		// Set RTCP CNAME.
 		sendingRtpParameters.rtcp.cname =
 			sdpCommonUtils.getCname({ offerMediaObject });
@@ -525,8 +528,8 @@ export class Handler extends HandlerInterface
 		{
 			streamId          : result.streamId,
 			ordered           : result.ordered,
-			maxPacketLifeTime : result.maxPacketLifeTime,
-			maxRetransmits    : result.maxRetransmits
+			maxPacketLifeTime : result.maxPacketLifeTime || undefined,
+			maxRetransmits    : result.maxRetransmits || undefined
 		};
 
 		return { dataChannel, sctpStreamParameters };

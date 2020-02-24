@@ -215,10 +215,16 @@ export async function getUserMedia(
 		// If the video player fails and we created an audio player, close it.
 		try
 		{
+			// Do not create a separate player for video if same source file/url.
 			if (!areSamePlayer)
 			{
 				await channel.request(
 					'createPlayer', videoPlayerInternal, videoPlayerOptions);
+			}
+			// If both have the same source, override playerId in video.
+			else
+			{
+				videoPlayerInternal.playerId = audioPlayerInternal.playerId;
 			}
 		}
 		catch (error)
