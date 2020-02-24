@@ -10,7 +10,7 @@ setuptools.setup(
     license='MIT',
     packages=setuptools.find_packages(),
     install_requires=[
-        'aiortc>=0.9.24',
+        'aiortc>=0.9.26',
         'pynetstring',
         'flake8',
         'mypy',
