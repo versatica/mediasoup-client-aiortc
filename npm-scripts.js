@@ -35,10 +35,12 @@ switch (task)
 
 	case 'lint':
 	{
+		const PYTHON3 = process.env.PYTHON3 || 'python3';
+
 		execute('MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts src/');
 		execute('MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern \'!.eslintrc.js\' .eslintrc.js npm-scripts.js test/');
-		execute('pushd worker && flake8 . && popd');
-		execute('pushd worker && mypy . && popd');
+		execute(`${PYTHON3} -m flake8 worker/`);
+		execute(`cd worker && ${PYTHON3} -m mypy . && cd ..`);
 
 		break;
 	}
