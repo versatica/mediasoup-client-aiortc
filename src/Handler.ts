@@ -39,7 +39,6 @@ const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 export class Handler extends HandlerInterface
 {
 	// Internal data.
-	// - .handlerId
 	private readonly _internal: { handlerId: string };
 	// Channel instance.
 	private readonly _channel: Channel;

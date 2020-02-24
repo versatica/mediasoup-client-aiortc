@@ -17,7 +17,7 @@ export type FakeRTCDataChannelOptions =
 
 export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 {
-	// Internal data
+	// Internal data.
 	private readonly _internal: { handlerId: string; dataChannelId: string };
 	// Channel.
 	private readonly _channel: Channel;
