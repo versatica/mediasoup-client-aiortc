@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='mediasoup-client-aiortc',
-    version='3.2.0',
+    version='3.2.1',
     description='mediasoup client aiortc handler',
     url='http://github.com/versatica/mediasoup-client-aiortc',
     author='José Luis Millán Villegas, Iñaki Baz Castillo',
