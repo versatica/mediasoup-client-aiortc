@@ -254,6 +254,11 @@ Just valid if `source` is "device". Specifies the device options used by `ffmpeg
 When sending, `dataChannel.send()` (and hence `dataProducer.send()`) allows passing a string, a `Buffer` instance or an `ArrayBuffer` instance.
 
 
+## Caveats
+
+See the list of [open issues](https://github.com/versatica/mediasoup-client-aiortc/issues). Wornking on all them.
+
+
 ## Authors
 
 * José Luis Millán [[github](https://github.com/jmillan/)]
