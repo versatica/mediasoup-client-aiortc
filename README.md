@@ -129,7 +129,7 @@ Creates a **mediasoup-client** handler factory, suitable for the [handlerFactory
 
 ```typescript
 const device = new mediasoupClient.Device({
-  handlerFactory: worker.createFactory()
+  handlerFactory: worker.createHandlerFactory()
 });
 ```
 
