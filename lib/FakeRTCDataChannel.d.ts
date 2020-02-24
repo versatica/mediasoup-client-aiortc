@@ -38,18 +38,21 @@ export declare class FakeRTCDataChannel extends EventTarget implements RTCDataCh
         bufferedAmount: number;
         bufferedAmountLowThreshold: number;
     });
-    readonly id: number;
-    readonly negotiated: boolean;
-    readonly ordered: boolean;
-    readonly maxPacketLifeTime: number | null;
-    readonly maxRetransmits: number | null;
-    readonly label: string;
-    readonly protocol: string;
-    readonly readyState: RTCDataChannelState;
-    readonly bufferedAmount: number;
-    bufferedAmountLowThreshold: number;
-    binaryType: string;
-    priority: RTCPriorityType;
+    get id(): number;
+    get negotiated(): boolean;
+    get ordered(): boolean;
+    get maxPacketLifeTime(): number | null;
+    get maxRetransmits(): number | null;
+    get label(): string;
+    get protocol(): string;
+    get readyState(): RTCDataChannelState;
+    get bufferedAmount(): number;
+    get bufferedAmountLowThreshold(): number;
+    set bufferedAmountLowThreshold(value: number);
+    get binaryType(): string;
+    set binaryType(value: string);
+    get priority(): RTCPriorityType;
+    set priority(value: RTCPriorityType);
     close(): void;
     /**
      * We extend the definition of send() to allow Node Buffer. However

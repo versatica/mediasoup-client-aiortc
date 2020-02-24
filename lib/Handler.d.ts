@@ -27,8 +27,8 @@ export declare class Handler extends HandlerInterface {
         };
         channel: Channel;
     });
-    readonly closed: boolean;
-    readonly name: string;
+    get closed(): boolean;
+    get name(): string;
     close(): void;
     getNativeRtpCapabilities(): Promise<RtpCapabilities>;
     getNativeSctpCapabilities(): Promise<SctpCapabilities>;

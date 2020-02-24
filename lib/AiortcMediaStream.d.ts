@@ -6,8 +6,8 @@ export declare class AiortcMediaStream extends EventTarget implements MediaStrea
     onaddtrack: (this: MediaStream, ev: Event) => any;
     onremovetrack: (this: MediaStream, ev: Event) => any;
     constructor(tracks: FakeMediaStreamTrack[]);
-    readonly id: string;
-    readonly active: boolean;
+    get id(): string;
+    get active(): boolean;
     /**
      * Custom method to close associated MediaPlayers in aiortc.
      */

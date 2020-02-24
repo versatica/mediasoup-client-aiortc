@@ -24,11 +24,11 @@ export declare class Worker extends EnhancedEventEmitter {
     /**
      * Worker process identifier (PID).
      */
-    readonly pid: number;
+    get pid(): number;
     /**
      * Whether the Worker is closed.
      */
-    readonly closed: boolean;
+    get closed(): boolean;
     /**
      * Close the Worker.
      */
