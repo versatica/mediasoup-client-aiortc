@@ -125,6 +125,24 @@ class Handler:
             # remove transceiver from the dictionary
             del self._transceivers[trackId]
 
+        elif request.method == "handler.replaceTrack":
+            data = request.data
+            oldTrackId = data.get("oldTrackId")
+            if oldTrackId is None:
+                raise TypeError("missing oldTrackId")
+
+            data = request.data
+            playerId = data["playerId"]
+            kind = data["kind"]
+            newTrack = self._getTrack(playerId, kind)
+            transceiver = self._transceivers[oldTrackId]
+
+            transceiver.sender.replaceTrack(newTrack)
+
+            result = {}
+            result["trackId"] = newTrack.id
+            return result
+
         elif request.method == "handler.setLocalDescription":
             data = request.data
             if isinstance(data, RTCSessionDescription):

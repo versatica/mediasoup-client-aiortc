@@ -128,7 +128,6 @@ test('transport.produce() succeeds', async () =>
 			audio : { source: 'file', file: 'test/small.mp4' },
 			video : { source: 'file', file: 'test/small.mp4' }
 		});
-
 	const audioTrack = stream.getTracks()[0];
 	const videoTrack = stream.getTracks()[1];
 	let audioProducerId;
@@ -523,6 +522,49 @@ test('transport.getStats() succeeds', async () =>
 	await expect(sendTransport.getStats())
 		.resolves
 		.toBeType('object');
+}, 2000);
+
+test('producer.replaceTrack() succeeds', async () =>
+{
+	const stream = await worker.getUserMedia(
+		{
+			audio : { source: 'file', file: 'test/small.mp4' },
+			video : { source: 'file', file: 'test/small.mp4' }
+		});
+	const newAudioTrack = stream.getTracks()[0];
+	const newVideoTrack = stream.getTracks()[0];
+
+	// Have the audio Producer paused.
+	audioProducer.pause();
+
+	const audioProducerPreviousTrack = audioProducer.track;
+
+	await expect(audioProducer.replaceTrack({ track: newAudioTrack }))
+		.resolves
+		.toBe(undefined);
+
+	// Previous track must be 'live' due to stopTracks: false.
+	expect(audioProducerPreviousTrack.readyState).toBe('live');
+	expect(audioProducer.track.readyState).toBe('live');
+	expect(audioProducer.track).not.toBe(audioProducerPreviousTrack);
+	expect(audioProducer.track).toBe(newAudioTrack);
+	// Producer was already paused.
+	expect(audioProducer.paused).toBe(true);
+
+	// Reset the audio paused state.
+	audioProducer.resume();
+
+	const videoProducerPreviousTrack = videoProducer.track;
+
+	await expect(videoProducer.replaceTrack({ track: newVideoTrack }))
+		.resolves
+		.toBe(undefined);
+
+	// Previous track must be 'ended' due to stopTracks: true.
+	expect(videoProducerPreviousTrack.readyState).toBe('ended');
+	expect(videoProducer.track).not.toBe(videoProducerPreviousTrack);
+	expect(videoProducer.track).toBe(newVideoTrack);
+	expect(videoProducer.paused).toBe(false);
 }, 2000);
 
 test('producer.getStats() succeeds', async () =>

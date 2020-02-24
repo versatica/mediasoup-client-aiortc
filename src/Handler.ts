@@ -393,10 +393,43 @@ export class Handler extends HandlerInterface
 			answer as RTCSessionDescription);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>
 	{
-		throw new UnsupportedError('not implemented');
+		this._assertSendDirection();
+
+		logger.debug(
+			'replaceTrack() [localId:%s, track.id:%s]', localId, track.id);
+
+		const mid = this._mapLocalIdMid.get(localId);
+
+		if (!mid)
+			throw new Error('associated MID not found');
+
+		const oldTrackId = localId;
+		const { playerId } = (track as FakeMediaStreamTrack).data;
+		const kind = track.kind;
+		const { trackId } = await this._channel.request(
+			'handler.replaceTrack', this._internal, { oldTrackId, playerId, kind });
+
+		// Store the new original track into our map and listen for events.
+		this._mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
+
+		track.addEventListener('@enabledchange', () =>
+		{
+			// Ensure we are still sending this track.
+			if (
+				this._mapLocalIdTracks.get(localId) !== track ||
+				track.readyState === 'ended'
+			)
+			{
+				return;
+			}
+
+			if (track.enabled)
+				this._channel.notify('handler.enableTrack', this._internal, { trackId });
+			else
+				this._channel.notify('handler.disableTrack', this._internal, { trackId });
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
