@@ -251,7 +251,7 @@ Just valid if `source` is "device". Specifies the device options used by `ffmpeg
 
 **mediasoup-client-aiortc** supports sending/receiving string and binary DataChannel messages. However, due to the lack of `Blob` support in Node.js, `dataChannel.binaryType` is always "arraybuffer" so received binary messages are always `ArrayBuffer` instances.
 
-When sending, `dataChannel.send()` allows passing a string, a `Buffer` instance or an `ArrayBuffer` instance.
+When sending, `dataChannel.send()` (and hence `dataProducer.send()`) allows passing a string, a `Buffer` instance or an `ArrayBuffer` instance.
 
 
 ## Authors
