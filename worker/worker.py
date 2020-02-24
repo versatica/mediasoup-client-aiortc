@@ -210,13 +210,6 @@ if __name__ == "__main__":
         # close channel
         await channel.close()
 
-        # close all handlers
-        # NOTE: Do this before closing pcs due to a bug:
-        #   https://github.com/aiortc/aiortc/issues/283
-        for handler in handlers.values():
-            await handler.close()
-        handlers.clear()
-
         # close all players
         for player in players.values():
             if player.audio:
@@ -224,6 +217,11 @@ if __name__ == "__main__":
             if player.video:
                 player.video.stop()
         players.clear()
+
+        # close all handlers
+        for handler in handlers.values():
+            await handler.close()
+        handlers.clear()
 
         # stop the loop (just in case)
         loop.stop()
