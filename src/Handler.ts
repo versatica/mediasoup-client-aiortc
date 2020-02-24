@@ -239,9 +239,11 @@ export class Handler extends HandlerInterface
 			'send() [kind:%s, track.id:%s, track.data:%o]',
 			track.kind, track.id, (track as FakeMediaStreamTrack).data);
 
-		const { playerId } = (track as FakeMediaStreamTrack).data;
+		// trackId is the id of the track in Python.
+		const { playerId, trackId } = (track as FakeMediaStreamTrack).data;
 		const kind = track.kind;
-		const { trackId } = await this._channel.request(
+
+		await this._channel.request(
 			'handler.addTrack', this._internal, { playerId, kind });
 
 		const localId = trackId;
@@ -406,9 +408,11 @@ export class Handler extends HandlerInterface
 			throw new Error('associated MID not found');
 
 		const oldTrackId = localId;
-		const { playerId } = (track as FakeMediaStreamTrack).data;
+		// trackId is the id of the track in Python.
+		const { playerId, trackId } = (track as FakeMediaStreamTrack).data;
 		const kind = track.kind;
-		const { trackId } = await this._channel.request(
+
+		await this._channel.request(
 			'handler.replaceTrack', this._internal, { oldTrackId, playerId, kind });
 
 		// Store the new original track into our map and listen for events.

@@ -65,7 +65,13 @@ if __name__ == "__main__":
             )
 
             players[playerId] = player
-            return
+
+            result = {}
+            if player.audio:
+                result["audioTrackId"] = player.audio.id
+            if player.video:
+                result["videoTrackId"] = player.video.id
+            return result
 
         elif request.method == "getRtpCapabilities":
             pc = RTCPeerConnection()
@@ -148,7 +154,6 @@ if __name__ == "__main__":
                 return
 
             await handler.close()
-
             del handlers[handlerId]
 
         else:

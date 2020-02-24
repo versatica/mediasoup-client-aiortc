@@ -24,6 +24,8 @@ export type AiortcMediaTrackConstraints =
 type MediaPlayerInternal =
 {
 	playerId: string;
+	audioTrackId?: string;
+	videoTrackId?: string;
 };
 
 type MediaPlayerOptions =
@@ -204,36 +206,56 @@ export async function getUserMedia(
 		audioPlayerOptions.file === videoPlayerOptions.file
 	);
 
+	let result:
+	{
+		audioTrackId?: string;
+		videoTrackId?: string;
+	} =
+	{
+		audioTrackId : undefined,
+		videoTrackId : undefined
+	};
+
 	if (audioPlayerInternal)
 	{
-		await channel.request(
+		result = await channel.request(
 			'createPlayer', audioPlayerInternal, audioPlayerOptions);
+
+		if (!result.audioTrackId)
+			throw new Error('no audioTrackId in result');
+
+		audioPlayerInternal.audioTrackId = result.audioTrackId;
 	}
 
 	if (videoPlayerInternal)
 	{
-		// If the video player fails and we created an audio player, close it.
-		try
+		// If both audio and video share same file/url, do not create a video
+		// player and set the same playerId in both.
+		if (areSamePlayer)
 		{
-			// If both audio and video share same file/url, make do not create a
-			// video player and set the same playerId in both.
-			if (areSamePlayer)
+			videoPlayerInternal.playerId = audioPlayerInternal.playerId;
+		}
+		else
+		{
+			try
 			{
-				videoPlayerInternal.playerId = audioPlayerInternal.playerId;
-			}
-			else
-			{
-				await channel.request(
+				result = await channel.request(
 					'createPlayer', videoPlayerInternal, videoPlayerOptions);
 			}
-		}
-		catch (error)
-		{
-			if (audioPlayerInternal)
-				channel.notify('player.close', audioPlayerInternal);
+			catch (error)
+			{
+				// If the video player fails and we created an audio player, close it.
+				if (audioPlayerInternal)
+					channel.notify('player.close', audioPlayerInternal);
 
-			throw error;
+				throw error;
+			}
 		}
+
+		if (!result.videoTrackId)
+			throw new Error('no videoTrackId in result');
+
+		videoPlayerInternal.videoTrackId = result.videoTrackId;
 	}
 
 	if (audioPlayerInternal)
@@ -241,7 +263,11 @@ export async function getUserMedia(
 		const track = new FakeMediaStreamTrack(
 			{
 				kind : 'audio',
-				data : { playerId: audioPlayerInternal.playerId }
+				data :
+				{
+					playerId : audioPlayerInternal.playerId,
+					trackId  : audioPlayerInternal.audioTrackId
+				}
 			});
 
 		track.addEventListener('@stop', () =>
@@ -258,7 +284,11 @@ export async function getUserMedia(
 		const track = new FakeMediaStreamTrack(
 			{
 				kind : 'video',
-				data : { playerId: videoPlayerInternal.playerId }
+				data :
+				{
+					playerId : videoPlayerInternal.playerId,
+					trackId  : videoPlayerInternal.videoTrackId
+				}
 			});
 
 		track.addEventListener('@stop', () =>

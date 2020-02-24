@@ -108,10 +108,6 @@ class Handler:
             # store transceiver in the dictionary
             self._transceivers[track.id] = transceiver
 
-            result = {}
-            result["trackId"] = track.id
-            return result
-
         elif request.method == "handler.removeTrack":
             data = request.data
             trackId = data.get("trackId")
@@ -138,10 +134,6 @@ class Handler:
             transceiver = self._transceivers[oldTrackId]
 
             transceiver.sender.replaceTrack(newTrack)
-
-            result = {}
-            result["trackId"] = newTrack.id
-            return result
 
         elif request.method == "handler.setLocalDescription":
             data = request.data
