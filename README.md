@@ -256,7 +256,7 @@ When sending, `dataChannel.send()` (and hence `dataProducer.send()`) allows pass
 
 ## Caveats
 
-See the list of [open issues](https://github.com/versatica/mediasoup-client-aiortc/issues). Wornking on all them.
+See the list of [open issues](https://github.com/versatica/mediasoup-client-aiortc/issues).
 
 
 ## Authors
