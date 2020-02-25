@@ -26,6 +26,9 @@ test('worker.getUserMedia() succeeds', async () =>
 	stream.close();
 
 	// This will invoke processRequest("dump") in worker.py
+	// We need this for this test because, at this point, the issue is that the
+	// Python process is blocked in player.video.stop() so we won't get any
+	// response to the "dump" request here and this test will fail
 	await worker.dump();
 }, 4000);
 

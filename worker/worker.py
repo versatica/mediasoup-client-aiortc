@@ -52,30 +52,34 @@ if __name__ == "__main__":
         Logger.debug(f"worker: processRequest() [method:{request.method}]")
 
         if request.method == "dump":
-            result = {
-                "pid": getpid(),
-                "players": []
-            }
+            # NOTE: this method does much more but, for this test unit, no need
+            # to do anything
+            return
 
-            for playerId, player in players.items():
-                playerDump = {
-                    "id": playerId
-                }  # type: Dict[str, Any]
-                if player.audio:
-                    playerDump["audioTrack"] = {
-                        "id": player.audio.id,
-                        "kind": player.audio.kind,
-                        "readyState": player.audio.readyState
-                    }
-                if player.video:
-                    playerDump["videoTrack"] = {
-                        "id": player.video.id,
-                        "kind": player.video.kind,
-                        "readyState": player.video.readyState
-                    }
-                result["players"].append(playerDump)  # type: ignore
+            # result = {
+            #     "pid": getpid(),
+            #     "players": []
+            # }
 
-            return result
+            # for playerId, player in players.items():
+            #     playerDump = {
+            #         "id": playerId
+            #     }  # type: Dict[str, Any]
+            #     if player.audio:
+            #         playerDump["audioTrack"] = {
+            #             "id": player.audio.id,
+            #             "kind": player.audio.kind,
+            #             "readyState": player.audio.readyState
+            #         }
+            #     if player.video:
+            #         playerDump["videoTrack"] = {
+            #             "id": player.video.id,
+            #             "kind": player.video.kind,
+            #             "readyState": player.video.readyState
+            #         }
+            #     result["players"].append(playerDump)  # type: ignore
+
+            # return result
 
         elif request.method == "createPlayer":
             internal = request.internal
@@ -164,6 +168,9 @@ if __name__ == "__main__":
                     request.setChannel(channel)
                     try:
                         result = await processRequest(request)
+                        Logger.debug(
+                            f"worker: request '{request.method}' succeeded"
+                        )
                         await request.succeed(result)
                     except Exception as error:
                         errorStr = f"{error.__class__.__name__}: {error}"
@@ -178,6 +185,9 @@ if __name__ == "__main__":
                     notification = Notification(**obj)
                     try:
                         await processNotification(notification)
+                        Logger.debug(
+                            f"worker: notification '{notification.event}' succeeded"
+                        )
                     except Exception as error:
                         errorStr = f"{error.__class__.__name__}: {error}"
                         Logger.error(
