@@ -125,8 +125,6 @@ if __name__ == "__main__":
                 Logger.debug(f"player.video.stop() done")
 
             del players[playerId]
-            Logger.debug(f"--------- DONE ----------")
-            return
 
         elif notification.event == "player.stopTrack":
             internal = notification.internal
