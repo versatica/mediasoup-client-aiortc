@@ -99,9 +99,9 @@ if __name__ == "__main__":
 
             result = {}
             if player.audio:
-                result["audioNativeTrackId"] = player.audio.id
+                result["audioTrackId"] = player.audio.id
             if player.video:
-                result["videoNativeTrackId"] = player.video.id
+                result["videoTrackId"] = player.video.id
             return result
 
         elif request.method == "getRtpCapabilities":

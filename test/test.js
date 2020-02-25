@@ -64,13 +64,13 @@ test('worker.getUserMedia() succeeds', async () =>
 						id         : audioTrack.data.playerId,
 						audioTrack :
 						{
-							id         : audioTrack.data.nativeTrackId,
+							id         : audioTrack.id,
 							kind       : 'audio',
 							readyState : 'live'
 						},
 						videoTrack :
 						{
-							id         : videoTrack.data.nativeTrackId,
+							id         : videoTrack.id,
 							kind       : 'video',
 							readyState : 'live'
 						}
@@ -92,13 +92,13 @@ test('worker.getUserMedia() succeeds', async () =>
 						id         : audioTrack.data.playerId,
 						audioTrack :
 						{
-							id         : audioTrack.data.nativeTrackId,
+							id         : audioTrack.id,
 							kind       : 'audio',
 							readyState : 'ended'
 						},
 						videoTrack :
 						{
-							id         : videoTrack.data.nativeTrackId,
+							id         : videoTrack.id,
 							kind       : 'video',
 							readyState : 'live'
 						}
@@ -333,8 +333,8 @@ test('transport.produce() succeeds', async () =>
 	expect(handler.sendTransceivers.length).toBe(1);
 	expect(handler.sendTransceivers[0]).toEqual(
 		{
-			mid           : '0',
-			nativeTrackId : audioProducer.track.data.nativeTrackId
+			mid     : '0',
+			trackId : audioProducer.track.id
 		});
 	expect(handler.transceivers.length).toBe(1);
 	expect(handler.transceivers[0]).toMatchObject(
@@ -344,7 +344,7 @@ test('transport.produce() succeeds', async () =>
 			stopped : false,
 			sender  :
 			{
-				trackId : audioProducer.track.data.nativeTrackId
+				trackId : audioProducer.track.id
 			}
 		});
 
@@ -400,12 +400,12 @@ test('transport.produce() succeeds', async () =>
 	expect(handler.sendTransceivers).toEqual(
 		[
 			{
-				mid           : '0',
-				nativeTrackId : audioProducer.track.data.nativeTrackId
+				mid     : '0',
+				trackId : audioProducer.track.id
 			},
 			{
-				mid           : '1',
-				nativeTrackId : videoProducer.track.data.nativeTrackId
+				mid     : '1',
+				trackId : videoProducer.track.id
 			}
 		]);
 	expect(handler.transceivers.length).toBe(2);
@@ -416,7 +416,7 @@ test('transport.produce() succeeds', async () =>
 			stopped : false,
 			sender  :
 			{
-				trackId : audioProducer.track.data.nativeTrackId
+				trackId : audioProducer.track.id
 			}
 		});
 	expect(handler.transceivers[1]).toMatchObject(
@@ -426,7 +426,7 @@ test('transport.produce() succeeds', async () =>
 			stopped : false,
 			sender  :
 			{
-				trackId : videoProducer.track.data.nativeTrackId
+				trackId : videoProducer.track.id
 			}
 		});
 
@@ -719,8 +719,8 @@ test('producer.replaceTrack() succeeds', async () =>
 	const handler = dump.handlers[0];
 
 	expect(handler.sendTransceivers.length).toBe(2);
-	// NOTE: We cannot check the new nativeTrackIds since handler.py still uses
-	// the original native track ids as index in the sending transceivers map.
+	// NOTE: We cannot check the new trackIds since handler.py still uses the
+	// original track ids as index in the sending transceivers map.
 	expect(handler.sendTransceivers).toMatchObject(
 		[
 			{ mid: '0' },
@@ -734,7 +734,7 @@ test('producer.replaceTrack() succeeds', async () =>
 			stopped : false,
 			sender  :
 			{
-				trackId : audioProducer.track.data.nativeTrackId
+				trackId : audioProducer.track.id
 			}
 		});
 	expect(handler.transceivers[1]).toMatchObject(
@@ -744,7 +744,7 @@ test('producer.replaceTrack() succeeds', async () =>
 			stopped : false,
 			sender  :
 			{
-				trackId : videoProducer.track.data.nativeTrackId
+				trackId : videoProducer.track.id
 			}
 		});
 }, 2000);
@@ -797,7 +797,7 @@ test('producer.close() succeed', async () =>
 			stopped : false,
 			sender  :
 			{
-				trackId : videoProducer.track.data.nativeTrackId
+				trackId : videoProducer.track.id
 			}
 		});
 }, 2000);

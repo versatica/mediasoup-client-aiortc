@@ -24,8 +24,8 @@ export type AiortcMediaTrackConstraints =
 type MediaPlayerInternal =
 {
 	playerId: string;
-	audioNativeTrackId?: string;
-	videoNativeTrackId?: string;
+	audioTrackId?: string;
+	videoTrackId?: string;
 };
 
 type MediaPlayerOptions =
@@ -208,12 +208,12 @@ export async function getUserMedia(
 
 	let result:
 	{
-		audioNativeTrackId?: string;
-		videoNativeTrackId?: string;
+		audioTrackId?: string;
+		videoTrackId?: string;
 	} =
 	{
-		audioNativeTrackId : undefined,
-		videoNativeTrackId : undefined
+		audioTrackId : undefined,
+		videoTrackId : undefined
 	};
 
 	if (audioPlayerInternal)
@@ -221,10 +221,10 @@ export async function getUserMedia(
 		result = await channel.request(
 			'createPlayer', audioPlayerInternal, audioPlayerOptions);
 
-		if (!result.audioNativeTrackId)
-			throw new Error('no audioNativeTrackId in result');
+		if (!result.audioTrackId)
+			throw new Error('no audioTrackId in result');
 
-		audioPlayerInternal.audioNativeTrackId = result.audioNativeTrackId;
+		audioPlayerInternal.audioTrackId = result.audioTrackId;
 	}
 
 	if (videoPlayerInternal)
@@ -252,22 +252,19 @@ export async function getUserMedia(
 			}
 		}
 
-		if (!result.videoNativeTrackId)
-			throw new Error('no videoNativeTrackId in result');
+		if (!result.videoTrackId)
+			throw new Error('no videoTrackId in result');
 
-		videoPlayerInternal.videoNativeTrackId = result.videoNativeTrackId;
+		videoPlayerInternal.videoTrackId = result.videoTrackId;
 	}
 
 	if (audioPlayerInternal)
 	{
 		const track = new FakeMediaStreamTrack(
 			{
+				id   : audioPlayerInternal.audioTrackId,
 				kind : 'audio',
-				data :
-				{
-					playerId      : audioPlayerInternal.playerId,
-					nativeTrackId : audioPlayerInternal.audioNativeTrackId
-				}
+				data : { playerId: audioPlayerInternal.playerId }
 			});
 
 		track.addEventListener('@stop', () =>
@@ -283,12 +280,9 @@ export async function getUserMedia(
 	{
 		const track = new FakeMediaStreamTrack(
 			{
+				id   : videoPlayerInternal.videoTrackId,
 				kind : 'video',
-				data :
-				{
-					playerId      : videoPlayerInternal.playerId,
-					nativeTrackId : videoPlayerInternal.videoNativeTrackId
-				}
+				data : { playerId: videoPlayerInternal.playerId }
 			});
 
 		track.addEventListener('@stop', () =>
