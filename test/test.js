@@ -23,6 +23,8 @@ test('reproduce aiortc issue 301', async () =>
 	worker._channel.notify(
 		'player.stopTrack', { playerId: videoTrack.data.playerId }, { kind: 'video' });
 
+	console.debug('--- WHAT? with this console call the test always works...');
+
 	// This will invoke processRequest("dump") in worker.py
 	// We need this for this test because, at this point, the issue is that the
 	// Python process is blocked *after* player.video.stop() so we won't get any
