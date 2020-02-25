@@ -824,7 +824,7 @@ test('dataConsumer.close() succeed', () =>
 	expect(dataConsumer.closed).toBe(true);
 }, 500);
 
-test('worker.close() succeeds', async () =>
+test('worker.close() succeeds', () =>
 {
 	worker.close();
 
