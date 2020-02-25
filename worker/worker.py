@@ -6,7 +6,6 @@ from typing import Any, Dict
 from aiortc import RTCConfiguration, RTCIceServer, RTCPeerConnection
 from aiortc.contrib.media import MediaPlayer, MediaStreamTrack
 from channel import Request, Notification, Channel
-from handler import Handler
 from logger import Logger
 
 # File descriptors to communicate with the Node.js process
@@ -34,8 +33,6 @@ if __name__ == "__main__":
     """
     # dictionary of players indexed by id
     players: Dict[str, MediaPlayer] = ({})
-    # dictionary of handlers indexed by id
-    handlers: Dict[str, Handler] = ({})
 
     # get/create event loop
     loop = asyncio.get_event_loop()
@@ -57,8 +54,7 @@ if __name__ == "__main__":
         if request.method == "dump":
             result = {
                 "pid": getpid(),
-                "players": [],
-                "handlers": []
+                "players": []
             }
 
             for playerId, player in players.items():
@@ -78,9 +74,6 @@ if __name__ == "__main__":
                         "readyState": player.video.readyState
                     }
                 result["players"].append(playerDump)  # type: ignore
-
-            for handler in handlers.values():
-                result["handlers"].append(handler.dump())  # type: ignore
 
             return result
 
@@ -104,47 +97,10 @@ if __name__ == "__main__":
                 result["videoNativeTrackId"] = player.video.id
             return result
 
-        elif request.method == "getRtpCapabilities":
-            pc = RTCPeerConnection()
-            pc.addTransceiver("audio", "sendonly")
-            pc.addTransceiver("video", "sendonly")
-            offer = await pc.createOffer()
-            await pc.close()
-            return offer.sdp
-
-        elif request.method == "createHandler":
-            internal = request.internal
-            handlerId = internal["handlerId"]
-            data = request.data
-
-            # use RTCConfiguration if given
-            jsonRtcConfiguration = data.get("rtcConfiguration")
-            rtcConfiguration = None
-
-            if jsonRtcConfiguration and "iceServers" in jsonRtcConfiguration:
-                iceServers = []
-                for entry in jsonRtcConfiguration["iceServers"]:
-                    iceServer = RTCIceServer(
-                        urls=entry.get("urls"),
-                        username=entry.get("username"),
-                        credential=entry.get("credential"),
-                        credentialType=entry.get("credentialType")
-                    )
-                    iceServers.append(iceServer)
-                rtcConfiguration = RTCConfiguration(iceServers)
-
-            handler = Handler(handlerId, channel, loop, getTrack, rtcConfiguration)
-
-            handlers[handlerId] = handler
-            return
-
         else:
-            internal = request.internal
-            handler = handlers.get(internal["handlerId"])
-            if handler is None:
-                raise Exception("hander not found")
-
-            return await handler.processRequest(request)
+            raise TypeError(
+                f"unknown request with method '{request.method}' received"
+            )
 
     async def processNotification(notification: Notification) -> None:
         Logger.debug(f"worker: processNotification() [event:{notification.event}]")
@@ -157,9 +113,13 @@ if __name__ == "__main__":
                 return
 
             if player.audio:
+                Logger.debug(f"calling player.audio.stop()...")
                 player.audio.stop()
+                Logger.debug(f"player.audio.stop() done")
             if player.video:
+                Logger.debug(f"calling player.video.stop()...")
                 player.video.stop()
+                Logger.debug(f"player.video.stop() done")
 
             del players[playerId]
 
@@ -173,27 +133,18 @@ if __name__ == "__main__":
                 return
 
             if kind == "audio" and player.audio:
+                Logger.debug(f"calling player.audio.stop()...")
                 player.audio.stop()
+                Logger.debug(f"player.audio.stop() done")
             elif kind == "video" and player.video:
+                Logger.debug(f"calling player.video.stop()...")
                 player.video.stop()
-
-        elif notification.event == "handler.close":
-            internal = notification.internal
-            handlerId = internal["handlerId"]
-            handler = handlers.get(handlerId)
-            if handler is None:
-                return
-
-            await handler.close()
-            del handlers[handlerId]
+                Logger.debug(f"player.video.stop() done")
 
         else:
-            internal = notification.internal
-            handler = handlers.get(internal["handlerId"])
-            if handler is None:
-                return
-
-            await handler.processNotification(notification)
+            raise TypeError(
+                f"unknown notification with event '{notification.event}' received"
+            )
 
     async def run(channel: Channel) -> None:
         Logger.debug("worker: run()")
@@ -253,11 +204,6 @@ if __name__ == "__main__":
             if player.video:
                 player.video.stop()
         players.clear()
-
-        # close all handlers
-        for handler in handlers.values():
-            await handler.close()
-        handlers.clear()
 
         # stop the loop (just in case)
         loop.stop()
