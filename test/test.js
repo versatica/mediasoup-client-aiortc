@@ -79,47 +79,44 @@ test('worker.getUserMedia() succeeds', async () =>
 				handlers : []
 			});
 
-	// TODO: Uncomment this test once this bug is fixed in aiortc:
-	//   https://github.com/aiortc/aiortc/issues/301
+	audioTrack.stop();
 
-	// audioTrack.stop();
+	await expect(worker.dump())
+		.resolves
+		.toEqual(
+			{
+				pid     : worker.pid,
+				players :
+				[
+					{
+						id         : audioTrack.data.playerId,
+						audioTrack :
+						{
+							id         : audioTrack.data.nativeTrackId,
+							kind       : 'audio',
+							readyState : 'ended'
+						},
+						videoTrack :
+						{
+							id         : videoTrack.data.nativeTrackId,
+							kind       : 'video',
+							readyState : 'live'
+						}
+					}
+				],
+				handlers : []
+			});
 
-	// await expect(worker.dump())
-	// 	.resolves
-	// 	.toEqual(
-	// 	{
-	// 		pid      : worker.pid,
-	// 		players  :
-	// 		[
-	// 			{
-	// 				id         : audioTrack.data.playerId,
-	// 				audioTrack :
-	// 				{
-	// 					id         : audioTrack.data.nativeTrackId,
-	// 					kind       : 'audio',
-	// 					readyState : 'ended'
-	// 				},
-	// 				videoTrack :
-	// 				{
-	// 					id         : videoTrack.data.nativeTrackId,
-	// 					kind       : 'video',
-	// 					readyState : 'live'
-	// 				}
-	// 			}
-	// 		],
-	// 		handlers : []
-	// 	});
+	stream.close();
 
-	// stream.close();
-
-	// await expect(worker.dump())
-	// 	.resolves
-	// 	.toEqual(
-	// 	{
-	// 		pid      : worker.pid,
-	// 		players  : [],
-	// 		handlers : []
-	// 	});
+	await expect(worker.dump())
+		.resolves
+		.toEqual(
+			{
+				pid      : worker.pid,
+				players  : [],
+				handlers : []
+			});
 }, 4000);
 
 test('create a Device with worker.createHandlerFactory() as argument succeeds', () =>
