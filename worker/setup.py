@@ -1,18 +1,16 @@
 import setuptools
 
 setuptools.setup(
-    name='mediasoup-client-aiortc',
-    version='3.2.1',
-    description='mediasoup client aiortc handler',
-    url='http://github.com/versatica/mediasoup-client-aiortc',
-    author='José Luis Millán Villegas, Iñaki Baz Castillo',
-    author_email='jmillan@aliax.net, ibc@aliax.net',
-    license='MIT',
+    name="mediasoup-client-aiortc",
+    version="3.2.1",
+    description="mediasoup-client handler for aiortc Python library",
+    url="http://github.com/versatica/mediasoup-client-aiortc",
+    author="José Luis Millán Villegas, Iñaki Baz Castillo",
+    author_email="jmillan@aliax.net, ibc@aliax.net",
+    license="MIT",
     packages=setuptools.find_packages(),
     install_requires=[
-        'aiortc>=0.9.26',
-        'pynetstring',
-        'flake8',
-        'mypy',
+        "aiortc>=0.9.26",
+        "pynetstring"
     ],
 )
