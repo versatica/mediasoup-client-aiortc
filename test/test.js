@@ -17,10 +17,9 @@ test('reproduce aiortc issue 301', async () =>
 	worker._channel.notify(
 		'player.stopTrack', { playerId: audioTrack.data.playerId }, { kind: 'audio' });
 
-	// HERE THE PROBLEM: this notification is ignored by the Python process which
-	// seems to be frozen after the previous notification
 	// This will invoke processNotification("player.stopTrack") in worker.py
 	// for the player.video track
+	// HERE THE PROBLEM: this notification runs code in worker.py that never ends
 	worker._channel.notify(
 		'player.stopTrack', { playerId: videoTrack.data.playerId }, { kind: 'video' });
 
