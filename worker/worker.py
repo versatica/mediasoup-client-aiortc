@@ -54,7 +54,37 @@ if __name__ == "__main__":
     async def processRequest(request: Request) -> Any:
         Logger.debug(f"worker: processRequest() [method:{request.method}]")
 
-        if request.method == "createPlayer":
+        if request.method == "dump":
+            result = {
+                "pid": getpid(),
+                "players": [],
+                "handlers": []
+            }
+
+            for playerId, player in players.items():
+                playerDump = {
+                    "id": playerId
+                }  # type: Dict[str, Any]
+                if player.audio:
+                    playerDump["audioTrack"] = {
+                        "id": player.audio.id,
+                        "kind": player.audio.kind,
+                        "readyState": player.audio.readyState
+                    }
+                if player.video:
+                    playerDump["videoTrack"] = {
+                        "id": player.video.id,
+                        "kind": player.video.kind,
+                        "readyState": player.video.readyState
+                    }
+                result["players"].append(playerDump)  # type: ignore
+
+            for handler in handlers.values():
+                result["handlers"].append(handler.dump())  # type: ignore
+
+            return result
+
+        elif request.method == "createPlayer":
             internal = request.internal
             playerId = internal["playerId"]
             data = request.data
@@ -64,13 +94,14 @@ if __name__ == "__main__":
                 data["options"] if "options" in data else None
             )
 
+            # store the player in the map
             players[playerId] = player
 
             result = {}
             if player.audio:
-                result["audioTrackId"] = player.audio.id
+                result["audioNativeTrackId"] = player.audio.id
             if player.video:
-                result["videoTrackId"] = player.video.id
+                result["videoNativeTrackId"] = player.video.id
             return result
 
         elif request.method == "getRtpCapabilities":

@@ -278,7 +278,7 @@ export class Channel extends EnhancedEventEmitter
 		}
 		catch (error)
 		{
-			logger.error('notify() | failed: %s', String(error));
+			logger.warn('notify() | failed: %s', String(error));
 		}
 	}
 

@@ -24,8 +24,8 @@ export type AiortcMediaTrackConstraints =
 type MediaPlayerInternal =
 {
 	playerId: string;
-	audioTrackId?: string;
-	videoTrackId?: string;
+	audioNativeTrackId?: string;
+	videoNativeTrackId?: string;
 };
 
 type MediaPlayerOptions =
@@ -208,12 +208,12 @@ export async function getUserMedia(
 
 	let result:
 	{
-		audioTrackId?: string;
-		videoTrackId?: string;
+		audioNativeTrackId?: string;
+		videoNativeTrackId?: string;
 	} =
 	{
-		audioTrackId : undefined,
-		videoTrackId : undefined
+		audioNativeTrackId : undefined,
+		videoNativeTrackId : undefined
 	};
 
 	if (audioPlayerInternal)
@@ -221,10 +221,10 @@ export async function getUserMedia(
 		result = await channel.request(
 			'createPlayer', audioPlayerInternal, audioPlayerOptions);
 
-		if (!result.audioTrackId)
-			throw new Error('no audioTrackId in result');
+		if (!result.audioNativeTrackId)
+			throw new Error('no audioNativeTrackId in result');
 
-		audioPlayerInternal.audioTrackId = result.audioTrackId;
+		audioPlayerInternal.audioNativeTrackId = result.audioNativeTrackId;
 	}
 
 	if (videoPlayerInternal)
@@ -252,10 +252,10 @@ export async function getUserMedia(
 			}
 		}
 
-		if (!result.videoTrackId)
-			throw new Error('no videoTrackId in result');
+		if (!result.videoNativeTrackId)
+			throw new Error('no videoNativeTrackId in result');
 
-		videoPlayerInternal.videoTrackId = result.videoTrackId;
+		videoPlayerInternal.videoNativeTrackId = result.videoNativeTrackId;
 	}
 
 	if (audioPlayerInternal)
@@ -265,8 +265,8 @@ export async function getUserMedia(
 				kind : 'audio',
 				data :
 				{
-					playerId : audioPlayerInternal.playerId,
-					trackId  : audioPlayerInternal.audioTrackId
+					playerId      : audioPlayerInternal.playerId,
+					nativeTrackId : audioPlayerInternal.audioNativeTrackId
 				}
 			});
 
@@ -286,8 +286,8 @@ export async function getUserMedia(
 				kind : 'video',
 				data :
 				{
-					playerId : videoPlayerInternal.playerId,
-					trackId  : videoPlayerInternal.videoTrackId
+					playerId      : videoPlayerInternal.playerId,
+					nativeTrackId : videoPlayerInternal.videoNativeTrackId
 				}
 			});
 

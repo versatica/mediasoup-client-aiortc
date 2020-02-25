@@ -26,11 +26,12 @@ class Handler:
         self._handlerId = handlerId
         self._channel = channel
         self._pc = RTCPeerConnection(configuration or None)
-        # dictionary of transceivers mapped by track id
-        self._transceivers = dict()  # type: Dict[str, RTCRtpTransceiver]
+        # dictionary of sending transceivers mapped by the first native track
+        # id (it does not change after replaceTrack())
+        self._sendTransceivers = dict()  # type: Dict[str, RTCRtpTransceiver]
         # dictionary of dataChannelds mapped by internal id
         self._dataChannels = dict()  # type: Dict[str, RTCDataChannel]
-        # function returning a track given a player ID and a kind
+        # function returning a track given a player id and a kind
         self._getTrack = getTrack
 
         @self._pc.on("track")  # type: ignore
@@ -87,16 +88,53 @@ class Handler:
         # close peerconnection
         await self._pc.close()
 
+    def dump(self) -> Any:
+        result = {
+            "id": self._handlerId,
+            "signalingState": self._pc.signalingState,
+            "iceConnectionState": self._pc.iceConnectionState,
+            "iceGatheringState": self._pc.iceGatheringState,
+            "transceivers": [],
+            "sendTransceivers": []
+        }
+
+        for transceiver in self._pc.getTransceivers():
+            transceiverInfo = {
+                "mid": transceiver.mid,
+                "stopped": transceiver.stopped,
+                "kind": transceiver.kind,
+                "currentDirection": transceiver.currentDirection,
+                "direction": transceiver.direction,
+                "sender": {
+                    "trackId": transceiver.sender.track.id if transceiver.sender.track else None
+                },
+                # TODO: uncomment when this fix is released in aiortc:
+                #   https://github.com/aiortc/aiortc/issues/298
+                # "receiver": {
+                #     "trackId": transceiver.receiver.track.id if transceiver.receiver.track else None
+                # }
+            }
+            result["transceivers"].append(transceiverInfo)
+
+        for nativeTrackId, transceiver in self._sendTransceivers.items():
+            sendTransceiverInfo = {
+                "nativeTrackId": nativeTrackId,
+                "mid": transceiver.mid
+            }
+            result["sendTransceivers"].append(sendTransceiverInfo)
+
+        return result
+
     async def processRequest(self, request: Request) -> Any:
         if request.method == "handler.getLocalDescription":
             localDescription = self._pc.localDescription
-            result = None
-
             if (localDescription is not None):
-                result = {}
-                result["type"] = localDescription.type
-                result["sdp"] = localDescription.sdp
-                return result
+                return {
+                    "type": localDescription.type,
+                    "sdp": localDescription.sdp
+                }
+            else:
+                return None
 
         elif request.method == "handler.addTrack":
             data = request.data
@@ -106,33 +144,31 @@ class Handler:
             transceiver = self._pc.addTransceiver(track)
 
             # store transceiver in the dictionary
-            self._transceivers[track.id] = transceiver
+            self._sendTransceivers[track.id] = transceiver
 
         elif request.method == "handler.removeTrack":
             data = request.data
-            trackId = data.get("trackId")
-            if trackId is None:
-                raise TypeError("missing trackId")
+            nativeTrackId = data.get("nativeTrackId")
+            if nativeTrackId is None:
+                raise TypeError("missing nativeTrackId")
 
-            transceiver = self._transceivers[trackId]
+            transceiver = self._sendTransceivers[nativeTrackId]
             transceiver.direction = "inactive"
             transceiver.sender.replaceTrack(None)
 
-            # remove transceiver from the dictionary
-            del self._transceivers[trackId]
+            # NOTE: do not remove transceiver from the dictionary
 
         elif request.method == "handler.replaceTrack":
             data = request.data
-            oldTrackId = data.get("oldTrackId")
-            if oldTrackId is None:
-                raise TypeError("missing oldTrackId")
+            nativeTrackId = data.get("nativeTrackId")
+            if nativeTrackId is None:
+                raise TypeError("missing nativeTrackId")
 
             data = request.data
             playerId = data["playerId"]
             kind = data["kind"]
             newTrack = self._getTrack(playerId, kind)
-            transceiver = self._transceivers[oldTrackId]
-
+            transceiver = self._sendTransceivers[nativeTrackId]
             transceiver.sender.replaceTrack(newTrack)
 
         elif request.method == "handler.setLocalDescription":
@@ -153,26 +189,26 @@ class Handler:
 
         elif request.method == "handler.createOffer":
             offer = await self._pc.createOffer()
-            result = {}
-            result["type"] = offer.type
-            result["sdp"] = offer.sdp
-            return result
+            return {
+                "type": offer.type,
+                "sdp": offer.sdp
+            }
 
         elif request.method == "handler.createAnswer":
             answer = await self._pc.createAnswer()
-            result = {}
-            result["type"] = answer.type
-            result["sdp"] = answer.sdp
-            return result
+            return {
+                "type": answer.type,
+                "sdp": answer.sdp
+            }
 
         elif request.method == "handler.getMid":
             data = request.data
-            trackId = data.get("trackId")
-            if trackId is None:
-                raise TypeError("missing trackId")
+            nativeTrackId = data.get("nativeTrackId")
+            if nativeTrackId is None:
+                raise TypeError("missing nativeTrackId")
 
             # raise on purpose if the key is not found
-            transceiver = self._transceivers[trackId]
+            transceiver = self._sendTransceivers[nativeTrackId]
             return transceiver.mid
 
         elif request.method == "handler.getTransportStats":

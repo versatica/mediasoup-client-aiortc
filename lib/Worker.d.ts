@@ -33,6 +33,7 @@ export declare class Worker extends EnhancedEventEmitter {
      * Close the Worker.
      */
     close(): void;
+    dump(): Promise<any>;
     /**
      * Create a AiortcMediaStream with audio/video tracks.
      */

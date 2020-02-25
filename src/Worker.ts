@@ -251,6 +251,13 @@ export class Worker extends EnhancedEventEmitter
 		this._channel.close();
 	}
 
+	async dump(): Promise<any>
+	{
+		logger.debug('dump()');
+
+		return this._channel.request('dump');
+	}
+
 	/**
 	 * Create a AiortcMediaStream with audio/video tracks.
 	 */

@@ -239,14 +239,13 @@ export class Handler extends HandlerInterface
 			'send() [kind:%s, track.id:%s, track.data:%o]',
 			track.kind, track.id, (track as FakeMediaStreamTrack).data);
 
-		// trackId is the id of the track in Python.
-		const { playerId, trackId } = (track as FakeMediaStreamTrack).data;
+		const { playerId, nativeTrackId } = (track as FakeMediaStreamTrack).data;
 		const kind = track.kind;
 
 		await this._channel.request(
 			'handler.addTrack', this._internal, { playerId, kind });
 
-		const localId = trackId;
+		const localId = nativeTrackId;
 		let offer = await this._channel.request(
 			'handler.createOffer', this._internal);
 
@@ -270,7 +269,7 @@ export class Handler extends HandlerInterface
 		const mid = await this._channel.request(
 			'handler.getMid',
 			this._internal,
-			{ trackId });
+			{ nativeTrackId });
 
 		offer = await this._channel.request(
 			'handler.getLocalDescription', this._internal);
@@ -328,9 +327,15 @@ export class Handler extends HandlerInterface
 			}
 
 			if (track.enabled)
-				this._channel.notify('handler.enableTrack', this._internal, { trackId });
+			{
+				this._channel.notify(
+					'handler.enableTrack', this._internal, { nativeTrackId });
+			}
 			else
-				this._channel.notify('handler.disableTrack', this._internal, { trackId });
+			{
+				this._channel.notify(
+					'handler.disableTrack', this._internal, { nativeTrackId });
+			}
 		});
 
 		// Store the MID into the map.
@@ -364,10 +369,10 @@ export class Handler extends HandlerInterface
 
 		this._mapLocalIdMid.delete(localId);
 
-		const trackId = localId;
+		const nativeTrackId = localId;
 
 		await this._channel.request(
-			'handler.removeTrack', this._internal, { trackId });
+			'handler.removeTrack', this._internal, { nativeTrackId });
 
 		this._remoteSdp.disableMediaSection(mid);
 
@@ -407,13 +412,14 @@ export class Handler extends HandlerInterface
 		if (!mid)
 			throw new Error('associated MID not found');
 
-		const oldTrackId = localId;
-		// trackId is the id of the track in Python.
-		const { playerId, trackId } = (track as FakeMediaStreamTrack).data;
+		const nativeTrackId = localId;
+		const { playerId } = (track as FakeMediaStreamTrack).data;
 		const kind = track.kind;
 
 		await this._channel.request(
-			'handler.replaceTrack', this._internal, { oldTrackId, playerId, kind });
+			'handler.replaceTrack',
+			this._internal,
+			{ nativeTrackId, playerId, kind });
 
 		// Store the new original track into our map and listen for events.
 		this._mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
@@ -430,9 +436,15 @@ export class Handler extends HandlerInterface
 			}
 
 			if (track.enabled)
-				this._channel.notify('handler.enableTrack', this._internal, { trackId });
+			{
+				this._channel.notify(
+					'handler.enableTrack', this._internal, { nativeTrackId });
+			}
 			else
-				this._channel.notify('handler.disableTrack', this._internal, { trackId });
+			{
+				this._channel.notify(
+					'handler.disableTrack', this._internal, { nativeTrackId });
+			}
 		});
 	}
 

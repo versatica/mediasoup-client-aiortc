@@ -31,6 +31,97 @@ test('create a Worker succeeds', async () =>
 	expect(worker.closed).toBe(false);
 }, 2000);
 
+test('worker.dump() succeeds with empty fields', async () =>
+{
+	const dump = await worker.dump();
+
+	expect(dump).toEqual(
+		{
+			pid      : worker.pid,
+			players  : [],
+			handlers : []
+		});
+}, 2000);
+
+test('worker.getUserMedia() succeeds', async () =>
+{
+	const stream = await worker.getUserMedia(
+		{
+			audio : { source: 'file', file: 'test/small.mp4' },
+			video : { source: 'file', file: 'test/small.mp4' }
+		});
+	const audioTrack = stream.getTracks()[0];
+	const videoTrack = stream.getTracks()[1];
+
+	await expect(worker.dump())
+		.resolves
+		.toEqual(
+			{
+				pid     : worker.pid,
+				players :
+				[
+					{
+						id         : audioTrack.data.playerId,
+						audioTrack :
+						{
+							id         : audioTrack.data.nativeTrackId,
+							kind       : 'audio',
+							readyState : 'live'
+						},
+						videoTrack :
+						{
+							id         : videoTrack.data.nativeTrackId,
+							kind       : 'video',
+							readyState : 'live'
+						}
+					}
+				],
+				handlers : []
+			});
+
+	// TODO: Uncomment this test once this bug is fixed in aiortc:
+	//   https://github.com/aiortc/aiortc/issues/301
+
+	// audioTrack.stop();
+
+	// await expect(worker.dump())
+	// 	.resolves
+	// 	.toEqual(
+	// 	{
+	// 		pid      : worker.pid,
+	// 		players  :
+	// 		[
+	// 			{
+	// 				id         : audioTrack.data.playerId,
+	// 				audioTrack :
+	// 				{
+	// 					id         : audioTrack.data.nativeTrackId,
+	// 					kind       : 'audio',
+	// 					readyState : 'ended'
+	// 				},
+	// 				videoTrack :
+	// 				{
+	// 					id         : videoTrack.data.nativeTrackId,
+	// 					kind       : 'video',
+	// 					readyState : 'live'
+	// 				}
+	// 			}
+	// 		],
+	// 		handlers : []
+	// 	});
+
+	// stream.close();
+
+	// await expect(worker.dump())
+	// 	.resolves
+	// 	.toEqual(
+	// 	{
+	// 		pid      : worker.pid,
+	// 		players  : [],
+	// 		handlers : []
+	// 	});
+}, 4000);
+
 test('create a Device with worker.createHandlerFactory() as argument succeeds', () =>
 {
 	expect(device = new Device({ handlerFactory: worker.createHandlerFactory() }))
@@ -236,8 +327,29 @@ test('transport.produce() succeeds', async () =>
 	expect(audioProducer.maxSpatialLayer).toBe(undefined);
 	expect(audioProducer.appData).toEqual({ foo: 'FOO' });
 
-	// Reset the audio paused state.
-	audioProducer.resume();
+	let dump = await worker.dump();
+	let handler = dump.handlers[0];
+
+	expect(handler.id).toBe(sendTransport.handler._internal.handlerId);
+	expect(handler.signalingState).toBe('stable');
+	expect(handler.iceConnectionState).toBe('checking');
+	expect(handler.sendTransceivers.length).toBe(1);
+	expect(handler.sendTransceivers[0]).toEqual(
+		{
+			mid           : '0',
+			nativeTrackId : audioProducer.track.data.nativeTrackId
+		});
+	expect(handler.transceivers.length).toBe(1);
+	expect(handler.transceivers[0]).toMatchObject(
+		{
+			mid     : '0',
+			kind    : 'audio',
+			stopped : false,
+			sender  :
+			{
+				trackId : audioProducer.track.data.nativeTrackId
+			}
+		});
 
 	// Note that stopTracks is not give so it's true by default.
 	videoProducer = await sendTransport.produce({ track: videoTrack });
@@ -280,6 +392,46 @@ test('transport.produce() succeeds', async () =>
 	expect(videoProducer.paused).toBe(false);
 	expect(videoProducer.maxSpatialLayer).toBe(undefined);
 	expect(videoProducer.appData).toEqual({});
+
+	dump = await worker.dump();
+	handler = dump.handlers[0];
+
+	expect(handler.id).toBe(sendTransport.handler._internal.handlerId);
+	expect(handler.signalingState).toBe('stable');
+	expect(handler.iceConnectionState).toBe('checking');
+	expect(handler.sendTransceivers.length).toBe(2);
+	expect(handler.sendTransceivers).toEqual(
+		[
+			{
+				mid           : '0',
+				nativeTrackId : audioProducer.track.data.nativeTrackId
+			},
+			{
+				mid           : '1',
+				nativeTrackId : videoProducer.track.data.nativeTrackId
+			}
+		]);
+	expect(handler.transceivers.length).toBe(2);
+	expect(handler.transceivers[0]).toMatchObject(
+		{
+			mid     : '0',
+			kind    : 'audio',
+			stopped : false,
+			sender  :
+			{
+				trackId : audioProducer.track.data.nativeTrackId
+			}
+		});
+	expect(handler.transceivers[1]).toMatchObject(
+		{
+			mid     : '1',
+			kind    : 'video',
+			stopped : false,
+			sender  :
+			{
+				trackId : videoProducer.track.data.nativeTrackId
+			}
+		});
 
 	sendTransport.removeAllListeners('connect');
 	sendTransport.removeAllListeners('produce');
@@ -532,7 +684,7 @@ test('producer.replaceTrack() succeeds', async () =>
 			video : { source: 'file', file: 'test/small.mp4' }
 		});
 	const newAudioTrack = stream.getTracks()[0];
-	const newVideoTrack = stream.getTracks()[0];
+	const newVideoTrack = stream.getTracks()[1];
 
 	// Have the audio Producer paused.
 	audioProducer.pause();
@@ -565,6 +717,39 @@ test('producer.replaceTrack() succeeds', async () =>
 	expect(videoProducer.track).not.toBe(videoProducerPreviousTrack);
 	expect(videoProducer.track).toBe(newVideoTrack);
 	expect(videoProducer.paused).toBe(false);
+
+	const dump = await worker.dump();
+	const handler = dump.handlers[0];
+
+	expect(handler.sendTransceivers.length).toBe(2);
+	// NOTE: We cannot check the new nativeTrackIds since handler.py still uses
+	// the original native track ids as index in the sending transceivers map.
+	expect(handler.sendTransceivers).toMatchObject(
+		[
+			{ mid: '0' },
+			{ mid: '1' }
+		]);
+	expect(handler.transceivers.length).toBe(2);
+	expect(handler.transceivers[0]).toMatchObject(
+		{
+			mid     : '0',
+			kind    : 'audio',
+			stopped : false,
+			sender  :
+			{
+				trackId : audioProducer.track.data.nativeTrackId
+			}
+		});
+	expect(handler.transceivers[1]).toMatchObject(
+		{
+			mid     : '1',
+			kind    : 'video',
+			stopped : false,
+			sender  :
+			{
+				trackId : videoProducer.track.data.nativeTrackId
+			}
+		});
 }, 2000);
 
 test('producer.getStats() succeeds', async () =>
@@ -581,12 +766,43 @@ test('consumer.getStats() succeeds', async () =>
 		.toBeType('object');
 }, 2000);
 
-test('producer.close() succeed', () =>
+test('producer.close() succeed', async () =>
 {
 	audioProducer.close();
 	expect(audioProducer.closed).toBe(true);
 	// Track will be still 'live' due to stopTracks: false.
 	expect(audioProducer.track.readyState).toBe('live');
+
+	const dump = await worker.dump();
+	const handler = dump.handlers[0];
+
+	expect(handler.sendTransceivers.length).toBe(2);
+	expect(handler.sendTransceivers).toMatchObject(
+		[
+			{ mid: '0' },
+			{ mid: '1' }
+		]);
+	expect(handler.transceivers.length).toBe(2);
+	expect(handler.transceivers[0]).toMatchObject(
+		{
+			mid     : '0',
+			kind    : 'audio',
+			stopped : false,
+			sender  :
+			{
+				trackId : null
+			}
+		});
+	expect(handler.transceivers[1]).toMatchObject(
+		{
+			mid     : '1',
+			kind    : 'video',
+			stopped : false,
+			sender  :
+			{
+				trackId : videoProducer.track.data.nativeTrackId
+			}
+		});
 }, 2000);
 
 test('consumer.close() succeed', () =>
