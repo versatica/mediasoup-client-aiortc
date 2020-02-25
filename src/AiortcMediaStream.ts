@@ -40,12 +40,12 @@ export class AiortcMediaStream extends EventTarget implements MediaStream
 	 */
 	close(): void
 	{
+		this.dispatchEvent({ type: '@close' });
+
 		for (const track of this._tracks.values())
 		{
 			track.stop();
 		}
-
-		this.dispatchEvent({ type: '@close' });
 	}
 
 	getAudioTracks(): FakeMediaStreamTrack[]

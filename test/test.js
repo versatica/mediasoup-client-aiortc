@@ -13,20 +13,16 @@ test('reproduce aiortc issue 301', async () =>
 	const videoTrack = stream.getTracks()[1];
 
 	// This will invoke processNotification("player.stopTrack") in worker.py
-	// for the player.audio track
-	audioTrack.stop();
+	// for the player.audio track (which was already stopped)
+	worker._channel.notify(
+		'player.stopTrack', { playerId: audioTrack.data.playerId }, { kind: 'audio' });
 
-	await new Promise((resolve) => setTimeout(resolve, 50));
-
-	// This will invoke in worker.py:
-	//
-	// 1. processNotification("player.stopTrack") for player.video track
-	// 2. processNotification("player.close") that will call stop() in
-	//    both player.audio and player.video
-	//
-	// It does not invoke "player.stopTrack" for player.audio track because it
-	// was already stopped (above in audioTrack.stop())
-	stream.close();
+	// HERE THE PROBLEM: this notification is ignored by the Python process which
+	// seems to be frozen after the previous notification
+	// This will invoke processNotification("player.stopTrack") in worker.py
+	// for the player.video track
+	worker._channel.notify(
+		'player.stopTrack', { playerId: videoTrack.data.playerId }, { kind: 'video' });
 
 	// This will invoke processRequest("dump") in worker.py
 	// We need this for this test because, at this point, the issue is that the

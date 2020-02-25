@@ -108,32 +108,7 @@ if __name__ == "__main__":
     def processNotification(notification: Notification) -> None:
         Logger.debug(f"worker: processNotification() [event:{notification.event}]")
 
-        if notification.event == "player.close":
-            internal = notification.internal
-            playerId = internal["playerId"]
-            player = players.get(playerId)
-            if player is None:
-                return
-
-            if player.audio:
-                Logger.debug(f"calling player.audio.stop()...")
-                player.audio.stop()
-                Logger.debug(f"player.audio.stop() done")
-            if player.video:
-                Logger.debug(f"calling player.video.stop()...")
-                player.video.stop()
-                Logger.debug(f"player.video.stop() done")
-
-            del players[playerId]
-
-            Logger.warning(f"WARN: and here the problem:")
-            Logger.warning(
-                f"WARN: 'player.close' notification has completed, however there is no log 'worker: notification 'player.close' succeeded'")
-            Logger.warning(
-                f"WARN: such a log should happen in the run() method of worker.py once processNotification() completes, but it does not so something is blocked here and it prevents the next call to 'dump' to succeed")
-            Logger.warning("")
-
-        elif notification.event == "player.stopTrack":
+        if notification.event == "player.stopTrack":
             internal = notification.internal
             playerId = internal["playerId"]
             data = notification.data
