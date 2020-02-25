@@ -3,7 +3,6 @@ import traceback
 import asyncio
 from os import getpid
 from typing import Any, Dict
-from aiortc import RTCConfiguration, RTCIceServer, RTCPeerConnection
 from aiortc.contrib.media import MediaPlayer, MediaStreamTrack
 from channel import Request, Notification, Channel
 from logger import Logger
@@ -106,7 +105,7 @@ if __name__ == "__main__":
                 f"unknown request with method '{request.method}' received"
             )
 
-    async def processNotification(notification: Notification) -> None:
+    def processNotification(notification: Notification) -> None:
         Logger.debug(f"worker: processNotification() [event:{notification.event}]")
 
         if notification.event == "player.close":
@@ -126,6 +125,8 @@ if __name__ == "__main__":
                 Logger.debug(f"player.video.stop() done")
 
             del players[playerId]
+            Logger.debug(f"--------- DONE ----------")
+            return
 
         elif notification.event == "player.stopTrack":
             internal = notification.internal
@@ -184,7 +185,7 @@ if __name__ == "__main__":
                 elif "event" in obj:
                     notification = Notification(**obj)
                     try:
-                        await processNotification(notification)
+                        processNotification(notification)
                         Logger.debug(
                             f"worker: notification '{notification.event}' succeeded"
                         )
