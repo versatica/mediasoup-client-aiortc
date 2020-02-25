@@ -126,6 +126,13 @@ if __name__ == "__main__":
 
             del players[playerId]
 
+            Logger.warning(f"WARN: and here the problem:")
+            Logger.warning(
+                f"WARN: 'player.close' notification has completed, however there is no log 'worker: notification 'player.close' succeeded'")
+            Logger.warning(
+                f"WARN: such a log should happen in the run() method of worker.py once processNotification() completes, but it does not so something is blocked here and it prevents the next call to 'dump' to succeed")
+            Logger.warning("")
+
         elif notification.event == "player.stopTrack":
             internal = notification.internal
             playerId = internal["playerId"]
