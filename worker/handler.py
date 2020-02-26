@@ -136,40 +136,19 @@ class Handler:
             else:
                 return None
 
-        elif request.method == "handler.addTrack":
-            data = request.data
-            playerId = data["playerId"]
-            kind = data["kind"]
-            track = self._getTrack(playerId, kind)
-            transceiver = self._pc.addTransceiver(track)
+        elif request.method == "handler.createOffer":
+            offer = await self._pc.createOffer()
+            return {
+                "type": offer.type,
+                "sdp": offer.sdp
+            }
 
-            # store transceiver in the dictionary
-            self._sendTransceivers[track.id] = transceiver
-
-        elif request.method == "handler.removeTrack":
-            data = request.data
-            trackId = data.get("trackId")
-            if trackId is None:
-                raise TypeError("missing trackId")
-
-            transceiver = self._sendTransceivers[trackId]
-            transceiver.direction = "inactive"
-            transceiver.sender.replaceTrack(None)
-
-            # NOTE: do not remove transceiver from the dictionary
-
-        elif request.method == "handler.replaceTrack":
-            data = request.data
-            trackId = data.get("trackId")
-            if trackId is None:
-                raise TypeError("missing trackId")
-
-            data = request.data
-            playerId = data["playerId"]
-            kind = data["kind"]
-            newTrack = self._getTrack(playerId, kind)
-            transceiver = self._sendTransceivers[trackId]
-            transceiver.sender.replaceTrack(newTrack)
+        elif request.method == "handler.createAnswer":
+            answer = await self._pc.createAnswer()
+            return {
+                "type": answer.type,
+                "sdp": answer.sdp
+            }
 
         elif request.method == "handler.setLocalDescription":
             data = request.data
@@ -187,29 +166,50 @@ class Handler:
             description = RTCSessionDescription(**data)
             await self._pc.setRemoteDescription(description)
 
-        elif request.method == "handler.createOffer":
-            offer = await self._pc.createOffer()
-            return {
-                "type": offer.type,
-                "sdp": offer.sdp
-            }
-
-        elif request.method == "handler.createAnswer":
-            answer = await self._pc.createAnswer()
-            return {
-                "type": answer.type,
-                "sdp": answer.sdp
-            }
-
         elif request.method == "handler.getMid":
             data = request.data
             trackId = data.get("trackId")
             if trackId is None:
-                raise TypeError("missing trackId")
+                raise TypeError("missing data.trackId")
 
             # raise on purpose if the key is not found
             transceiver = self._sendTransceivers[trackId]
             return transceiver.mid
+
+        elif request.method == "handler.addTrack":
+            data = request.data
+            playerId = data["playerId"]
+            kind = data["kind"]
+            track = self._getTrack(playerId, kind)
+            transceiver = self._pc.addTransceiver(track)
+
+            # store transceiver in the dictionary
+            self._sendTransceivers[track.id] = transceiver
+
+        elif request.method == "handler.removeTrack":
+            data = request.data
+            trackId = data.get("trackId")
+            if trackId is None:
+                raise TypeError("missing data.trackId")
+
+            transceiver = self._sendTransceivers[trackId]
+            transceiver.direction = "inactive"
+            transceiver.sender.replaceTrack(None)
+
+            # NOTE: do not remove transceiver from the dictionary
+
+        elif request.method == "handler.replaceTrack":
+            data = request.data
+            trackId = data.get("trackId")
+            if trackId is None:
+                raise TypeError("missing data.trackId")
+
+            data = request.data
+            playerId = data["playerId"]
+            kind = data["kind"]
+            newTrack = self._getTrack(playerId, kind)
+            transceiver = self._sendTransceivers[trackId]
+            transceiver.sender.replaceTrack(newTrack)
 
         elif request.method == "handler.getTransportStats":
             result = {}
@@ -233,7 +233,7 @@ class Handler:
             data = request.data
             mid = data.get("mid")
             if mid is None:
-                raise TypeError("missing mid")
+                raise TypeError("missing data.mid")
 
             transceiver = self._getTransceiverByMid(mid)
             sender = transceiver.sender
@@ -254,7 +254,7 @@ class Handler:
             data = request.data
             mid = data.get("mid")
             if mid is None:
-                raise TypeError("missing mid")
+                raise TypeError("missing data.mid")
 
             transceiver = self._getTransceiverByMid(mid)
             receiver = transceiver.receiver
@@ -339,9 +339,7 @@ class Handler:
             }
 
         else:
-            raise TypeError(
-                f"unknown request with method '{request.method}' received"
-            )
+            raise TypeError("unknown request method")
 
     async def processNotification(self, notification: Notification) -> None:
         if notification.event == "enableTrack":
@@ -354,7 +352,7 @@ class Handler:
             internal = notification.internal
             dataChannelId = internal.get("dataChannelId")
             if dataChannelId is None:
-                raise TypeError("missing dataChannelId")
+                raise TypeError("missing internal.dataChannelId")
 
             data = notification.data
             dataChannel = self._dataChannels[dataChannelId]
@@ -369,7 +367,7 @@ class Handler:
             internal = notification.internal
             dataChannelId = internal.get("dataChannelId")
             if dataChannelId is None:
-                raise TypeError("missing dataChannelId")
+                raise TypeError("missing internal.dataChannelId")
 
             data = notification.data
             dataChannel = self._dataChannels[dataChannelId]
@@ -384,7 +382,8 @@ class Handler:
             internal = notification.internal
             dataChannelId = internal.get("dataChannelId")
             if dataChannelId is None:
-                raise TypeError("missing dataChannelId")
+                raise TypeError("missing internal.dataChannelId")
+
             dataChannel = self._dataChannels.get(dataChannelId)
             if dataChannel is None:
                 return
@@ -402,16 +401,14 @@ class Handler:
             internal = notification.internal
             dataChannelId = internal.get("dataChannelId")
             if dataChannelId is None:
-                raise TypeError("missing dataChannelId")
+                raise TypeError("missing internal.dataChannelId")
 
             value = notification.data
             dataChannel = self._dataChannels[dataChannelId]
             dataChannel.bufferedAmountLowThreshold = value
 
         else:
-            raise TypeError(
-                f"unknown notification with event '{notification.event}' received"
-            )
+            raise TypeError("unknown notification event")
 
     """
     Helper functions
