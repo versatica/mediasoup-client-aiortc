@@ -105,7 +105,7 @@ function replacePyVersion()
 {
 	const file = 'worker/setup.py';
 	const text = fs.readFileSync(file, { encoding: 'utf8' });
-	const result = text.replace(/version='\d\.\d\.\d\'/g, `version='${version}'`);
+	const result = text.replace(/version=".*"/g, `version="${version}"`);
 
 	fs.writeFileSync(file, result, { encoding: 'utf8' });
 }
