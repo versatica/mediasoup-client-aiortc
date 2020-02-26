@@ -14,6 +14,7 @@ let audioProducer;
 let videoProducer;
 let audioConsumer;
 let videoConsumer;
+let secondAudioProducer;
 let dataProducer;
 let dataConsumer;
 
@@ -334,7 +335,7 @@ test('transport.produce() succeeds', async () =>
 	expect(handler.sendTransceivers[0]).toEqual(
 		{
 			mid     : '0',
-			trackId : audioProducer.track.id
+			localId : audioProducer.track.id
 		});
 	expect(handler.transceivers.length).toBe(1);
 	expect(handler.transceivers[0]).toMatchObject(
@@ -401,11 +402,11 @@ test('transport.produce() succeeds', async () =>
 		[
 			{
 				mid     : '0',
-				trackId : audioProducer.track.id
+				localId : audioProducer.track.id
 			},
 			{
 				mid     : '1',
-				trackId : videoProducer.track.id
+				localId : videoProducer.track.id
 			}
 		]);
 	expect(handler.transceivers.length).toBe(2);
@@ -666,6 +667,29 @@ test('transport.consumeData() succeeds', async () =>
 	expect(dataConsumer.protocol).toBe('BAR');
 }, 2000);
 
+test('transport.produce() with a receiving track succeeds', async () =>
+{
+	const audioTrack = audioConsumer.track;
+
+	expect(audioTrack.data.remote).toBe(true);
+
+	// eslint-disable-next-line no-unused-vars
+	sendTransport.on('produce', ({ kind, rtpParameters, appData }, callback, errback) =>
+	{
+
+		const id = fakeParameters.generateProducerRemoteParameters().id;
+
+		callback({ id });
+	});
+
+	secondAudioProducer = await sendTransport.produce({ track: audioTrack });
+
+	expect(secondAudioProducer.kind).toBe('audio');
+	expect(secondAudioProducer.track).toBe(audioTrack);
+
+	sendTransport.removeAllListeners('produce');
+}, 2000);
+
 test('transport.getStats() succeeds', async () =>
 {
 	await expect(sendTransport.getStats())
@@ -718,15 +742,16 @@ test('producer.replaceTrack() succeeds', async () =>
 	const dump = await worker.dump();
 	const handler = dump.handlers[0];
 
-	expect(handler.sendTransceivers.length).toBe(2);
+	expect(handler.sendTransceivers.length).toBe(3);
 	// NOTE: We cannot check the new trackIds since handler.py still uses the
 	// original track ids as index in the sending transceivers map.
 	expect(handler.sendTransceivers).toMatchObject(
 		[
 			{ mid: '0' },
-			{ mid: '1' }
+			{ mid: '1' },
+			{ mid: '3' } // NOTE: mid:2 is DataChannel.
 		]);
-	expect(handler.transceivers.length).toBe(2);
+	expect(handler.transceivers.length).toBe(3);
 	expect(handler.transceivers[0]).toMatchObject(
 		{
 			mid     : '0',
@@ -745,6 +770,16 @@ test('producer.replaceTrack() succeeds', async () =>
 			sender  :
 			{
 				trackId : videoProducer.track.id
+			}
+		});
+	expect(handler.transceivers[2]).toMatchObject(
+		{
+			mid     : '3',
+			kind    : 'audio',
+			stopped : false,
+			sender  :
+			{
+				trackId : secondAudioProducer.track.id
 			}
 		});
 }, 2000);
@@ -773,13 +808,14 @@ test('producer.close() succeed', async () =>
 	const dump = await worker.dump();
 	const handler = dump.handlers[0];
 
-	expect(handler.sendTransceivers.length).toBe(2);
+	expect(handler.sendTransceivers.length).toBe(3);
 	expect(handler.sendTransceivers).toMatchObject(
 		[
 			{ mid: '0' },
-			{ mid: '1' }
+			{ mid: '1' },
+			{ mid: '3' } // NOTE: mid:2 is DataChannel.
 		]);
-	expect(handler.transceivers.length).toBe(2);
+	expect(handler.transceivers.length).toBe(3);
 	expect(handler.transceivers[0]).toMatchObject(
 		{
 			mid     : '0',
@@ -798,6 +834,16 @@ test('producer.close() succeed', async () =>
 			sender  :
 			{
 				trackId : videoProducer.track.id
+			}
+		});
+	expect(handler.transceivers[2]).toMatchObject(
+		{
+			mid     : '3',
+			kind    : 'audio',
+			stopped : false,
+			sender  :
+			{
+				trackId : secondAudioProducer.track.id
 			}
 		});
 }, 2000);

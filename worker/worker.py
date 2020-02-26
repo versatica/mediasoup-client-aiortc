@@ -36,6 +36,8 @@ if __name__ == "__main__":
     players: Dict[str, MediaPlayer] = ({})
     # dictionary of handlers indexed by id
     handlers: Dict[str, Handler] = ({})
+    # dictionary of receiving tracks indexed by id
+    recvTracks = dict()  # type: Dict[str, MediaStreamTrack]
 
     # get/create event loop
     loop = asyncio.get_event_loop()
@@ -48,6 +50,18 @@ if __name__ == "__main__":
         track = player.audio if kind == "audio" else player.video
         if not track:
             raise Exception("no track found")
+
+        return track
+
+    def addRemoteTrack(track: MediaStreamTrack) -> None:
+        recvTracks[track.id] = track
+
+    def getRemoteTrack(trackId: str, kind: str) -> MediaStreamTrack:
+        track = recvTracks.get(trackId)
+        if not track:
+            raise Exception("no track found")
+        if track.kind != kind:
+            raise Exception("no matching track.kind")
 
         return track
 
@@ -133,7 +147,15 @@ if __name__ == "__main__":
                     iceServers.append(iceServer)
                 rtcConfiguration = RTCConfiguration(iceServers)
 
-            handler = Handler(handlerId, channel, loop, getTrack, rtcConfiguration)
+            handler = Handler(
+                handlerId,
+                channel,
+                loop,
+                getTrack,
+                addRemoteTrack,
+                getRemoteTrack,
+                rtcConfiguration
+            )
 
             handlers[handlerId] = handler
             return

@@ -239,14 +239,28 @@ export class Handler extends HandlerInterface
 			'send() [kind:%s, track.id:%s, track.data:%o]',
 			track.kind, track.id, (track as FakeMediaStreamTrack).data);
 
-		const trackId = track.id;
+		const localId = track.id;
 		const kind = track.kind;
-		const { playerId } = (track as FakeMediaStreamTrack).data;
+		const { playerId, remote } = (track as FakeMediaStreamTrack).data;
 
-		await this._channel.request(
-			'handler.addTrack', this._internal, { playerId, kind });
+		if (playerId)
+		{
+			await this._channel.request(
+				'handler.addTrack', this._internal, { localId, playerId, kind });
+		}
+		else if (remote)
+		{
+			await this._channel.request(
+				'handler.addTrack',
+				this._internal,
+				{ localId, recvTrackId: track.id, kind });
+		}
+		else
+		{
+			throw new TypeError(
+				'invalid track, missing data.playerId or data.remote');
+		}
 
-		const localId = trackId;
 		let offer = await this._channel.request(
 			'handler.createOffer', this._internal);
 
@@ -268,7 +282,7 @@ export class Handler extends HandlerInterface
 
 		// Get the MID and the corresponding m= section.
 		const mid = await this._channel.request(
-			'handler.getMid', this._internal, { trackId });
+			'handler.getMid', this._internal, { localId });
 
 		offer = await this._channel.request(
 			'handler.getLocalDescription', this._internal);
@@ -328,12 +342,12 @@ export class Handler extends HandlerInterface
 			if (track.enabled)
 			{
 				this._channel.notify(
-					'handler.enableTrack', this._internal, { trackId });
+					'handler.enableTrack', this._internal, { localId });
 			}
 			else
 			{
 				this._channel.notify(
-					'handler.disableTrack', this._internal, { trackId });
+					'handler.disableTrack', this._internal, { localId });
 			}
 		});
 
@@ -368,10 +382,8 @@ export class Handler extends HandlerInterface
 
 		this._mapLocalIdMid.delete(localId);
 
-		const trackId = localId;
-
 		await this._channel.request(
-			'handler.removeTrack', this._internal, { trackId });
+			'handler.removeTrack', this._internal, { localId });
 
 		this._remoteSdp.disableMediaSection(mid);
 
@@ -411,12 +423,26 @@ export class Handler extends HandlerInterface
 		if (!mid)
 			throw new Error('associated MID not found');
 
-		const trackId = localId;
 		const kind = track.kind;
-		const { playerId } = (track as FakeMediaStreamTrack).data;
+		const { playerId, remote } = (track as FakeMediaStreamTrack).data;
 
-		await this._channel.request(
-			'handler.replaceTrack', this._internal, { trackId, playerId, kind });
+		if (playerId)
+		{
+			await this._channel.request(
+				'handler.replaceTrack', this._internal, { localId, playerId, kind });
+		}
+		else if (remote)
+		{
+			await this._channel.request(
+				'handler.replaceTrack',
+				this._internal,
+				{ localId, recvTrackId: track.id, kind });
+		}
+		else
+		{
+			throw new TypeError(
+				'invalid track, missing data.player or data.remote');
+		}
 
 		// Store the new original track into our map and listen for events.
 		this._mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
@@ -435,12 +461,12 @@ export class Handler extends HandlerInterface
 			if (track.enabled)
 			{
 				this._channel.notify(
-					'handler.enableTrack', this._internal, { trackId });
+					'handler.enableTrack', this._internal, { localId });
 			}
 			else
 			{
 				this._channel.notify(
-					'handler.disableTrack', this._internal, { trackId });
+					'handler.disableTrack', this._internal, { localId });
 			}
 		});
 	}

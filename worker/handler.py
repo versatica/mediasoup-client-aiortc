@@ -21,22 +21,30 @@ class Handler:
         channel: Channel,
         loop: asyncio.AbstractEventLoop,
         getTrack,
+        addRemoteTrack,
+        getRemoteTrack,
         configuration: Optional[RTCConfiguration] = None
     ) -> None:
         self._handlerId = handlerId
         self._channel = channel
         self._pc = RTCPeerConnection(configuration or None)
-        # dictionary of sending transceivers mapped by the first track id (it
-        # does not change after replaceTrack())
+        # dictionary of sending transceivers mapped by given localId
         self._sendTransceivers = dict()  # type: Dict[str, RTCRtpTransceiver]
         # dictionary of dataChannelds mapped by internal id
         self._dataChannels = dict()  # type: Dict[str, RTCDataChannel]
-        # function returning a track given a player id and a kind
+        # function returning a sending track given a player id and a kind
         self._getTrack = getTrack
+        # function to store a receiving track
+        self._addRemoteTrack = addRemoteTrack
+        # function returning a receiving track
+        self._getRemoteTrack = getRemoteTrack
 
         @self._pc.on("track")  # type: ignore
         def on_track(track) -> None:
             Logger.debug(f"handler: ontrack [kind:{track.kind}, id:{track.id}]")
+
+            # store it
+            self._addRemoteTrack(track)
 
         @self._pc.on("signalingstatechange")  # type: ignore
         async def on_signalingstatechange() -> None:
@@ -108,17 +116,15 @@ class Handler:
                 "sender": {
                     "trackId": transceiver.sender.track.id if transceiver.sender.track else None
                 },
-                # TODO: uncomment when this fix is released in aiortc:
-                #   https://github.com/aiortc/aiortc/issues/298
-                # "receiver": {
-                #     "trackId": transceiver.receiver.track.id if transceiver.receiver.track else None
-                # }
+                "receiver": {
+                    "trackId": transceiver.receiver.track.id if transceiver.receiver.track else None
+                }
             }
             result["transceivers"].append(transceiverInfo)
 
-        for trackId, transceiver in self._sendTransceivers.items():
+        for localId, transceiver in self._sendTransceivers.items():
             sendTransceiverInfo = {
-                "trackId": trackId,
+                "localId": localId,
                 "mid": transceiver.mid
             }
             result["sendTransceivers"].append(sendTransceiverInfo)
@@ -168,31 +174,47 @@ class Handler:
 
         elif request.method == "handler.getMid":
             data = request.data
-            trackId = data.get("trackId")
-            if trackId is None:
-                raise TypeError("missing data.trackId")
+            localId = data.get("localId")
+            if localId is None:
+                raise TypeError("missing data.localId")
 
             # raise on purpose if the key is not found
-            transceiver = self._sendTransceivers[trackId]
+            transceiver = self._sendTransceivers[localId]
             return transceiver.mid
 
         elif request.method == "handler.addTrack":
             data = request.data
-            playerId = data["playerId"]
+            localId = data.get("localId")
+            if localId is None:
+                raise TypeError("missing data.localId")
+
             kind = data["kind"]
-            track = self._getTrack(playerId, kind)
-            transceiver = self._pc.addTransceiver(track)
+            playerId = data.get("playerId")
+            recvTrackId = data.get("recvTrackId")
+
+            # sending a track got from a MediaPlayer
+            if playerId:
+                track = self._getTrack(playerId, kind)
+                transceiver = self._pc.addTransceiver(track)
+
+            # sending a track which is a remote/receiving track
+            elif recvTrackId:
+                track = self._getRemoteTrack(recvTrackId, kind)
+                transceiver = self._pc.addTransceiver(track)
+
+            else:
+                raise TypeError("missing data.playerId or data.recvTrackId")
 
             # store transceiver in the dictionary
-            self._sendTransceivers[track.id] = transceiver
+            self._sendTransceivers[localId] = transceiver
 
         elif request.method == "handler.removeTrack":
             data = request.data
-            trackId = data.get("trackId")
-            if trackId is None:
-                raise TypeError("missing data.trackId")
+            localId = data.get("localId")
+            if localId is None:
+                raise TypeError("missing data.localId")
 
-            transceiver = self._sendTransceivers[trackId]
+            transceiver = self._sendTransceivers[localId]
             transceiver.direction = "inactive"
             transceiver.sender.replaceTrack(None)
 
@@ -200,16 +222,27 @@ class Handler:
 
         elif request.method == "handler.replaceTrack":
             data = request.data
-            trackId = data.get("trackId")
-            if trackId is None:
-                raise TypeError("missing data.trackId")
+            localId = data.get("localId")
+            if localId is None:
+                raise TypeError("missing data.localId")
 
-            data = request.data
-            playerId = data["playerId"]
             kind = data["kind"]
-            newTrack = self._getTrack(playerId, kind)
-            transceiver = self._sendTransceivers[trackId]
-            transceiver.sender.replaceTrack(newTrack)
+            playerId = data.get("playerId")
+            recvTrackId = data.get("recvTrackId")
+            transceiver = self._sendTransceivers[localId]
+
+            # sending a track got from a MediaPlayer
+            if playerId:
+                track = self._getTrack(playerId, kind)
+
+            # sending a track which is a remote/receiving track
+            elif recvTrackId:
+                track = self._getRemoteTrack(recvTrackId, kind)
+
+            else:
+                raise TypeError("missing data.playerId or data.recvTrackId")
+
+            transceiver.sender.replaceTrack(track)
 
         elif request.method == "handler.getTransportStats":
             result = {}
