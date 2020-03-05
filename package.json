@@ -56,12 +56,12 @@
     "eslint-plugin-jest": "^23.8.1",
     "jest": "^25.1.0",
     "jest-tobetype": "^1.2.3",
-    "mediasoup-client": "^3.5.0",
+    "mediasoup-client": "^3.5.1",
     "open-cli": "^5.0.0",
     "tsc-watch": "^4.2.3",
     "typescript": "^3.8.3"
   },
   "peerDependencies": {
-    "mediasoup-client": "^3.5.0"
+    "mediasoup-client": "^3.5.1"
   }
 }

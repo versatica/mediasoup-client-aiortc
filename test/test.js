@@ -537,7 +537,6 @@ test('transport.consume() succeeds', async () =>
 			mimeType     : 'video/VP8',
 			payloadType  : 101,
 			clockRate    : 90000,
-			channels     : 1,
 			rtcpFeedback :
 			[
 				{ type: 'nack', parameter: '' },
@@ -555,7 +554,6 @@ test('transport.consume() succeeds', async () =>
 			mimeType     : 'video/rtx',
 			payloadType  : 102,
 			clockRate    : 90000,
-			channels     : 1,
 			rtcpFeedback : [],
 			parameters   :
 			{
