@@ -1,4 +1,4 @@
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import { Logger } from 'mediasoup-client/lib/Logger';

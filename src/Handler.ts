@@ -1,4 +1,4 @@
-import uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import * as sdpTransform from 'sdp-transform';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import { Logger } from 'mediasoup-client/lib/Logger';
@@ -307,7 +307,7 @@ export class Handler extends HandlerInterface
 		this._remoteSdp.send(
 			{
 				offerMediaObject,
-				reuseMid            : false, // May be in the future.
+				reuseMid            : '', // May be in the future.
 				offerRtpParameters  : sendingRtpParameters,
 				answerRtpParameters : this._sendingRemoteRtpParametersByKind[track.kind],
 				codecOptions,
@@ -615,7 +615,7 @@ export class Handler extends HandlerInterface
 
 		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-		const localId = String(this._mapLocalIdMid.size);
+		const localId = rtpParameters.mid || String(this._mapLocalIdMid.size);
 		const mid = localId;
 
 		this._remoteSdp.receive(
