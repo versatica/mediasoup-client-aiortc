@@ -433,7 +433,7 @@ test('transport.produce() succeeds', async () =>
 
 	sendTransport.removeAllListeners('connect');
 	sendTransport.removeAllListeners('produce');
-}, 2000);
+}, 20000);
 
 test('transport.consume() succeeds', async () =>
 {
@@ -638,7 +638,7 @@ test('transport.produceData() succeeds', async () =>
 	expect(dataProducer.protocol).toBe('BAR');
 
 	sendTransport.removeAllListeners('producedata');
-}, 2000);
+}, 20000);
 
 test('transport.consumeData() succeeds', async () =>
 {

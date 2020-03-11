@@ -47,21 +47,21 @@
     "uuid": "^7.0.2"
   },
   "devDependencies": {
-    "@types/node": "^13.7.7",
-    "@types/sdp-transform": "^2.4.2",
+    "@types/node": "^13.9.0",
+    "@types/sdp-transform": "^2.4.3",
     "@types/uuid": "^7.0.0",
-    "@typescript-eslint/eslint-plugin": "^2.22.0",
-    "@typescript-eslint/parser": "^2.22.0",
+    "@typescript-eslint/eslint-plugin": "^2.23.0",
+    "@typescript-eslint/parser": "^2.23.0",
     "eslint": "^6.8.0",
-    "eslint-plugin-jest": "^23.8.1",
+    "eslint-plugin-jest": "^23.8.2",
     "jest": "^25.1.0",
     "jest-tobetype": "^1.2.3",
-    "mediasoup-client": "^3.5.1",
+    "mediasoup-client": "^3.5.3",
     "open-cli": "^5.0.0",
     "tsc-watch": "^4.2.3",
     "typescript": "^3.8.3"
   },
   "peerDependencies": {
-    "mediasoup-client": "^3.5.1"
+    "mediasoup-client": "^3.5.3"
   }
 }

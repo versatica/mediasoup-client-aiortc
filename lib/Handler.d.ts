@@ -41,7 +41,7 @@ export declare class Handler extends HandlerInterface {
     getTransportStats(): Promise<FakeRTCStatsReport>;
     send({ track, encodings, codecOptions }: HandlerSendOptions): Promise<HandlerSendResult>;
     stopSending(localId: string): Promise<void>;
-    replaceTrack(localId: string, track: MediaStreamTrack): Promise<void>;
+    replaceTrack(localId: string, track: MediaStreamTrack | null): Promise<void>;
     setMaxSpatialLayer(localId: string, spatialLayer: number): Promise<void>;
     setRtpEncodingParameters(localId: string, params: any): Promise<void>;
     getSenderStats(localId: string): Promise<FakeRTCStatsReport>;
