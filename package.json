@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client-aiortc",
-  "version": "3.6.0",
+  "version": "3.6.2",
   "description": "mediasoup-client handler for aiortc Python library",
   "contributors": [
     "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)",
@@ -56,12 +56,12 @@
     "eslint-plugin-jest": "^23.8.2",
     "jest": "^25.2.0",
     "jest-tobetype": "^1.2.3",
-    "mediasoup-client": "^3.6.0",
+    "mediasoup-client": "^3.6.2",
     "open-cli": "^6.0.0",
     "tsc-watch": "^4.2.3",
     "typescript": "^3.8.3"
   },
   "peerDependencies": {
-    "mediasoup-client": "^3.6.0"
+    "mediasoup-client": "^3.6.2"
   }
 }
