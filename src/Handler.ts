@@ -230,7 +230,7 @@ export class Handler extends HandlerInterface
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ track, encodings, codecOptions }: HandlerSendOptions
+		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
 		this._assertSendDirection();
@@ -261,12 +261,24 @@ export class Handler extends HandlerInterface
 				'invalid track, missing data.playerId or data.remote');
 		}
 
+		const sendingRtpParameters =
+			utils.clone(this._sendingRtpParametersByKind[track.kind]);
+
+		// This may throw.
+		sendingRtpParameters.codecs =
+			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
+
+		const sendingRemoteRtpParameters =
+			this._sendingRemoteRtpParametersByKind[track.kind];
+
+		// This may throw.
+		sendingRemoteRtpParameters.codecs =
+			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs, codec);
+
 		let offer = await this._channel.request(
 			'handler.createOffer', this._internal);
 
 		let localSdpObject = sdpTransform.parse(offer.sdp);
-		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind[track.kind]);
 
 		if (!this._transportReady)
 			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
@@ -309,7 +321,7 @@ export class Handler extends HandlerInterface
 				offerMediaObject,
 				reuseMid            : '', // May be in the future.
 				offerRtpParameters  : sendingRtpParameters,
-				answerRtpParameters : this._sendingRemoteRtpParametersByKind[track.kind],
+				answerRtpParameters : sendingRemoteRtpParameters,
 				codecOptions,
 				extmapAllowMixed    : false
 			});
