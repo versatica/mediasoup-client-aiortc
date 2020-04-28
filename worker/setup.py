@@ -10,7 +10,7 @@ setuptools.setup(
     license="MIT",
     packages=setuptools.find_packages(),
     install_requires=[
-        "aiortc>=0.9.27",
+        "aiortc>=0.9.28",
         "pynetstring"
     ],
 )
