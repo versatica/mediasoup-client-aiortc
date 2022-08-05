@@ -632,25 +632,29 @@ export class Handler extends HandlerInterface
 	}
 
 	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
+		optionsList: HandlerReceiveOptions[]
 	): Promise<HandlerReceiveResult>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		const results = [];
+		for (const option of optionsList) {
+			const { trackId, kind, rtpParameters } = option;
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-		const localId = rtpParameters.mid || String(this._mapLocalIdMid.size);
-		const mid = localId;
+			const localId = rtpParameters.mid || String(this._mapLocalIdMid.size);
+			const mid = localId;
 
-		this._remoteSdp.receive(
-			{
-				mid,
-				kind,
-				offerRtpParameters : rtpParameters,
-				streamId           : rtpParameters.rtcp.cname,
-				trackId
-			});
+			this._remoteSdp.receive(
+				{
+					mid,
+					kind,
+					offerRtpParameters : rtpParameters,
+					streamId           : rtpParameters.rtcp.cname,
+					trackId
+				});
 
+		}
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
 		logger.debug(
@@ -666,17 +670,21 @@ export class Handler extends HandlerInterface
 			'handler.createAnswer', this._internal);
 
 		const localSdpObject = sdpTransform.parse(answer.sdp);
-		const answerMediaObject = localSdpObject.media
-			.find((m: any) => String(m.mid) === localId);
+		for (const options of optionsList) {
+			const {trackId, rtpParameters} = options;
+			const localId = trackId;
 
-		// May need to modify codec parameters in the answer based on codec
-		// parameters in the offer.
-		sdpCommonUtils.applyCodecParameters(
-			{
-				offerRtpParameters : rtpParameters,
-				answerMediaObject
-			});
+			const answerMediaObject = localSdpObject.media
+				.find((m: any) => String(m.mid) === localId);
 
+			// May need to modify codec parameters in the answer based on codec
+			// parameters in the offer.
+			sdpCommonUtils.applyCodecParameters(
+				{
+					offerRtpParameters: rtpParameters,
+					answerMediaObject
+				});
+		}
 		answer =
 		{
 			type : 'answer',
@@ -695,21 +703,27 @@ export class Handler extends HandlerInterface
 			this._internal,
 			answer as RTCSessionDescription);
 
-		// Create a fake remote track to be returned.
-		const track = new FakeMediaStreamTrack(
-			{
-				kind,
-				id   : trackId,
-				data : { remote: true } // This let's us know that this is remote.
-			});
+		for (const options of optionsList) {
+			const { trackId, kind } = options;
+			const mid = kind;
+			const localId = trackId;
+			// Create a fake remote track to be returned.
+			const track = new FakeMediaStreamTrack(
+				{
+					kind,
+					id: trackId,
+					data: {remote: true} // This let's us know that this is remote.
+				});
 
-		// Store the remote track into the map.
-		this._mapLocalIdTracks.set(localId, track);
+			// Store the remote track into the map.
+			this._mapLocalIdTracks.set(localId, track);
 
-		// Store the MID into the map.
-		this._mapLocalIdMid.set(localId, mid);
+			// Store the MID into the map.
+			this._mapLocalIdMid.set(localId, mid);
+			results.push({ localId, track });
+		}
 
-		return { localId, track };
+		return results;
 	}
 
 	async stopReceiving(localId: string): Promise<void>
