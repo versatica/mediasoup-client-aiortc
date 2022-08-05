@@ -638,8 +638,11 @@ export class Handler extends HandlerInterface
 		this._assertRecvDirection();
 
 		const results = [];
-		for (const option of optionsList) {
-			const { trackId, kind, rtpParameters } = option;
+
+		for (const options of optionsList) 
+		{
+			const { trackId, kind, rtpParameters } = options;
+
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
 			const localId = rtpParameters.mid || String(this._mapLocalIdMid.size);
@@ -670,8 +673,10 @@ export class Handler extends HandlerInterface
 			'handler.createAnswer', this._internal);
 
 		const localSdpObject = sdpTransform.parse(answer.sdp);
-		for (const options of optionsList) {
-			const {trackId, rtpParameters} = options;
+
+		for (const options of optionsList) 
+		{
+			const { trackId, rtpParameters } = options;
 			const localId = trackId;
 
 			const answerMediaObject = localSdpObject.media
@@ -681,7 +686,7 @@ export class Handler extends HandlerInterface
 			// parameters in the offer.
 			sdpCommonUtils.applyCodecParameters(
 				{
-					offerRtpParameters: rtpParameters,
+					offerRtpParameters : rtpParameters,
 					answerMediaObject
 				});
 		}
@@ -703,7 +708,8 @@ export class Handler extends HandlerInterface
 			this._internal,
 			answer as RTCSessionDescription);
 
-		for (const options of optionsList) {
+		for (const options of optionsList) 
+		{
 			const { trackId, kind } = options;
 			const mid = kind;
 			const localId = trackId;
@@ -711,8 +717,8 @@ export class Handler extends HandlerInterface
 			const track = new FakeMediaStreamTrack(
 				{
 					kind,
-					id: trackId,
-					data: {remote: true} // This let's us know that this is remote.
+					id   : trackId,
+					data : { remote: true } // This let's us know that this is remote.
 				});
 
 			// Store the remote track into the map.
