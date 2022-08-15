@@ -885,6 +885,51 @@ export class Handler extends HandlerInterface
 			answer as RTCSessionDescription);
 	}
 
+	async resumeReceiving(localIds: string[]): Promise<void>
+	{
+		this._assertRecvDirection();
+
+		for (const localId of localIds)
+		{
+			logger.debug('pauseReceiving() [localId:%s]', localId);
+
+			const track = this._mapLocalIdTracks.get(localId);
+
+			if (!track)
+				throw new Error('associated track not found');
+
+			const mid = this._mapLocalIdMid.get(localId);
+
+			if (!mid)
+				throw new Error('associated MID not found');
+
+			await this._channel.request('handler.setTrackDirection', this._internal, { localId, direction: 'recvonly'});
+		}
+
+		const offer = await this._channel.request('handler.createOffer', this._internal);
+
+		logger.debug(
+			'resumeReceiving() | calling handler.setRemoteDescription() [offer:%o]',
+			offer);
+
+		await this._channel.request(
+			'handler.setRemoteDescription',
+			this._internal,
+			offer as RTCSessionDescription);
+
+		const answer = await this._channel.request(
+			'handler.createAnswer', this._internal);
+
+		logger.debug(
+			'resumeReceiving() | calling handler.setLocalDescription() [answer:%o]',
+			answer);
+
+		await this._channel.request(
+			'handler.setLocalDescription',
+			this._internal,
+			answer as RTCSessionDescription);
+	}
+
 	async getReceiverStats(localId: string): Promise<FakeRTCStatsReport>
 	{
 		this._assertRecvDirection();
