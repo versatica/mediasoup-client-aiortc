@@ -244,6 +244,18 @@ class Handler:
 
             transceiver.sender.replaceTrack(track)
 
+        elif request.method == "handler.setTrackDirection":
+            data = request.data
+            localId = data.get("localId")
+            direction = data.get("direction")
+            if localId is None:
+                raise TypeError("missing data.localId")
+            if direction is None:
+                raise TypeError("missing data.direction")
+
+            transceiver = self._sendTransceivers[localId]
+            transceiver.direction = direction
+
         elif request.method == "handler.getTransportStats":
             result = {}
             stats = await self._pc.getStats()
