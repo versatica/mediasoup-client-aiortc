@@ -122,7 +122,7 @@ export class Handler extends HandlerInterface
 			this._channel.notify('handler.close', this._internal);
 
 		// Tell the parent.
-		this.emit('@close');
+	  this.emit('@connectionstatechange', 'closed');
 	}
 
 	async getNativeRtpCapabilities(): Promise<RtpCapabilities>

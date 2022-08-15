@@ -287,7 +287,10 @@ export class Worker extends EnhancedEventEmitter
 				});
 
 			this._handlers.add(handler);
-			handler.on('@close', () => this._handlers.delete(handler));
+		  handler.on('@connectionstatechange', (state) => {
+            if (state === "closed")
+              this._handlers.delete(handler);
+          });
 
 			return handler;
 		};
