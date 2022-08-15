@@ -423,6 +423,47 @@ export class Handler extends HandlerInterface
 			answer as RTCSessionDescription);
 	}
 
+	async pauseSending(localId: string): Promise<void>
+	{
+		this._assertSendDirection();
+
+		logger.debug('pauseSending() [localId:%s]', localId);
+
+		const track = this._mapLocalIdTracks.get(localId);
+
+		if (!track)
+			throw new Error('associated track not found');
+
+		const mid = this._mapLocalIdMid.get(localId);
+
+		if (!mid)
+			throw new Error('associated MID not found');
+
+		await this._channel.request('handler.setTrackDirection', this._internal, { localId, direction: 'inactive'});
+
+		const offer = await this._channel.request('handler.createOffer', this._internal);
+
+		logger.debug(
+			'pauseSending() | calling handler.setLocalDescription() [offer:%o]',
+			offer);
+
+		await this._channel.request(
+			'handler.setLocalDescription',
+			this._internal,
+			offer as RTCSessionDescription);
+
+		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+
+		logger.debug(
+			'stopSending() | calling handler.setRemoteDescription() [answer:%o]',
+			answer);
+
+		await this._channel.request(
+			'handler.setRemoteDescription',
+			this._internal,
+			answer as RTCSessionDescription);
+  }
+
 	async replaceTrack(
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
