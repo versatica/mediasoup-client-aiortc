@@ -41,7 +41,7 @@ export async function getUserMedia(
 	constraints: AiortcMediaStreamConstraints = {}
 ): Promise<AiortcMediaStream>
 {
-	constraints = clone(constraints) as AiortcMediaStreamConstraints;
+	constraints = clone(constraints, {}) as AiortcMediaStreamConstraints;
 
 	let { audio, video } = constraints;
 	let audioPlayerInternal: MediaPlayerInternal;

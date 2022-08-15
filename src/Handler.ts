@@ -262,7 +262,7 @@ export class Handler extends HandlerInterface
 		}
 
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind[track.kind]);
+			utils.clone(this._sendingRtpParametersByKind[track.kind], {});
 
 		// This may throw.
 		sendingRtpParameters.codecs =
