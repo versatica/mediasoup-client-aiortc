@@ -611,7 +611,6 @@ export class Handler extends HandlerInterface
 			maxRetransmits,
 			label,
 			protocol,
-			priority // eslint-disable-line @typescript-eslint/no-unused-vars
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
