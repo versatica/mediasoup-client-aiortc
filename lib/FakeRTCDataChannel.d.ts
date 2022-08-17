@@ -24,12 +24,6 @@ export declare class FakeRTCDataChannel extends EventTarget implements RTCDataCh
     private _bufferedAmountLowThreshold;
     private _binaryType;
     private _priority;
-    onopen: (this: RTCDataChannel, ev: Event) => any;
-    onclosing: (this: RTCDataChannel, ev: Event) => any;
-    onclose: (this: RTCDataChannel, ev: Event) => any;
-    onmessage: (this: RTCDataChannel, ev: MessageEvent) => any;
-    onbufferedamountlow: (this: RTCDataChannel, ev: Event) => any;
-    onerror: (this: RTCDataChannel, ev: RTCErrorEvent) => any;
     constructor(internal: {
         handlerId: string;
         dataChannelId: string;
@@ -49,10 +43,22 @@ export declare class FakeRTCDataChannel extends EventTarget implements RTCDataCh
     get bufferedAmount(): number;
     get bufferedAmountLowThreshold(): number;
     set bufferedAmountLowThreshold(value: number);
-    get binaryType(): string;
-    set binaryType(value: string);
+    get binaryType(): BinaryType;
+    set binaryType(value: BinaryType);
     get priority(): RTCPriorityType;
     set priority(value: RTCPriorityType);
+    get onopen(): any;
+    set onopen(listener: any);
+    get onclosing(): any;
+    set onclosing(listener: any);
+    get onclose(): any;
+    set onclose(listener: any);
+    get onmessage(): any;
+    set onmessage(listener: any);
+    get onbufferedamountlow(): any;
+    set onbufferedamountlow(listener: any);
+    get onerror(): any;
+    set onerror(listener: any);
     close(): void;
     /**
      * We extend the definition of send() to allow Node Buffer. However

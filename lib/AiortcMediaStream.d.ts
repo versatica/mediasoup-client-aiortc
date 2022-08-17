@@ -3,11 +3,13 @@ import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 export declare class AiortcMediaStream extends EventTarget implements MediaStream {
     private readonly _id;
     private readonly _tracks;
-    onaddtrack: (this: MediaStream, ev: Event) => any;
-    onremovetrack: (this: MediaStream, ev: Event) => any;
     constructor(tracks: FakeMediaStreamTrack[]);
     get id(): string;
     get active(): boolean;
+    get onaddtrack(): any;
+    set onaddtrack(listener: any);
+    get onremovetrack(): any;
+    set onremovetrack(listener: any);
     /**
      * Custom method to close associated MediaPlayers in aiortc.
      */

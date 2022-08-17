@@ -1,5 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
-import { EventTarget, defineEventAttribute } from 'event-target-shim';
+import {
+	EventTarget,
+	Event,
+	getEventAttributeValue,
+	setEventAttributeValue
+} from 'event-target-shim';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 
 export class AiortcMediaStream extends EventTarget implements MediaStream
@@ -9,8 +14,8 @@ export class AiortcMediaStream extends EventTarget implements MediaStream
 
 	// Event listeners. These are cosmetic public members to make TS happy.
 	// NOTE: We never emit these events.
-	public onaddtrack: (this: MediaStream, ev: Event) => any;
-	public onremovetrack: (this: MediaStream, ev: Event) => any;
+	// public onaddtrack: (this: AiortcMediaStream, ev: Event) => any;
+	// public onremovetrack: (this: MediaStream, ev: Event) => any;
 
 	constructor(tracks: FakeMediaStreamTrack[])
 	{
@@ -35,12 +40,32 @@ export class AiortcMediaStream extends EventTarget implements MediaStream
 			.some((track) => track.readyState === 'live');
 	}
 
+	get onaddtrack(): any
+	{
+		return getEventAttributeValue(this, 'addtrack');
+	}
+
+	set onaddtrack(listener)
+	{
+		setEventAttributeValue(this, 'addtrack', listener);
+	}
+
+	get onremovetrack(): any
+	{
+		return getEventAttributeValue(this, 'removetrack');
+	}
+
+	set onremovetrack(listener)
+	{
+		setEventAttributeValue(this, 'removetrack', listener);
+	}
+
 	/**
 	 * Custom method to close associated MediaPlayers in aiortc.
 	 */
 	close(): void
 	{
-		this.dispatchEvent({ type: '@close' });
+		this.dispatchEvent(new Event('@close'));
 
 		for (const track of this._tracks.values())
 		{
@@ -87,10 +112,3 @@ export class AiortcMediaStream extends EventTarget implements MediaStream
 		throw new Error('not implemented');
 	}
 }
-
-// Define EventTarget properties.
-// NOTE: These are not implemented/dispatched.
-defineEventAttribute(AiortcMediaStream.prototype, 'addtrack');
-defineEventAttribute(AiortcMediaStream.prototype, 'removetrack');
-// Custom EventTarget properties.
-defineEventAttribute(AiortcMediaStream.prototype, '@close');

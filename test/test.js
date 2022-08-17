@@ -307,8 +307,9 @@ test('transport.produce() succeeds', async () =>
 	expect(codecs[0].mimeType).toBe('audio/opus');
 
 	headerExtensions = audioProducer.rtpParameters.headerExtensions;
-	expect(headerExtensions.length).toBe(1);
-	expect(headerExtensions[0].uri).toBe('urn:ietf:params:rtp-hdrext:sdes:mid');
+	expect(headerExtensions.length).toBe(2);
+	expect(headerExtensions[0].uri).toBe('urn:ietf:params:rtp-hdrext:ssrc-audio-level');
+	expect(headerExtensions[1].uri).toBe('urn:ietf:params:rtp-hdrext:sdes:mid');
 
 	encodings = audioProducer.rtpParameters.encodings;
 	expect(encodings).toBeType('array');

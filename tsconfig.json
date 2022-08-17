@@ -2,7 +2,7 @@
 	"compileOnSave": true,
 	"compilerOptions":
 	{
-		"lib": [ "es6", "dom" ],
+		"lib": [ "es2018", "dom" ],
 		"target": "es2020",
 		"module": "commonjs",
 		"moduleResolution": "node",

@@ -262,7 +262,7 @@ export class Handler extends HandlerInterface
 		}
 
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind[track.kind]);
+			utils.clone(this._sendingRtpParametersByKind[track.kind], {});
 
 		// This may throw.
 		sendingRtpParameters.codecs =
@@ -423,6 +423,18 @@ export class Handler extends HandlerInterface
 			answer as RTCSessionDescription);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async pauseSending(localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async resumeSending(localId: string): Promise<void>
+	{
+		// Unimplemented.
+	}
+
 	async replaceTrack(
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
@@ -528,8 +540,7 @@ export class Handler extends HandlerInterface
 			maxPacketLifeTime,
 			maxRetransmits,
 			label,
-			protocol,
-			priority // eslint-disable-line @typescript-eslint/no-unused-vars
+			protocol
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
@@ -631,25 +642,32 @@ export class Handler extends HandlerInterface
 		return { dataChannel, sctpStreamParameters };
 	}
 
-	async receive(
-		{ trackId, kind, rtpParameters }: HandlerReceiveOptions
-	): Promise<HandlerReceiveResult>
+	async receive(optionsList: HandlerReceiveOptions[]): Promise<HandlerReceiveResult[]>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+		const results: HandlerReceiveResult[] = [];
+		const mapLocalId: Map<string, string> = new Map();
 
-		const localId = rtpParameters.mid || String(this._mapLocalIdMid.size);
-		const mid = localId;
+		for (const options of optionsList)
+		{
+			const { trackId, kind, rtpParameters } = options;
 
-		this._remoteSdp.receive(
-			{
-				mid,
-				kind,
-				offerRtpParameters : rtpParameters,
-				streamId           : rtpParameters.rtcp.cname,
-				trackId
-			});
+			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
+
+			const localId = rtpParameters.mid || String(this._mapLocalIdMid.size);
+
+			mapLocalId.set(trackId, localId);
+
+			this._remoteSdp!.receive(
+				{
+					mid                : localId,
+					kind,
+					offerRtpParameters : rtpParameters,
+					streamId           : rtpParameters.rtcp!.cname!,
+					trackId
+				});
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
@@ -666,16 +684,22 @@ export class Handler extends HandlerInterface
 			'handler.createAnswer', this._internal);
 
 		const localSdpObject = sdpTransform.parse(answer.sdp);
-		const answerMediaObject = localSdpObject.media
-			.find((m: any) => String(m.mid) === localId);
 
-		// May need to modify codec parameters in the answer based on codec
-		// parameters in the offer.
-		sdpCommonUtils.applyCodecParameters(
-			{
-				offerRtpParameters : rtpParameters,
-				answerMediaObject
-			});
+		for (const options of optionsList)
+		{
+			const { trackId, rtpParameters } = options;
+			const localId = mapLocalId.get(trackId);
+			const answerMediaObject = localSdpObject.media
+				.find((m: any) => String(m.mid) === localId);
+
+			// May need to modify codec parameters in the answer based on codec
+			// parameters in the offer.
+			sdpCommonUtils.applyCodecParameters(
+				{
+					offerRtpParameters : rtpParameters,
+					answerMediaObject
+				});
+		}
 
 		answer =
 		{
@@ -695,44 +719,55 @@ export class Handler extends HandlerInterface
 			this._internal,
 			answer as RTCSessionDescription);
 
-		// Create a fake remote track to be returned.
-		const track = new FakeMediaStreamTrack(
-			{
-				kind,
-				id   : trackId,
-				data : { remote: true } // This let's us know that this is remote.
-			});
+		// Create fake remote tracks to be returned.
+		for (const options of optionsList)
+		{
+			const { trackId, kind } = options;
+			const localId = mapLocalId.get(trackId);
 
-		// Store the remote track into the map.
-		this._mapLocalIdTracks.set(localId, track);
+			const track = new FakeMediaStreamTrack(
+				{
+					kind,
+					id   : trackId,
+					data : { remote: true } // This let's us know that this is remote.
+				});
 
-		// Store the MID into the map.
-		this._mapLocalIdMid.set(localId, mid);
+			// Store the remote track into the map.
+			this._mapLocalIdTracks.set(localId, track);
 
-		return { localId, track };
+			// Store the MID into the map.
+			this._mapLocalIdMid.set(localId, localId);
+
+			results.push({ localId,	track });
+		}
+
+		return results;
 	}
 
-	async stopReceiving(localId: string): Promise<void>
+	async stopReceiving(localIds: string[]): Promise<void>
 	{
 		this._assertRecvDirection();
 
-		logger.debug('stopReceiving() [localId:%s]', localId);
+		for (const localId of localIds)
+		{
+			logger.debug('stopReceiving() [localId:%s]', localId);
 
-		// Remove the remote track from the map and make it emit 'ended'.
-		const track = this._mapLocalIdTracks.get(localId);
+			// Remove the remote track from the map and make it emit 'ended'.
+			const track = this._mapLocalIdTracks.get(localId);
 
-		if (!track)
-			throw new Error('associated track not found');
+			if (!track)
+				throw new Error('associated track not found');
 
-		this._mapLocalIdTracks.delete(localId);
-		track.remoteStop();
+			this._mapLocalIdTracks.delete(localId);
+			track.remoteStop();
 
-		const mid = this._mapLocalIdMid.get(localId);
+			const mid = this._mapLocalIdMid.get(localId);
 
-		if (!mid)
-			throw new Error('associated MID not found');
+			if (!mid)
+				throw new Error('associated MID not found');
 
-		this._remoteSdp.closeMediaSection(mid);
+			this._remoteSdp.closeMediaSection(mid);
+		}
 
 		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
 
@@ -756,6 +791,18 @@ export class Handler extends HandlerInterface
 			'handler.setLocalDescription',
 			this._internal,
 			answer as RTCSessionDescription);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async pauseReceiving(localIds: string[]): Promise<void>
+	{
+		// Unimplemented.
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async resumeReceiving(localIds: string[]): Promise<void>
+	{
+		// Unimplemented.
 	}
 
 	async getReceiverStats(localId: string): Promise<FakeRTCStatsReport>
@@ -901,7 +948,15 @@ export class Handler extends HandlerInterface
 			localDtlsRole === 'client' ? 'server' : 'client');
 
 		// Need to tell the remote transport about our parameters.
-		await this.safeEmitAsPromise('@connect', { dtlsParameters });
+		await new Promise<void>((resolve, reject) =>
+		{
+			this.safeEmit(
+				'@connect',
+				{ dtlsParameters },
+				resolve,
+				reject
+			);
+		});
 
 		this._transportReady = true;
 	}

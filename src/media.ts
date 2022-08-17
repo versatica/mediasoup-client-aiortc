@@ -41,7 +41,7 @@ export async function getUserMedia(
 	constraints: AiortcMediaStreamConstraints = {}
 ): Promise<AiortcMediaStream>
 {
-	constraints = clone(constraints) as AiortcMediaStreamConstraints;
+	constraints = clone(constraints, {}) as AiortcMediaStreamConstraints;
 
 	let { audio, video } = constraints;
 	let audioPlayerInternal: MediaPlayerInternal;
@@ -141,7 +141,6 @@ export async function getUserMedia(
 						source  : 'device',
 						file    : video.device || 'default:none',
 						format  : video.format || 'avfoundation',
-						// eslint-disable-next-line @typescript-eslint/camelcase
 						options : video.options || { framerate: '30', video_size: '640x480' }
 					};
 				}
@@ -152,7 +151,6 @@ export async function getUserMedia(
 						source  : 'device',
 						file    : video.device || '/dev/video0',
 						format  : video.format || 'v4l2',
-						// eslint-disable-next-line @typescript-eslint/camelcase
 						options : video.options || { framerate: '30', video_size: '640x480' }
 					};
 				}

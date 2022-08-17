@@ -17,7 +17,7 @@ interface Sent
 	method: string;
 	resolve: (data?: any) => void;
 	reject: (error: Error) => void;
-	timer: NodeJS.Timer;
+	timer: ReturnType<typeof setTimeout>;
 	close: () => void;
 }
 

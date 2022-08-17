@@ -1,4 +1,9 @@
-import { EventTarget, defineEventAttribute } from 'event-target-shim';
+import {
+	EventTarget,
+	Event,
+	getEventAttributeValue,
+	setEventAttributeValue
+} from 'event-target-shim';
 import { Logger } from 'mediasoup-client/lib/Logger';
 import { InvalidStateError } from 'mediasoup-client/lib/errors';
 import { Channel } from './Channel';
@@ -32,18 +37,9 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	private _readyState: RTCDataChannelState = 'connecting';
 	private _bufferedAmount = 0;
 	private _bufferedAmountLowThreshold = 0;
-	private _binaryType = 'arraybuffer';
+	private _binaryType: BinaryType = 'arraybuffer';
 	// NOTE: Deprecated as per spec, but still required by TS/ RTCDataChannel.
 	private _priority: RTCPriorityType = 'high';
-	// NOTE: Event listeners. These are cosmetic public members to make TS happy.
-	// They are overrided at the bottom with defineEventAttribute().
-	public onopen: (this: RTCDataChannel, ev: Event) => any;
-	public onclosing: (this: RTCDataChannel, ev: Event) => any;
-	public onclose: (this: RTCDataChannel, ev: Event) => any;
-	public onmessage: (this: RTCDataChannel, ev: MessageEvent) => any;
-	public onbufferedamountlow: (this: RTCDataChannel, ev: Event) => any;
-	// NOTE: onerror not used.
-	public onerror: (this: RTCDataChannel, ev: RTCErrorEvent) => any;
 
 	constructor(
 		internal: { handlerId: string; dataChannelId: string },
@@ -141,13 +137,13 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 			'datachannel.setBufferedAmountLowThreshold', this._internal, value);
 	}
 
-	get binaryType(): string
+	get binaryType(): BinaryType
 	{
 		return this._binaryType;
 	}
 
 	// NOTE: Just 'arraybuffer' is valid for Node.js.
-	set binaryType(value: string)
+	set binaryType(value: BinaryType)
 	{
 		logger.warn('binaryType setter not implemented, using "arraybuffer"');
 	}
@@ -161,6 +157,66 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	set priority(value: RTCPriorityType)
 	{
 		this._priority = value;
+	}
+
+	get onopen(): any
+	{
+		return getEventAttributeValue(this, 'open');
+	}
+
+	set onopen(listener)
+	{
+		setEventAttributeValue(this, 'open', listener);
+	}
+
+	get onclosing(): any
+	{
+		return getEventAttributeValue(this, 'closing');
+	}
+
+	set onclosing(listener)
+	{
+		setEventAttributeValue(this, 'closing', listener);
+	}
+
+	get onclose(): any
+	{
+		return getEventAttributeValue(this, 'close');
+	}
+
+	set onclose(listener)
+	{
+		setEventAttributeValue(this, 'close', listener);
+	}
+
+	get onmessage(): any
+	{
+		return getEventAttributeValue(this, 'message');
+	}
+
+	set onmessage(listener)
+	{
+		setEventAttributeValue(this, 'message', listener);
+	}
+
+	get onbufferedamountlow(): any
+	{
+		return getEventAttributeValue(this, 'bufferedamountlow');
+	}
+
+	set onbufferedamountlow(listener)
+	{
+		setEventAttributeValue(this, 'bufferedamountlow', listener);
+	}
+
+	get onerror(): any
+	{
+		return getEventAttributeValue(this, 'error');
+	}
+
+	set onerror(listener)
+	{
+		setEventAttributeValue(this, 'error', listener);
 	}
 
 	close(): void
@@ -218,7 +274,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 				{
 					this._readyState = 'open';
 
-					this.dispatchEvent({ type: 'open' });
+					this.dispatchEvent(new Event('open'));
 
 					break;
 				}
@@ -234,14 +290,15 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 					// Remove notification subscriptions.
 					this._channel.removeAllListeners(this._internal.dataChannelId);
 
-					this.dispatchEvent({ type: 'close' });
+					this.dispatchEvent(new Event('close'));
 
 					break;
 				}
 
 				case 'message':
 				{
-					this.dispatchEvent({ type: 'message', data });
+					// @ts-ignore
+					this.dispatchEvent(new Event('message', { data }));
 
 					break;
 				}
@@ -257,14 +314,15 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 						view[i] = buffer[i];
 					}
 
-					this.dispatchEvent({ type: 'message', data: arrayBuffer });
+					// @ts-ignore
+					this.dispatchEvent(new Event('message', { data: arrayBuffer }));
 
 					break;
 				}
 
 				case 'bufferedamountlow':
 				{
-					this.dispatchEvent({ type: 'bufferedamountlow' });
+					this.dispatchEvent(new Event('bufferedamountlow'));
 
 					break;
 				}
@@ -281,7 +339,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 					// NOTE: aiortc does not emit 'error'. In theory this should be a
 					// RTCErrorEvent, but anyway.
 
-					this.dispatchEvent({ type: 'error' });
+					this.dispatchEvent(new Event('error'));
 
 					break;
 				}
@@ -294,11 +352,3 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 		});
 	}
 }
-
-// Define EventTarget properties.
-defineEventAttribute(FakeRTCDataChannel.prototype, 'open');
-defineEventAttribute(FakeRTCDataChannel.prototype, 'closing');
-defineEventAttribute(FakeRTCDataChannel.prototype, 'close');
-defineEventAttribute(FakeRTCDataChannel.prototype, 'message');
-defineEventAttribute(FakeRTCDataChannel.prototype, 'bufferedamountlow');
-defineEventAttribute(FakeRTCDataChannel.prototype, 'error');

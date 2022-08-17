@@ -14,7 +14,8 @@ const eslintConfig =
 		ecmaFeatures :
 		{
 			impliedStrict : true
-		}
+		},
+		lib : [ 'es2018', 'dom' ]
 	},
 	rules :
 	{
@@ -140,7 +141,7 @@ const eslintConfig =
 		'no-unmodified-loop-condition'  : 2,
 		'no-unreachable'                : 2,
 		'no-unused-vars'                : [ 1, { vars: 'all', args: 'after-used' } ],
-		'no-use-before-define'          : [ 2, { functions: false } ],
+		'no-use-before-define'          : 0,
 		'no-useless-call'               : 2,
 		'no-useless-computed-key'       : 2,
 		'no-useless-concat'             : 2,
@@ -194,6 +195,7 @@ switch (process.env.MEDIASOUP_NODE_LANGUAGE)
 			...eslintConfig.rules,
 			'camelcase'                                 : 0,
 			'no-unused-vars'                            : 0,
+			'@typescript-eslint/ban-ts-comment'         : 0,
 			'@typescript-eslint/ban-ts-ignore'          : 0,
 			'@typescript-eslint/member-delimiter-style' : [ 2,
 				{
@@ -210,7 +212,8 @@ switch (process.env.MEDIASOUP_NODE_LANGUAGE)
 					ignoreRestSiblings : false
 				}
 			],
-			'@typescript-eslint/no-use-before-define' : 0
+			'@typescript-eslint/no-use-before-define'  : 0,
+			'@typescript-eslint/no-non-null-assertion' : 0
 		};
 
 		break;
