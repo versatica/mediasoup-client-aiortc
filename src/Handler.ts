@@ -466,9 +466,9 @@ export class Handler extends HandlerInterface
 
 	async resumeSending(localId: string): Promise<void>
 	{
-	this._assertSendDirection();
+		this._assertSendDirection();
 
-	logger.debug('resumeSending() [localId:%s]', localId);
+		logger.debug('resumeSending() [localId:%s]', localId);
 
 		const track = this._mapLocalIdTracks.get(localId);
 
