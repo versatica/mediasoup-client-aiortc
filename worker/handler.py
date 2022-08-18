@@ -248,6 +248,7 @@ class Handler:
             data = request.data
             localId = data.get("localId")
             direction = data.get("direction")
+
             if localId is None:
                 raise TypeError("missing data.localId")
             if direction is None:
