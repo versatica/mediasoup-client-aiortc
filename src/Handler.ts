@@ -439,7 +439,10 @@ export class Handler extends HandlerInterface
 		if (!mid)
 			throw new Error('associated MID not found');
 
-		await this._channel.request('handler.setTrackDirection', this._internal, { localId, direction: 'inactive'});
+		await this._channel.request(
+			'handler.setTrackDirection',
+			this._internal,
+			{ localId, direction: 'inactive' });
 
 		const offer = await this._channel.request('handler.createOffer', this._internal);
 
@@ -480,7 +483,10 @@ export class Handler extends HandlerInterface
 		if (!mid)
 			throw new Error('associated MID not found');
 
-		await this._channel.request('handler.setTrackDirection', this._internal, { localId, direction: 'sendonly'});
+		await this._channel.request(
+			'handler.setTrackDirection',
+			this._internal,
+			{ localId, direction: 'sendonly' });
 
 		const offer = await this._channel.request('handler.createOffer', this._internal);
 
@@ -881,7 +887,10 @@ export class Handler extends HandlerInterface
 			if (!mid)
 				throw new Error('associated MID not found');
 
-			await this._channel.request('handler.setTrackDirection', this._internal, { localId, direction: 'inactive'});
+			await this._channel.request(
+				'handler.setTrackDirection',
+				this._internal,
+				{ localId, direction: 'inactive' });
 		}
 
 		const offer = await this._channel.request('handler.createOffer', this._internal);
@@ -926,7 +935,10 @@ export class Handler extends HandlerInterface
 			if (!mid)
 				throw new Error('associated MID not found');
 
-			await this._channel.request('handler.setTrackDirection', this._internal, { localId, direction: 'recvonly'});
+			await this._channel.request(
+				'handler.setTrackDirection',
+				this._internal,
+				{ localId, direction: 'recvonly' });
 		}
 
 		const offer = await this._channel.request('handler.createOffer', this._internal);
