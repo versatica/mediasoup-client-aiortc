@@ -298,7 +298,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 				case 'message':
 				{
 					// @ts-ignore
-					this.dispatchEvent(new Event('message', { data }));
+					this.dispatchEvent(new MessageEvent('message', { data }));
 
 					break;
 				}
@@ -315,7 +315,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 					}
 
 					// @ts-ignore
-					this.dispatchEvent(new Event('message', { data: arrayBuffer }));
+					this.dispatchEvent(new MessageEvent('message', { data: arrayBuffer }));
 
 					break;
 				}
