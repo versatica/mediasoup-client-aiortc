@@ -39,7 +39,7 @@ switch (task)
 
 		execute('MEDIASOUP_NODE_LANGUAGE=typescript eslint -c .eslintrc.js --ext=ts src/');
 		execute('MEDIASOUP_NODE_LANGUAGE=javascript eslint -c .eslintrc.js --ext=js --ignore-pattern \'!.eslintrc.js\' .eslintrc.js npm-scripts.js test/');
-		execute(`${PYTHON3} -m flake8 worker/`);
+		execute(`cd worker && ${PYTHON3} -m flake8 && cd ..`);
 		execute(`cd worker && ${PYTHON3} -m mypy . && cd ..`);
 
 		break;

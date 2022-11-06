@@ -254,6 +254,20 @@ Just valid if `source` is "device". Specifies the device options used by `ffmpeg
 When sending, `dataChannel.send()` (and hence `dataProducer.send()`) allows passing a string, a `Buffer` instance or an `ArrayBuffer` instance.
 
 
+## Development
+
+In order to run `npm run lint` task, the following Python dependencies are required:
+
+- `flake8` >= 5.0.4
+- `mypy` >= 0.982
+
+Install them with `pip` command:
+
+```bash
+$ pip3 install flake8==5.0.4 mypy==0.982
+```
+
+
 ## Caveats
 
 See the list of [open issues](https://github.com/versatica/mediasoup-client-aiortc/issues).
