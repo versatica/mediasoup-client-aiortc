@@ -53,12 +53,12 @@ class Channel:
         rsock = socket.socket(
             socket.AF_UNIX, socket.SOCK_STREAM, 0, self._readfd)
         self._reader, writer = await asyncio.open_connection(
-            sock=rsock, loop=self._loop)
+            sock=rsock)
 
         wsock = socket.socket(
             socket.AF_UNIX, socket.SOCK_STREAM, 0, self._writefd)
         reader, self._writer = await asyncio.open_connection(
-            sock=wsock, loop=self._loop)
+            sock=wsock)
 
         self._connected = True
 

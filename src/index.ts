@@ -15,7 +15,7 @@ const logger = new Logger('aiortc');
 /**
  * Expose version.
  */
-export const version = '__VERSION__';
+export const version = '__MEDIASOUP_CLIENT_AIORTC_VERSION__';
 
 /**
  * Expose Worker factory.
@@ -41,8 +41,8 @@ export async function createWorker(
  */
 export {
 	Worker,
-	WorkerSettings,
-	WorkerLogLevel
+	type WorkerSettings,
+	type WorkerLogLevel
 };
 
 /**
@@ -50,6 +50,6 @@ export {
  */
 export {
 	AiortcMediaStream,
-	AiortcMediaStreamConstraints,
-	AiortcMediaTrackConstraints
+	type AiortcMediaStreamConstraints,
+	type AiortcMediaTrackConstraints
 };

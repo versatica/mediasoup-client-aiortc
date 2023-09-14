@@ -39,32 +39,32 @@ const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 export class Handler extends HandlerInterface
 {
 	// Internal data.
-	private readonly _internal: { handlerId: string };
+	readonly #internal: { handlerId: string };
 	// Channel instance.
-	private readonly _channel: Channel;
+	readonly #channel: Channel;
 	// Closed flag.
-	private _closed = false;
+	#closed = false;
 	// Running flag. It means that the handler has been told to the worker.
-	private _running = false;
+	#running = false;
 	// Handler direction.
-	private _direction: 'send' | 'recv';
+	#direction?: 'send' | 'recv';
 	// Remote SDP handler.
-	private _remoteSdp: RemoteSdp;
+	#remoteSdp?: RemoteSdp;
 	// Generic sending RTP parameters for audio and video.
-	private _sendingRtpParametersByKind: { [key: string]: RtpParameters };
+	#sendingRtpParametersByKind?: { [key: string]: RtpParameters };
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
-	private _sendingRemoteRtpParametersByKind: { [key: string]: RtpParameters };
+	#sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
 	// Map of sending and receiving tracks indexed by localId.
-	private readonly _mapLocalIdTracks: Map<string, FakeMediaStreamTrack> = new Map();
+	readonly #mapLocalIdTracks: Map<string, FakeMediaStreamTrack> = new Map();
 	// Map of MID indexed by local ids.
-	private readonly _mapLocalIdMid: Map<string, string> = new Map();
+	readonly #mapLocalIdMid: Map<string, string> = new Map();
 	// Got transport local and remote parameters.
-	private _transportReady = false;
+	#transportReady = false;
 	// Whether a DataChannel m=application section has been created.
-	private _hasDataChannelMediaSection = false;
+	#hasDataChannelMediaSection = false;
 	// Next DataChannel id.
-	private _nextSendSctpStreamId = 0;
+	#nextSendSctpStreamId = 0;
 
 	/**
 	 * Addicional events.
@@ -84,13 +84,13 @@ export class Handler extends HandlerInterface
 	{
 		super();
 
-		this._internal = internal;
-		this._channel = channel;
+		this.#internal = internal;
+		this.#channel = channel;
 	}
 
 	get closed(): boolean
 	{
-		return this._closed;
+		return this.#closed;
 	}
 
 	get name(): string
@@ -102,24 +102,30 @@ export class Handler extends HandlerInterface
 	{
 		logger.debug('close()');
 
-		if (this._closed)
+		if (this.#closed)
+		{
 			return;
+		}
 
-		this._closed = true;
+		this.#closed = true;
 
 		// Deregister sending tracks events and emit 'ended' in remote tracks.
-		for (const track of this._mapLocalIdTracks.values())
+		for (const track of this.#mapLocalIdTracks.values())
 		{
 			if (track.data.remote)
+			{
 				track.remoteStop();
+			}
 		}
 
 		// Remove notification subscriptions.
-		this._channel.removeAllListeners(this._internal.handlerId);
+		this.#channel.removeAllListeners(this.#internal.handlerId);
 
 		// If running notify the worker.
-		if (this._running)
-			this._channel.notify('handler.close', this._internal);
+		if (this.#running)
+		{
+			this.#channel.notify('handler.close', this.#internal);
+		}
 
 		// Tell the parent.
 		this.emit('@close');
@@ -129,7 +135,7 @@ export class Handler extends HandlerInterface
 	{
 		logger.debug('getNativeRtpCapabilities()');
 
-		const sdp = await this._channel.request('getRtpCapabilities');
+		const sdp = await this.#channel.request('getRtpCapabilities');
 
 		const sdpObject = sdpTransform.parse(sdp);
 		const caps = sdpCommonUtils.extractRtpCapabilities({ sdpObject });
@@ -163,12 +169,12 @@ export class Handler extends HandlerInterface
 	{
 		logger.debug('run()');
 
-		this._direction = direction;
+		this.#direction = direction;
 
 		// aiortc only supports "sha-256" hash algorithm.
 		dtlsParameters.fingerprints = dtlsParameters.fingerprints.filter((f) => f.algorithm ==='sha-256');
 
-		this._remoteSdp = new RemoteSdp(
+		this.#remoteSdp = new RemoteSdp(
 			{
 				iceParameters,
 				iceCandidates,
@@ -176,13 +182,13 @@ export class Handler extends HandlerInterface
 				sctpParameters
 			});
 
-		this._sendingRtpParametersByKind =
+		this.#sendingRtpParametersByKind =
 		{
 			audio : ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
 			video : ortc.getSendingRtpParameters('video', extendedRtpCapabilities)
 		};
 
-		this._sendingRemoteRtpParametersByKind =
+		this.#sendingRemoteRtpParametersByKind =
 		{
 			audio : ortc.getSendingRemoteRtpParameters('audio', extendedRtpCapabilities),
 			video : ortc.getSendingRemoteRtpParameters('video', extendedRtpCapabilities)
@@ -194,7 +200,7 @@ export class Handler extends HandlerInterface
 		};
 
 		// Notify the worker so it will create a handler.
-		this._channel.request('createHandler', this._internal, options)
+		this.#channel.request('createHandler', this.#internal, options)
 			.catch((error) =>
 			{
 				logger.error(`handler creation in the worker failed: ${error}`);
@@ -203,9 +209,9 @@ export class Handler extends HandlerInterface
 			});
 
 		// Set the running flag.
-		this._running = true;
+		this.#running = true;
 
-		this._handleWorkerNotifications();
+		this.handleWorkerNotifications();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -222,8 +228,8 @@ export class Handler extends HandlerInterface
 
 	async getTransportStats(): Promise<FakeRTCStatsReport>
 	{
-		const data = await this._channel.request(
-			'handler.getTransportStats', this._internal);
+		const data = await this.#channel.request(
+			'handler.getTransportStats', this.#internal);
 
 		return new FakeRTCStatsReport(data);
 	}
@@ -233,7 +239,7 @@ export class Handler extends HandlerInterface
 		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug(
 			'send() [kind:%s, track.id:%s, track.data:%o]',
@@ -245,14 +251,14 @@ export class Handler extends HandlerInterface
 
 		if (playerId)
 		{
-			await this._channel.request(
-				'handler.addTrack', this._internal, { localId, playerId, kind });
+			await this.#channel.request(
+				'handler.addTrack', this.#internal, { localId, playerId, kind });
 		}
 		else if (remote)
 		{
-			await this._channel.request(
+			await this.#channel.request(
 				'handler.addTrack',
-				this._internal,
+				this.#internal,
 				{ localId, recvTrackId: track.id, kind });
 		}
 		else
@@ -262,42 +268,44 @@ export class Handler extends HandlerInterface
 		}
 
 		const sendingRtpParameters =
-			utils.clone(this._sendingRtpParametersByKind[track.kind], {});
+			utils.clone(this.#sendingRtpParametersByKind![track.kind], {});
 
 		// This may throw.
 		sendingRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRtpParameters.codecs, codec);
 
 		const sendingRemoteRtpParameters =
-			this._sendingRemoteRtpParametersByKind[track.kind];
+			this.#sendingRemoteRtpParametersByKind![track.kind];
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs =
 			ortc.reduceCodecs(sendingRemoteRtpParameters.codecs, codec);
 
-		let offer = await this._channel.request(
-			'handler.createOffer', this._internal);
+		let offer = await this.#channel.request(
+			'handler.createOffer', this.#internal);
 
 		let localSdpObject = sdpTransform.parse(offer.sdp);
 
-		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+		if (!this.#transportReady)
+		{
+			await this.setupTransport({ localDtlsRole: 'server', localSdpObject });
+		}
 
 		logger.debug(
 			'send() | calling handler.setLocalDescription() [offer:%o]',
 			offer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setLocalDescription',
-			this._internal,
+			this.#internal,
 			offer as RTCSessionDescription);
 
 		// Get the MID and the corresponding m= section.
-		const mid = await this._channel.request(
-			'handler.getMid', this._internal, { localId });
+		const mid = await this.#channel.request(
+			'handler.getMid', this.#internal, { localId });
 
-		offer = await this._channel.request(
-			'handler.getLocalDescription', this._internal);
+		offer = await this.#channel.request(
+			'handler.getLocalDescription', this.#internal);
 
 		localSdpObject = sdpTransform.parse(offer.sdp);
 
@@ -316,7 +324,7 @@ export class Handler extends HandlerInterface
 		sendingRtpParameters.encodings =
 			sdpUnifiedPlanUtils.getRtpEncodings({ offerMediaObject });
 
-		this._remoteSdp.send(
+		this.#remoteSdp!.send(
 			{
 				offerMediaObject,
 				reuseMid            : '', // May be in the future.
@@ -326,25 +334,25 @@ export class Handler extends HandlerInterface
 				extmapAllowMixed    : false
 			});
 
-		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
 
 		logger.debug(
 			'send() | calling handler.setRemoteDescription() [answer:%o]',
 			answer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setRemoteDescription',
-			this._internal,
+			this.#internal,
 			answer as RTCSessionDescription);
 
 		// Store the original track into our map and listen for events.
-		this._mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
+		this.#mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
 
 		track.addEventListener('@enabledchange', () =>
 		{
 			// Ensure we are still sending this track.
 			if (
-				this._mapLocalIdTracks.get(localId) !== track ||
+				this.#mapLocalIdTracks.get(localId) !== track ||
 				track.readyState === 'ended'
 			)
 			{
@@ -353,18 +361,18 @@ export class Handler extends HandlerInterface
 
 			if (track.enabled)
 			{
-				this._channel.notify(
-					'handler.enableTrack', this._internal, { localId });
+				this.#channel.notify(
+					'handler.enableTrack', this.#internal, { localId });
 			}
 			else
 			{
-				this._channel.notify(
-					'handler.disableTrack', this._internal, { localId });
+				this.#channel.notify(
+					'handler.disableTrack', this.#internal, { localId });
 			}
 		});
 
 		// Store the MID into the map.
-		this._mapLocalIdMid.set(localId, mid);
+		this.#mapLocalIdMid.set(localId, mid);
 
 		return {
 			localId,
@@ -374,140 +382,152 @@ export class Handler extends HandlerInterface
 
 	async stopSending(localId: string): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('stopSending() [localId:%s]', localId);
 
 		// Remove the original track from our map and its events.
-		const track = this._mapLocalIdTracks.get(localId);
+		const track = this.#mapLocalIdTracks.get(localId);
 
 		if (!track)
+		{
 			throw new Error('associated track not found');
+		}
 
-		this._mapLocalIdTracks.delete(localId);
+		this.#mapLocalIdTracks.delete(localId);
 
 		// Remove the MID from the map.
-		const mid = this._mapLocalIdMid.get(localId);
+		const mid = this.#mapLocalIdMid.get(localId);
 
 		if (!mid)
+		{
 			throw new Error('associated MID not found');
+		}
 
-		this._mapLocalIdMid.delete(localId);
+		this.#mapLocalIdMid.delete(localId);
 
-		await this._channel.request(
-			'handler.removeTrack', this._internal, { localId });
+		await this.#channel.request(
+			'handler.removeTrack', this.#internal, { localId });
 
-		this._remoteSdp.disableMediaSection(mid);
+		this.#remoteSdp!.disableMediaSection(mid);
 
 		const offer =
-			await this._channel.request('handler.createOffer', this._internal);
+			await this.#channel.request('handler.createOffer', this.#internal);
 
 		logger.debug(
 			'stopSending() | calling handler.setLocalDescription() [offer:%o]',
 			offer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setLocalDescription',
-			this._internal,
+			this.#internal,
 			offer as RTCSessionDescription);
 
-		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
 
 		logger.debug(
 			'stopSending() | calling handler.setRemoteDescription() [answer:%o]',
 			answer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setRemoteDescription',
-			this._internal,
+			this.#internal,
 			answer as RTCSessionDescription);
 	}
 
 	async pauseSending(localId: string): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('pauseSending() [localId:%s]', localId);
 
-		const track = this._mapLocalIdTracks.get(localId);
+		const track = this.#mapLocalIdTracks.get(localId);
 
 		if (!track)
+		{
 			throw new Error('associated track not found');
+		}
 
-		const mid = this._mapLocalIdMid.get(localId);
+		const mid = this.#mapLocalIdMid.get(localId);
 
 		if (!mid)
+		{
 			throw new Error('associated MID not found');
+		}
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setTrackDirection',
-			this._internal,
+			this.#internal,
 			{ localId, direction: 'inactive' });
 
-		const offer = await this._channel.request('handler.createOffer', this._internal);
+		const offer = await this.#channel.request('handler.createOffer', this.#internal);
 
 		logger.debug(
 			'pauseSending() | calling handler.setLocalDescription() [offer:%o]',
 			offer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setLocalDescription',
-			this._internal,
+			this.#internal,
 			offer as RTCSessionDescription);
 
-		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
 
 		logger.debug(
 			'pauseSending() | calling handler.setRemoteDescription() [answer:%o]',
 			answer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setRemoteDescription',
-			this._internal,
+			this.#internal,
 			answer as RTCSessionDescription);
 	}
 
 	async resumeSending(localId: string): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		logger.debug('resumeSending() [localId:%s]', localId);
 
-		const track = this._mapLocalIdTracks.get(localId);
+		const track = this.#mapLocalIdTracks.get(localId);
 
 		if (!track)
+		{
 			throw new Error('associated track not found');
+		}
 
-		const mid = this._mapLocalIdMid.get(localId);
+		const mid = this.#mapLocalIdMid.get(localId);
 
 		if (!mid)
+		{
 			throw new Error('associated MID not found');
+		}
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setTrackDirection',
-			this._internal,
+			this.#internal,
 			{ localId, direction: 'sendonly' });
 
-		const offer = await this._channel.request('handler.createOffer', this._internal);
+		const offer = await this.#channel.request('handler.createOffer', this.#internal);
 
 		logger.debug(
 			'resumeSending() | calling handler.setLocalDescription() [offer:%o]',
 			offer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setLocalDescription',
-			this._internal,
+			this.#internal,
 			offer as RTCSessionDescription);
 
-		const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
 
 		logger.debug(
 			'stopSending() | calling handler.setRemoteDescription() [answer:%o]',
 			answer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setRemoteDescription',
-			this._internal,
+			this.#internal,
 			answer as RTCSessionDescription);
 	}
 
@@ -515,7 +535,7 @@ export class Handler extends HandlerInterface
 		localId: string, track: MediaStreamTrack | null
 	): Promise<void>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		if (track)
 		{
@@ -530,24 +550,26 @@ export class Handler extends HandlerInterface
 				'replaceTrack() with null track not implemented');
 		}
 
-		const mid = this._mapLocalIdMid.get(localId);
+		const mid = this.#mapLocalIdMid.get(localId);
 
 		if (!mid)
+		{
 			throw new Error('associated MID not found');
+		}
 
 		const kind = track.kind;
 		const { playerId, remote } = (track as FakeMediaStreamTrack).data;
 
 		if (playerId)
 		{
-			await this._channel.request(
-				'handler.replaceTrack', this._internal, { localId, playerId, kind });
+			await this.#channel.request(
+				'handler.replaceTrack', this.#internal, { localId, playerId, kind });
 		}
 		else if (remote)
 		{
-			await this._channel.request(
+			await this.#channel.request(
 				'handler.replaceTrack',
-				this._internal,
+				this.#internal,
 				{ localId, recvTrackId: track.id, kind });
 		}
 		else
@@ -557,13 +579,13 @@ export class Handler extends HandlerInterface
 		}
 
 		// Store the new original track into our map and listen for events.
-		this._mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
+		this.#mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
 
 		track.addEventListener('@enabledchange', () =>
 		{
 			// Ensure we are still sending this track.
 			if (
-				this._mapLocalIdTracks.get(localId) !== track ||
+				this.#mapLocalIdTracks.get(localId) !== track ||
 				track.readyState === 'ended'
 			)
 			{
@@ -572,13 +594,13 @@ export class Handler extends HandlerInterface
 
 			if (track.enabled)
 			{
-				this._channel.notify(
-					'handler.enableTrack', this._internal, { localId });
+				this.#channel.notify(
+					'handler.enableTrack', this.#internal, { localId });
 			}
 			else
 			{
-				this._channel.notify(
-					'handler.disableTrack', this._internal, { localId });
+				this.#channel.notify(
+					'handler.disableTrack', this.#internal, { localId });
 			}
 		});
 	}
@@ -597,15 +619,17 @@ export class Handler extends HandlerInterface
 
 	async getSenderStats(localId: string): Promise<FakeRTCStatsReport>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
-		const mid = this._mapLocalIdMid.get(localId);
+		const mid = this.#mapLocalIdMid.get(localId);
 
 		if (!mid)
+		{
 			throw new Error('associated MID not found');
+		}
 
-		const data = await this._channel.request(
-			'handler.getSenderStats', this._internal, { mid });
+		const data = await this.#channel.request(
+			'handler.getSenderStats', this.#internal, { mid });
 
 		return new FakeRTCStatsReport(data);
 	}
@@ -620,18 +644,18 @@ export class Handler extends HandlerInterface
 		}: HandlerSendDataChannelOptions
 	): Promise<HandlerSendDataChannelResult>
 	{
-		this._assertSendDirection();
+		this.assertSendDirection();
 
 		const internal =
 		{
-			handlerId     : this._internal.handlerId,
+			handlerId     : this.#internal.handlerId,
 			dataChannelId : uuidv4()
 		};
 
 		const options =
 		{
 			negotiated        : true,
-			id                : this._nextSendSctpStreamId,
+			id                : this.#nextSendSctpStreamId,
 			ordered,
 			maxPacketLifeTime : maxPacketLifeTime || null, // Important.
 			maxRetransmits    : maxRetransmits || null, // Important.
@@ -641,12 +665,12 @@ export class Handler extends HandlerInterface
 
 		logger.debug('sendDataChannel() [options:%o]', options);
 
-		const result = await this._channel.request(
+		const result = await this.#channel.request(
 			'handler.createDataChannel', internal, options);
 
 		const dataChannel = new FakeRTCDataChannel(
 			internal,
-			this._channel,
+			this.#channel,
 			// options.
 			{
 				id                : result.streamId,
@@ -665,46 +689,48 @@ export class Handler extends HandlerInterface
 		);
 
 		// Increase next id.
-		this._nextSendSctpStreamId =
-			++this._nextSendSctpStreamId % SCTP_NUM_STREAMS.MIS;
+		this.#nextSendSctpStreamId =
+			++this.#nextSendSctpStreamId % SCTP_NUM_STREAMS.MIS;
 
 		// If this is the first DataChannel we need to create the SDP answer with
 		// m=application section.
-		if (!this._hasDataChannelMediaSection)
+		if (!this.#hasDataChannelMediaSection)
 		{
-			const offer = await this._channel.request(
-				'handler.createOffer', this._internal);
+			const offer = await this.#channel.request(
+				'handler.createOffer', this.#internal);
 
 			const localSdpObject = sdpTransform.parse(offer.sdp);
 			const offerMediaObject = localSdpObject.media
 				.find((m: any) => m.type === 'application');
 
-			if (!this._transportReady)
-				await this._setupTransport({ localDtlsRole: 'server', localSdpObject });
+			if (!this.#transportReady)
+			{
+				await this.setupTransport({ localDtlsRole: 'server', localSdpObject });
+			}
 
 			logger.debug(
 				'sendDataChannel() | calling handler.setLocalDescription() [offer:%o]',
 				offer);
 
-			await this._channel.request(
+			await this.#channel.request(
 				'handler.setLocalDescription',
-				this._internal,
+				this.#internal,
 				offer as RTCSessionDescription);
 
-			this._remoteSdp.sendSctpAssociation({ offerMediaObject });
+			this.#remoteSdp!.sendSctpAssociation({ offerMediaObject });
 
-			const answer = { type: 'answer', sdp: this._remoteSdp.getSdp() };
+			const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
 
 			logger.debug(
 				'sendDataChannel() | calling handler.setRemoteDescription() [answer:%o]',
 				answer);
 
-			await this._channel.request(
+			await this.#channel.request(
 				'handler.setRemoteDescription',
-				this._internal,
+				this.#internal,
 				answer as RTCSessionDescription);
 
-			this._hasDataChannelMediaSection = true;
+			this.#hasDataChannelMediaSection = true;
 		}
 
 		const sctpStreamParameters: SctpStreamParameters =
@@ -715,12 +741,15 @@ export class Handler extends HandlerInterface
 			maxRetransmits    : result.maxRetransmits || undefined
 		};
 
-		return { dataChannel, sctpStreamParameters };
+		return {
+			dataChannel,
+			sctpStreamParameters
+		};
 	}
 
 	async receive(optionsList: HandlerReceiveOptions[]): Promise<HandlerReceiveResult[]>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const results: HandlerReceiveResult[] = [];
 		const mapLocalId: Map<string, string> = new Map();
@@ -731,11 +760,11 @@ export class Handler extends HandlerInterface
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-			const localId = rtpParameters.mid || String(this._mapLocalIdMid.size);
+			const localId = rtpParameters.mid || String(this.#mapLocalIdMid.size);
 
 			mapLocalId.set(trackId, localId);
 
-			this._remoteSdp!.receive(
+			this.#remoteSdp!.receive(
 				{
 					mid                : localId,
 					kind,
@@ -745,19 +774,19 @@ export class Handler extends HandlerInterface
 				});
 		}
 
-		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+		const offer = { type: 'offer', sdp: this.#remoteSdp!.getSdp() };
 
 		logger.debug(
 			'receive() | calling handler.setRemoteDescription() [offer:%o]',
 			offer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setRemoteDescription',
-			this._internal,
+			this.#internal,
 			offer as RTCSessionDescription);
 
-		let answer = await this._channel.request(
-			'handler.createAnswer', this._internal);
+		let answer = await this.#channel.request(
+			'handler.createAnswer', this.#internal);
 
 		const localSdpObject = sdpTransform.parse(answer.sdp);
 
@@ -783,23 +812,25 @@ export class Handler extends HandlerInterface
 			sdp  : sdpTransform.write(localSdpObject)
 		} as RTCSessionDescription;
 
-		if (!this._transportReady)
-			await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+		if (!this.#transportReady)
+		{
+			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
+		}
 
 		logger.debug(
 			'receive() | calling handler.setLocalDescription() [answer:%o]',
 			answer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setLocalDescription',
-			this._internal,
+			this.#internal,
 			answer as RTCSessionDescription);
 
 		// Create fake remote tracks to be returned.
 		for (const options of optionsList)
 		{
 			const { trackId, kind } = options;
-			const localId = mapLocalId.get(trackId);
+			const localId = mapLocalId.get(trackId)!;
 
 			const track = new FakeMediaStreamTrack(
 				{
@@ -809,10 +840,10 @@ export class Handler extends HandlerInterface
 				});
 
 			// Store the remote track into the map.
-			this._mapLocalIdTracks.set(localId, track);
+			this.#mapLocalIdTracks.set(localId, track);
 
 			// Store the MID into the map.
-			this._mapLocalIdMid.set(localId, localId);
+			this.#mapLocalIdMid.set(localId, localId);
 
 			results.push({ localId,	track });
 		}
@@ -822,160 +853,174 @@ export class Handler extends HandlerInterface
 
 	async stopReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		for (const localId of localIds)
 		{
 			logger.debug('stopReceiving() [localId:%s]', localId);
 
 			// Remove the remote track from the map and make it emit 'ended'.
-			const track = this._mapLocalIdTracks.get(localId);
+			const track = this.#mapLocalIdTracks.get(localId);
 
 			if (!track)
+			{
 				throw new Error('associated track not found');
+			}
 
-			this._mapLocalIdTracks.delete(localId);
+			this.#mapLocalIdTracks.delete(localId);
 			track.remoteStop();
 
-			const mid = this._mapLocalIdMid.get(localId);
+			const mid = this.#mapLocalIdMid.get(localId);
 
 			if (!mid)
+			{
 				throw new Error('associated MID not found');
+			}
 
-			this._remoteSdp.closeMediaSection(mid);
+			this.#remoteSdp!.closeMediaSection(mid);
 		}
 
-		const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+		const offer = { type: 'offer', sdp: this.#remoteSdp!.getSdp() };
 
 		logger.debug(
 			'stopReceiving() | calling handler.setRemoteDescription() [offer:%o]',
 			offer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setRemoteDescription',
-			this._internal,
+			this.#internal,
 			offer as RTCSessionDescription);
 
-		const answer = await this._channel.request(
-			'handler.createAnswer', this._internal);
+		const answer = await this.#channel.request(
+			'handler.createAnswer', this.#internal);
 
 		logger.debug(
 			'stopReceiving() | calling handler.setLocalDescription() [answer:%o]',
 			answer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setLocalDescription',
-			this._internal,
+			this.#internal,
 			answer as RTCSessionDescription);
 	}
 
 	async pauseReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		for (const localId of localIds)
 		{
 			logger.debug('pauseReceiving() [localId:%s]', localId);
 
-			const track = this._mapLocalIdTracks.get(localId);
+			const track = this.#mapLocalIdTracks.get(localId);
 
 			if (!track)
+			{
 				throw new Error('associated track not found');
+			}
 
-			const mid = this._mapLocalIdMid.get(localId);
+			const mid = this.#mapLocalIdMid.get(localId);
 
 			if (!mid)
+			{
 				throw new Error('associated MID not found');
+			}
 
-			await this._channel.request(
+			await this.#channel.request(
 				'handler.setTrackDirection',
-				this._internal,
+				this.#internal,
 				{ localId, direction: 'inactive' });
 		}
 
-		const offer = await this._channel.request('handler.createOffer', this._internal);
+		const offer = await this.#channel.request('handler.createOffer', this.#internal);
 
 		logger.debug(
 			'pauseReceiving() | calling handler.setRemoteDescription() [offer:%o]',
 			offer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setRemoteDescription',
-			this._internal,
+			this.#internal,
 			offer as RTCSessionDescription);
 
-		const answer = await this._channel.request(
-			'handler.createAnswer', this._internal);
+		const answer = await this.#channel.request(
+			'handler.createAnswer', this.#internal);
 
 		logger.debug(
 			'pauseReceiving() | calling handler.setLocalDescription() [answer:%o]',
 			answer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setLocalDescription',
-			this._internal,
+			this.#internal,
 			answer as RTCSessionDescription);
 	}
 
 	async resumeReceiving(localIds: string[]): Promise<void>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		for (const localId of localIds)
 		{
 			logger.debug('pauseReceiving() [localId:%s]', localId);
 
-			const track = this._mapLocalIdTracks.get(localId);
+			const track = this.#mapLocalIdTracks.get(localId);
 
 			if (!track)
+			{
 				throw new Error('associated track not found');
+			}
 
-			const mid = this._mapLocalIdMid.get(localId);
+			const mid = this.#mapLocalIdMid.get(localId);
 
 			if (!mid)
+			{
 				throw new Error('associated MID not found');
+			}
 
-			await this._channel.request(
+			await this.#channel.request(
 				'handler.setTrackDirection',
-				this._internal,
+				this.#internal,
 				{ localId, direction: 'recvonly' });
 		}
 
-		const offer = await this._channel.request('handler.createOffer', this._internal);
+		const offer = await this.#channel.request('handler.createOffer', this.#internal);
 
 		logger.debug(
 			'resumeReceiving() | calling handler.setRemoteDescription() [offer:%o]',
 			offer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setRemoteDescription',
-			this._internal,
+			this.#internal,
 			offer as RTCSessionDescription);
 
-		const answer = await this._channel.request(
-			'handler.createAnswer', this._internal);
+		const answer = await this.#channel.request(
+			'handler.createAnswer', this.#internal);
 
 		logger.debug(
 			'resumeReceiving() | calling handler.setLocalDescription() [answer:%o]',
 			answer);
 
-		await this._channel.request(
+		await this.#channel.request(
 			'handler.setLocalDescription',
-			this._internal,
+			this.#internal,
 			answer as RTCSessionDescription);
 	}
 
 	async getReceiverStats(localId: string): Promise<FakeRTCStatsReport>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
-		const mid = this._mapLocalIdMid.get(localId);
+		const mid = this.#mapLocalIdMid.get(localId);
 
 		if (!mid)
+		{
 			throw new Error('associated MID not found');
+		}
 
-		const data = await this._channel.request(
-			'handler.getReceiverStats', this._internal, { mid });
+		const data = await this.#channel.request(
+			'handler.getReceiverStats', this.#internal, { mid });
 
 		return new FakeRTCStatsReport(data);
 	}
@@ -984,7 +1029,7 @@ export class Handler extends HandlerInterface
 		{ sctpStreamParameters, label, protocol }: HandlerReceiveDataChannelOptions
 	): Promise<HandlerReceiveDataChannelResult>
 	{
-		this._assertRecvDirection();
+		this.assertRecvDirection();
 
 		const {
 			streamId,
@@ -995,7 +1040,7 @@ export class Handler extends HandlerInterface
 
 		const internal =
 		{
-			handlerId     : this._internal.handlerId,
+			handlerId     : this.#internal.handlerId,
 			dataChannelId : uuidv4()
 		};
 
@@ -1012,12 +1057,12 @@ export class Handler extends HandlerInterface
 
 		logger.debug('receiveDataChannel() [options:%o]', options);
 
-		const result = await this._channel.request(
+		const result = await this.#channel.request(
 			'handler.createDataChannel', internal, options);
 
 		const dataChannel = new FakeRTCDataChannel(
 			internal,
-			this._channel,
+			this.#channel,
 			// options.
 			{
 				id                : result.streamId,
@@ -1037,47 +1082,47 @@ export class Handler extends HandlerInterface
 
 		// If this is the first DataChannel we need to create the SDP offer with
 		// m=application section.
-		if (!this._hasDataChannelMediaSection)
+		if (!this.#hasDataChannelMediaSection)
 		{
-			this._remoteSdp.receiveSctpAssociation();
+			this.#remoteSdp!.receiveSctpAssociation();
 
-			const offer = { type: 'offer', sdp: this._remoteSdp.getSdp() };
+			const offer = { type: 'offer', sdp: this.#remoteSdp!.getSdp() };
 
 			logger.debug(
 				'receiveDataChannel() | calling handler.setRemoteDescription() [offer:%o]',
 				offer);
 
-			await this._channel.request(
+			await this.#channel.request(
 				'handler.setRemoteDescription',
-				this._internal,
+				this.#internal,
 				offer as RTCSessionDescription);
 
-			const answer = await this._channel.request(
-				'handler.createAnswer', this._internal);
+			const answer = await this.#channel.request(
+				'handler.createAnswer', this.#internal);
 
-			if (!this._transportReady)
+			if (!this.#transportReady)
 			{
 				const localSdpObject = sdpTransform.parse(answer.sdp);
 
-				await this._setupTransport({ localDtlsRole: 'client', localSdpObject });
+				await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
 			}
 
 			logger.debug(
 				'receiveDataChannel() | calling handler.setRemoteDescription() [answer:%o]',
 				answer);
 
-			await this._channel.request(
+			await this.#channel.request(
 				'handler.setLocalDescription',
-				this._internal,
+				this.#internal,
 				answer as RTCSessionDescription);
 
-			this._hasDataChannelMediaSection = true;
+			this.#hasDataChannelMediaSection = true;
 		}
 
 		return { dataChannel };
 	}
 
-	private async _setupTransport(
+	private async setupTransport(
 		{
 			localDtlsRole,
 			localSdpObject
@@ -1090,8 +1135,8 @@ export class Handler extends HandlerInterface
 	{
 		if (!localSdpObject)
 		{
-			const offer = await this._channel.request(
-				'handler.getLocalDescription', this._internal);
+			const offer = await this.#channel.request(
+				'handler.getLocalDescription', this.#internal);
 
 			localSdpObject = sdpTransform.parse(offer.sdp);
 		}
@@ -1104,7 +1149,7 @@ export class Handler extends HandlerInterface
 		dtlsParameters.role = localDtlsRole;
 
 		// Update the remote DTLS role in the SDP.
-		this._remoteSdp.updateDtlsRole(
+		this.#remoteSdp!.updateDtlsRole(
 			localDtlsRole === 'client' ? 'server' : 'client');
 
 		// Need to tell the remote transport about our parameters.
@@ -1118,30 +1163,30 @@ export class Handler extends HandlerInterface
 			);
 		});
 
-		this._transportReady = true;
+		this.#transportReady = true;
 	}
 
-	private _assertSendDirection(): void
+	private assertSendDirection(): void
 	{
-		if (this._direction !== 'send')
+		if (this.#direction !== 'send')
 		{
 			throw new Error(
 				'method can just be called for handlers with "send" direction');
 		}
 	}
 
-	private _assertRecvDirection(): void
+	private assertRecvDirection(): void
 	{
-		if (this._direction !== 'recv')
+		if (this.#direction !== 'recv')
 		{
 			throw new Error(
 				'method can just be called for handlers with "recv" direction');
 		}
 	}
 
-	private _handleWorkerNotifications(): void
+	private handleWorkerNotifications(): void
 	{
-		this._channel.on(this._internal.handlerId, (event: string, data?: any) =>
+		this.#channel.on(this.#internal.handlerId, (event: string, data?: any) =>
 		{
 			switch (event)
 			{

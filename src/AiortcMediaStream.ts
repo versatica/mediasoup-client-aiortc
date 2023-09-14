@@ -9,8 +9,8 @@ import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 
 export class AiortcMediaStream extends EventTarget implements MediaStream
 {
-	private readonly _id: string;
-	private readonly _tracks: Map<string, FakeMediaStreamTrack> = new Map();
+	readonly #id: string;
+	readonly #tracks: Map<string, FakeMediaStreamTrack> = new Map();
 
 	// Event listeners. These are cosmetic public members to make TS happy.
 	// NOTE: We never emit these events.
@@ -21,22 +21,22 @@ export class AiortcMediaStream extends EventTarget implements MediaStream
 	{
 		super();
 
-		this._id = uuidv4();
+		this.#id = uuidv4();
 
 		for (const track of tracks)
 		{
-			this._tracks.set(track.id, track);
+			this.#tracks.set(track.id, track);
 		}
 	}
 
 	get id(): string
 	{
-		return this._id;
+		return this.#id;
 	}
 
 	get active(): boolean
 	{
-		return Array.from(this._tracks.values())
+		return Array.from(this.#tracks.values())
 			.some((track) => track.readyState === 'live');
 	}
 
@@ -67,7 +67,7 @@ export class AiortcMediaStream extends EventTarget implements MediaStream
 	{
 		this.dispatchEvent(new Event('@close'));
 
-		for (const track of this._tracks.values())
+		for (const track of this.#tracks.values())
 		{
 			track.stop();
 		}
@@ -75,24 +75,27 @@ export class AiortcMediaStream extends EventTarget implements MediaStream
 
 	getAudioTracks(): FakeMediaStreamTrack[]
 	{
-		return Array.from(this._tracks.values())
+		return Array.from(this.#tracks.values())
 			.filter((track) => track.kind === 'audio');
 	}
 
 	getVideoTracks(): FakeMediaStreamTrack[]
 	{
-		return Array.from(this._tracks.values())
+		return Array.from(this.#tracks.values())
 			.filter((track) => track.kind === 'video');
 	}
 
 	getTracks(): FakeMediaStreamTrack[]
 	{
-		return Array.from(this._tracks.values());
+		return Array.from(this.#tracks.values());
 	}
 
+	// NOTE: TypeScript things that mediaStream.getTrackById() should return null
+	// instead of undefined. It's wrong.
+	// @ts-ignore
 	getTrackById(trackId: string): FakeMediaStreamTrack | undefined
 	{
-		return this._tracks.get(trackId);
+		return this.#tracks.get(trackId);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars

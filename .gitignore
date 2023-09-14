@@ -1,5 +1,6 @@
-/node_modules/
-/coverage/
+/node_modules
+/lib
+/coverage
 
 # Vim temporal files.
 *.swp
@@ -9,9 +10,11 @@
 .DS_Store
 
 # Vistual Studio Code stuff.
-/.vscode/
+/.vscode
 
-# Python cache
-/.mypy_cache/
-/worker/__pycache__/
-/worker/.mypy_cache/
+# Cache.
+/.cache
+/.mypy_cache
+/worker/__pycache__
+/worker/.mypy_cache
+/worker/mediasoup_client_aiortc.egg-info

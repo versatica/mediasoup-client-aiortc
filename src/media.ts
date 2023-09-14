@@ -9,7 +9,7 @@ export type AiortcMediaStreamConstraints =
 {
 	audio?: AiortcMediaTrackConstraints | boolean;
 	video?: AiortcMediaTrackConstraints | boolean;
-}
+};
 
 export type AiortcMediaTrackConstraints =
 {
@@ -19,7 +19,7 @@ export type AiortcMediaTrackConstraints =
 	url?: string;
 	format?: string;
 	options?: object;
-}
+};
 
 type MediaPlayerInternal =
 {
@@ -44,21 +44,25 @@ export async function getUserMedia(
 	constraints = clone(constraints, {}) as AiortcMediaStreamConstraints;
 
 	let { audio, video } = constraints;
-	let audioPlayerInternal: MediaPlayerInternal;
-	let videoPlayerInternal: MediaPlayerInternal;
-	let audioPlayerOptions: MediaPlayerOptions;
-	let videoPlayerOptions: MediaPlayerOptions;
+	let audioPlayerInternal: MediaPlayerInternal | undefined;
+	let videoPlayerInternal: MediaPlayerInternal | undefined;
+	let audioPlayerOptions: MediaPlayerOptions | undefined;
+	let videoPlayerOptions: MediaPlayerOptions | undefined;
 	const tracks: FakeMediaStreamTrack[] = [];
 
 	if (!audio && !video)
+	{
 		throw new TypeError('at least audio or video constraints must be given');
+	}
 
 	if (audio)
 	{
 		audioPlayerInternal = { playerId: uuidv4() };
 
 		if (audio === true)
+		{
 			audio = { source: 'device' };
+		}
 
 		switch (audio.source)
 		{
@@ -91,7 +95,9 @@ export async function getUserMedia(
 			case 'file':
 			{
 				if (!audio.file)
+				{
 					throw new TypeError('missing audio.file');
+				}
 
 				audioPlayerOptions =
 				{
@@ -105,7 +111,9 @@ export async function getUserMedia(
 			case 'url':
 			{
 				if (!audio.url)
+				{
 					throw new TypeError('missing audio.url');
+				}
 
 				audioPlayerOptions =
 				{
@@ -128,7 +136,9 @@ export async function getUserMedia(
 		videoPlayerInternal = { playerId: uuidv4() };
 
 		if (video === true)
+		{
 			video = { source: 'device' };
+		}
 
 		switch (video.source)
 		{
@@ -141,6 +151,7 @@ export async function getUserMedia(
 						source  : 'device',
 						file    : video.device || 'default:none',
 						format  : video.format || 'avfoundation',
+						// eslint-disable-next-line camelcase
 						options : video.options || { framerate: '30', video_size: '640x480' }
 					};
 				}
@@ -151,6 +162,7 @@ export async function getUserMedia(
 						source  : 'device',
 						file    : video.device || '/dev/video0',
 						format  : video.format || 'v4l2',
+						// eslint-disable-next-line camelcase
 						options : video.options || { framerate: '30', video_size: '640x480' }
 					};
 				}
@@ -161,7 +173,9 @@ export async function getUserMedia(
 			case 'file':
 			{
 				if (!video.file)
+				{
 					throw new TypeError('missing video.file');
+				}
 
 				videoPlayerOptions =
 				{
@@ -175,7 +189,9 @@ export async function getUserMedia(
 			case 'url':
 			{
 				if (!video.url)
+				{
 					throw new TypeError('missing video.url');
+				}
 
 				videoPlayerOptions =
 				{
@@ -199,9 +215,9 @@ export async function getUserMedia(
 	(
 		audioPlayerInternal &&
 		videoPlayerInternal &&
-		[ 'file', 'url' ].includes(audioPlayerOptions.source) &&
-		audioPlayerOptions.source === videoPlayerOptions.source &&
-		audioPlayerOptions.file === videoPlayerOptions.file
+		[ 'file', 'url' ].includes(audioPlayerOptions!.source) &&
+		audioPlayerOptions!.source === videoPlayerOptions!.source &&
+		audioPlayerOptions!.file === videoPlayerOptions!.file
 	);
 
 	let result:
@@ -220,7 +236,9 @@ export async function getUserMedia(
 			'createPlayer', audioPlayerInternal, audioPlayerOptions);
 
 		if (!result.audioTrackId)
+		{
 			throw new Error('no audioTrackId in result');
+		}
 
 		audioPlayerInternal.audioTrackId = result.audioTrackId;
 	}
@@ -231,7 +249,7 @@ export async function getUserMedia(
 		// player and set the same playerId in both.
 		if (areSamePlayer)
 		{
-			videoPlayerInternal.playerId = audioPlayerInternal.playerId;
+			videoPlayerInternal.playerId = audioPlayerInternal!.playerId;
 		}
 		else
 		{
@@ -244,14 +262,18 @@ export async function getUserMedia(
 			{
 				// If the video player fails and we created an audio player, close it.
 				if (audioPlayerInternal)
+				{
 					channel.notify('player.close', audioPlayerInternal);
+				}
 
 				throw error;
 			}
 		}
 
 		if (!result.videoTrackId)
+		{
 			throw new Error('no videoTrackId in result');
+		}
 
 		videoPlayerInternal.videoTrackId = result.videoTrackId;
 	}
@@ -297,10 +319,14 @@ export async function getUserMedia(
 	stream.addEventListener('@close', () =>
 	{
 		if (audioPlayerInternal)
+		{
 			channel.notify('player.close', audioPlayerInternal);
+		}
 
 		if (videoPlayerInternal && !areSamePlayer)
+		{
 			channel.notify('player.close', videoPlayerInternal);
+		}
 	});
 
 	return stream;
