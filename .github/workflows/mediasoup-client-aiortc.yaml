@@ -39,4 +39,7 @@ jobs:
             ${{ matrix.ci.os }}-node-
       - run: npm ci
       - run: npm run install-python-dev-deps
-      - run: npm run release:check
+      # NOTE: Avoid lint:python due to
+      # https://github.com/versatica/mediasoup-client-aiortc/issues/25
+      - run: npm run lint:node
+      - run: npm run test
