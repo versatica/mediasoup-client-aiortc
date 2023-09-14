@@ -115,6 +115,13 @@ async function run()
 			break;
 		}
 
+		case 'install-python-deps':
+		{
+			installPythonDeps();
+
+			break;
+		}
+
 		case 'install-python-dev-deps':
 		{
 			installPythonDevDeps();
