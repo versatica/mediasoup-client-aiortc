@@ -18,6 +18,12 @@
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "files": [
+    "npm-scripts.mjs",
+    "lib",
+    "worker/*.py",
+    "worker/*.cfg"
+  ],
   "os": [
     "!win32"
   ],

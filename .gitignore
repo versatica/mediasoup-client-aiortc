@@ -13,8 +13,9 @@
 /.vscode
 
 # Cache.
+.mypy_cache
 /.cache
 /.mypy_cache
 /worker/__pycache__
-/worker/.mypy_cache
+/worker/build
 /worker/mediasoup_client_aiortc.egg-info
