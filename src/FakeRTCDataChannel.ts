@@ -20,6 +20,8 @@ export type FakeRTCDataChannelOptions =
 	protocol?: string;
 };
 
+// TODO: https://github.com/versatica/mediasoup-client-aiortc/issues/24
+// @ts-ignore
 export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 {
 	// Internal data.

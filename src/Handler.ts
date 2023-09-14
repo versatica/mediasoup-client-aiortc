@@ -742,6 +742,8 @@ export class Handler extends HandlerInterface
 		};
 
 		return {
+			// TODO: https://github.com/versatica/mediasoup-client-aiortc/issues/24
+			// @ts-ignore
 			dataChannel,
 			sctpStreamParameters
 		};
@@ -1119,6 +1121,8 @@ export class Handler extends HandlerInterface
 			this.#hasDataChannelMediaSection = true;
 		}
 
+		// TODO: https://github.com/versatica/mediasoup-client-aiortc/issues/24
+		// @ts-ignore
 		return { dataChannel };
 	}
 

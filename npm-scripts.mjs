@@ -63,6 +63,20 @@ async function run()
 			break;
 		}
 
+		case 'lint:node':
+		{
+			lintNode();
+
+			break;
+		}
+
+		case 'lint:python':
+		{
+			lintPython();
+
+			break;
+		}
+
 		case 'test':
 		{
 			buildTypescript(/* force */ false);
@@ -186,14 +200,6 @@ function buildTypescript(force = false)
 	executeCmd('tsc');
 }
 
-function lint()
-{
-	logInfo('lint()');
-
-	lintNode();
-	lintPython();
-}
-
 function lintNode()
 {
 	logInfo('lintNode()');
@@ -205,10 +211,10 @@ function lintPython()
 {
 	logInfo('lintPython()');
 
-	const PYTHON3 = process.env.PYTHON3 || 'python3';
+	const PYTHON = process.env.PYTHON || 'python3';
 
-	executeCmd(`cd worker && ${PYTHON3} -m flake8 && cd ..`);
-	executeCmd(`cd worker && ${PYTHON3} -m mypy . && cd ..`);
+	executeCmd(`cd worker && ${PYTHON} -m flake8 && cd ..`);
+	executeCmd(`cd worker && ${PYTHON} -m mypy . && cd ..`);
 }
 
 function test()
@@ -232,18 +238,18 @@ function installPythonDeps()
 {
 	logInfo('installPythonDeps()');
 
-	const PYP3 = process.env.PIP3 || 'pip3';
+	const PIP = process.env.PIP || 'pip3';
 
-	executeCmd(`${PYP3} install --user worker/`);
+	executeCmd(`${PIP} install --user worker/`);
 }
 
 function installPythonDevDeps()
 {
 	logInfo('installPythonDevDeps()');
 
-	const PYP3 = process.env.PIP3 || 'pip3';
+	const PIP = process.env.PIP || 'pip3';
 
-	executeCmd(`${PYP3} install flake8 mypy`);
+	executeCmd(`${PIP} install flake8 mypy`);
 }
 
 function checkRelease()
@@ -254,7 +260,10 @@ function checkRelease()
 	installPythonDeps();
 	buildTypescript(/* force */ true);
 	replaceVersion();
-	lint();
+	lintNode();
+	// TODO: Disabled due to
+	// https://github.com/versatica/mediasoup-client-aiortc/issues/25
+	// lintPython();
 	test();
 }
 

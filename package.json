@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-client-aiortc",
-  "version": "3.7.2",
+  "version": "3.7.3",
   "description": "mediasoup-client handler for aiortc Python library",
   "contributors": [
     "José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)",
@@ -29,7 +29,9 @@
     "postinstall": "node npm-scripts.mjs postinstall",
     "typescript:build": "node npm-scripts.mjs typescript:build",
     "typescript:watch": "node npm-scripts.mjs typescript:watch",
-    "lint": "node npm-scripts.mjs lint",
+    "lint": "npm run lint:node && npm run lint:python",
+    "lint:node": "node npm-scripts.mjs lint:node",
+    "lint:python": "node npm-scripts.mjs lint:python",
     "test": "node npm-scripts.mjs test",
     "coverage": "node npm-scripts.mjs coverage",
     "release:check": "node npm-scripts.mjs release:check",

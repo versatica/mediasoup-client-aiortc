@@ -16,16 +16,16 @@ Once the requirements above are satisfied, install **mediasoup-client-aiortc** w
 $ npm install --save mediasoup-client-aiortc
 ```
 
-The "postinstall" script in `package.json` will install the Python libraries (including **aiortc**) by using `pip3` command. If such a command is not in the `PATH` or has a different name in your system, you can override its location by setting the `PIP3` environment variable:
+The "postinstall" script in `package.json` will install the Python libraries (including **aiortc**) by using `pip3` command. If such a command is not in the `PATH` or has a different name in your system, you can override its location by setting the `PIP` environment variable:
 
 ```bash
 $ PIP3=/home/me/bin/pip npm install --save mediasoup-client-aiortc
 ```
 
-Once you run your Node.js application, **mediasoup-client-aiortc** will eventually spawn Python processes and communicate with them via `UnixSocket`. This module assumes that there is a `python3` executable in your `PATH` to spawn the Python executable. If not, you can override its location by setting the `PYTHON3` environment variable:
+Once you run your Node.js application, **mediasoup-client-aiortc** will eventually spawn Python processes and communicate with them via `UnixSocket`. This module assumes that there is a `python3` executable in your `PATH` to spawn the Python executable. If not, you can override its location by setting the `PYTHON` environment variable:
 
 ```bash
-$ PYTHON3=/home/me/bin/python-3.7 node my_app.js
+$ PYTHON=/home/me/bin/python-3.7 node my_app.js
 ```
 
 
@@ -261,11 +261,29 @@ In order to run `npm run lint` task, the following Python dependencies are requi
 - `flake8` >= 5.0.4
 - `mypy` >= 0.982
 
-Install them with `pip` command:
-
 ```bash
-$ pip3 install flake8==5.0.4 mypy==0.982
+$ npm run install-python-dev-deps
 ```
+
+### Issue with Python >= 3.11
+
+See https://github.com/versatica/mediasoup-client-aiortc/issues/22.
+
+As a workaround:
+
+1. Install `python@3.10`.
+2. Make `PYTHON` environment variable point to it:
+  ```bash
+  export PYTHON=python3.10
+  ```
+3. Make `PIP` environment variable point to `pip@3.10`:
+  ```bash
+  export PIP=pip.10
+  ```
+4. Install deps:
+  ```bash
+  npm ci
+  ```
 
 
 ## Caveats

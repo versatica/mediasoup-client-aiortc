@@ -8,6 +8,7 @@ from aiortc import (
     RTCSessionDescription,
     RTCStatsReport
 )
+from aiortc import RTCDataChannel  # noqa: F401
 
 from channel import Request, Notification, Channel
 from logger import Logger
