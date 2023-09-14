@@ -3,7 +3,6 @@ import base64
 import asyncio
 from aiortc import (
     RTCConfiguration,
-    RTCDataChannel,
     RTCPeerConnection,
     RTCRtpTransceiver,
     RTCSessionDescription,

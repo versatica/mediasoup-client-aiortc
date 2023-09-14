@@ -243,7 +243,7 @@ function installPythonDevDeps()
 
 	const PYP3 = process.env.PIP3 || 'pip3';
 
-	executeCmd(`${PYP3} install flake8`);
+	executeCmd(`${PYP3} install flake8 mypy`);
 }
 
 function checkRelease()
