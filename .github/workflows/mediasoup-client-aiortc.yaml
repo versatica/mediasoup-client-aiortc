@@ -39,6 +39,4 @@ jobs:
             ${{ matrix.ci.os }}-node-
       - run: npm ci
       - run: npm run install-python-dev-deps
-      - run: npm run lint
-      - run: npm run test
       - run: npm run release:check
