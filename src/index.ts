@@ -21,15 +21,14 @@ export const version = '__MEDIASOUP_CLIENT_AIORTC_VERSION__';
  * Expose Worker factory.
  */
 export async function createWorker(
-	{ logLevel = 'error' }:
-	WorkerSettings = {}
+	{ logLevel = 'error' }:	WorkerSettings = {}
 ): Promise<Worker>
 {
 	logger.debug('createWorker()');
 
 	const worker = new Worker({ logLevel });
 
-	return new Promise((resolve, reject) =>
+	return new Promise<Worker>((resolve, reject) =>
 	{
 		worker.on('@success', () => resolve(worker));
 		worker.on('@failure', reject);
