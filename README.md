@@ -16,7 +16,7 @@ Once the requirements above are satisfied, install **mediasoup-client-aiortc** w
 $ npm install --save mediasoup-client-aiortc
 ```
 
-The "postinstall" script in `package.json` will install the Python libraries (including **aiortc**) by using `pip` command. If such a command is not in the `PATH` or has a different name in your system, you can override its location by setting the `PIP` environment variable:
+The "postinstall" script in `package.json` will install the Python libraries (including **aiortc**) by using `pip3` command. If such a command is not in the `PATH` or has a different name in your system, you can override its location by setting the `PIP` environment variable:
 
 ```bash
 $ PIP=/home/me/bin/pip npm install --save mediasoup-client-aiortc
@@ -278,11 +278,15 @@ As a workaround:
   ```
 3. Make `PIP` environment variable point to `pip@3.10`:
   ```bash
-  export PIP=pip.10
+  export PIP=pip3.10
   ```
 4. Install deps:
   ```bash
   npm ci
+  ```
+5. Run tests:
+  ```bash
+  npm test
   ```
 
 
