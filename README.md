@@ -256,13 +256,18 @@ When sending, `dataChannel.send()` (and hence `dataProducer.send()`) allows pass
 
 ## Development
 
-In order to run `npm run lint` task, the following Python dependencies are required:
+### Lint task
 
-- `flake8` >= 5.0.4
-- `mypy` >= 0.982
+In order to run `npm run lint` task, install Python dev dependencies:
 
 ```bash
 $ npm run install-python-dev-deps
+```
+
+### Make Python log to stdout/stderr while running tests
+
+```bash
+PYTHON_LOG_TO_STDOUT=true npm run test
 ```
 
 ### Issue with Python >= 3.11
