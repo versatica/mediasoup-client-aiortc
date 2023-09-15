@@ -228,7 +228,7 @@ function test()
 {
 	logInfo('test()');
 
-	executeCmd('jest');
+	executeCmd('jest --runInBand');
 }
 
 function installNodeDeps()

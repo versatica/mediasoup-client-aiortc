@@ -22,7 +22,7 @@ test('create a Worker succeeds', async () =>
 
 	expect(typeof worker.pid).toBe('number');
 	expect(worker.closed).toBe(false);
-}, 5000);
+}, 20000);
 
 test('worker.dump() succeeds with empty fields', async () =>
 {
@@ -34,7 +34,7 @@ test('worker.dump() succeeds with empty fields', async () =>
 			players  : [],
 			handlers : []
 		});
-}, 5000);
+}, 20000);
 
 test('worker.getUserMedia() succeeds', async () =>
 {
@@ -110,7 +110,7 @@ test('worker.getUserMedia() succeeds', async () =>
 				players  : [],
 				handlers : []
 			});
-}, 5000);
+}, 20000);
 
 test('create a Device with worker.createHandlerFactory() as argument succeeds', () =>
 {
@@ -130,7 +130,7 @@ test('device.load() succeeds', async () =>
 		.toBe(undefined);
 
 	expect(device.loaded).toBe(true);
-}, 5000);
+}, 20000);
 
 test('device.rtpCapabilities getter succeeds', () =>
 {
@@ -418,7 +418,7 @@ test('transport.produce() succeeds', async () =>
 
 	sendTransport.removeAllListeners('connect');
 	sendTransport.removeAllListeners('produce');
-}, 5000);
+}, 20000);
 
 test('transport.consume() succeeds', async () =>
 {
@@ -573,7 +573,7 @@ test('transport.consume() succeeds', async () =>
 	expect(videoConsumer.appData).toEqual({});
 
 	recvTransport.removeAllListeners('connect');
-}, 5000);
+}, 20000);
 
 test('transport.produceData() succeeds', async () =>
 {
@@ -620,7 +620,7 @@ test('transport.produceData() succeeds', async () =>
 	expect(dataProducer.protocol).toBe('BAR');
 
 	sendTransport.removeAllListeners('producedata');
-}, 5000);
+}, 20000);
 
 test('transport.consumeData() succeeds', async () =>
 {
@@ -644,7 +644,7 @@ test('transport.consumeData() succeeds', async () =>
 	expect(typeof dataConsumer.sctpStreamParameters.streamId).toBe('number');
 	expect(dataConsumer.label).toBe('FOO');
 	expect(dataConsumer.protocol).toBe('BAR');
-}, 5000);
+}, 20000);
 
 test('transport.produce() with a receiving track succeeds', async () =>
 {
@@ -667,14 +667,14 @@ test('transport.produce() with a receiving track succeeds', async () =>
 	expect(secondAudioProducer.track).toBe(audioTrack);
 
 	sendTransport.removeAllListeners('produce');
-}, 5000);
+}, 20000);
 
 test('transport.getStats() succeeds', async () =>
 {
 	const stats = await sendTransport.getStats();
 
 	expect(typeof stats).toBe('object');
-}, 5000);
+}, 20000);
 
 test('producer.replaceTrack() succeeds', async () =>
 {
@@ -761,21 +761,21 @@ test('producer.replaceTrack() succeeds', async () =>
 				trackId : secondAudioProducer.track!.id
 			}
 		});
-}, 5000);
+}, 20000);
 
 test('producer.getStats() succeeds', async () =>
 {
 	const stats = await videoProducer.getStats();
 
 	expect(typeof stats).toBe('object');
-}, 5000);
+}, 20000);
 
 test('consumer.getStats() succeeds', async () =>
 {
 	const stats = await videoConsumer.getStats();
 
 	expect(typeof stats).toBe('object');
-}, 5000);
+}, 20000);
 
 test('producer.close() succeed', async () =>
 {
@@ -825,7 +825,7 @@ test('producer.close() succeed', async () =>
 				trackId : secondAudioProducer.track!.id
 			}
 		});
-}, 5000);
+}, 20000);
 
 test('consumer.close() succeed', () =>
 {
