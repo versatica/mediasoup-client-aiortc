@@ -9,9 +9,8 @@ from channel import Request, Notification, Channel
 from handler import Handler
 from logger import Logger
 
-# File descriptors to communicate with the Node.js process
-READ_FD = 3
-WRITE_FD = 4
+# File descriptor to communicate with the Node.js process
+CHANNEL_FD = 3
 
 
 if __name__ == "__main__":
@@ -43,7 +42,7 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
 
     # create channel
-    channel = Channel(READ_FD, WRITE_FD)
+    channel = Channel(CHANNEL_FD)
 
     def getTrack(playerId: str, kind: str) -> MediaStreamTrack:
         player = players[playerId]

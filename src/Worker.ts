@@ -75,14 +75,12 @@ export class Worker extends EnhancedEventEmitter
 				// fd 0 (stdin)   : Just ignore it.
 				// fd 1 (stdout)  : Pipe it for 3rd libraries that log their own stuff.
 				// fd 2 (stderr)  : Same as stdout.
-				// fd 3 (channel) : Producer Channel fd.
-				// fd 4 (channel) : Consumer Channel fd.
+				// fd 3 (channel) : Channel fd.
 				stdio :
 				[
 					'ignore',
 					PYTHON_LOG_VIA_PIPE ? 'pipe' : 'inherit',
 					PYTHON_LOG_VIA_PIPE ? 'pipe' : 'inherit',
-					'pipe',
 					'pipe'
 				]
 			});
@@ -91,9 +89,8 @@ export class Worker extends EnhancedEventEmitter
 
 		this.#channel = new Channel(
 			{
-				sendSocket : this.#child.stdio[3],
-				recvSocket : this.#child.stdio[4],
-				pid        : this.#pid
+				socket : this.#child.stdio[3],
+				pid    : this.#pid
 			});
 
 		let spawnDone = false;
