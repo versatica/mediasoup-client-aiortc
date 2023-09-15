@@ -57,8 +57,7 @@ class Channel:
         if self._writer is not None:
             self._writer.close()
 
-        if self._reader is not None:
-            self._reader.close()
+        # NOTE: For whatever reason I don't remember, we must not close self._reader.
 
     async def receive(self) -> Optional[Dict[str, Any]]:
         await self._connect()
