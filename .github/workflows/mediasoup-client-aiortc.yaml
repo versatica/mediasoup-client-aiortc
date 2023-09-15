@@ -42,4 +42,4 @@ jobs:
       # NOTE: Avoid lint:python due to
       # https://github.com/versatica/mediasoup-client-aiortc/issues/25
       - run: npm run lint:node
-      - run: PYTHON_LOG_TO_STDOUT=true npm run test
+      - run: DEBUG="mediasoup-client-aiortc*" PYTHON_LOG_TO_STDOUT=true npm run test
