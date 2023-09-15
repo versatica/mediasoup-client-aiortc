@@ -34,8 +34,7 @@ Channel class
 
 
 class Channel:
-    def __init__(self, loop, readfd, writefd) -> None:
-        self._loop = loop
+    def __init__(self, readfd, writefd) -> None:
         self._readfd = readfd
         self._writefd = writefd
         self._reader = Union[StreamReader, None]
