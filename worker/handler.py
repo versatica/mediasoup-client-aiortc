@@ -3,12 +3,12 @@ import base64
 import asyncio
 from aiortc import (
     RTCConfiguration,
-    RTCDataChannel,
     RTCPeerConnection,
     RTCRtpTransceiver,
     RTCSessionDescription,
     RTCStatsReport
 )
+from aiortc import RTCDataChannel  # noqa: F401
 
 from channel import Request, Notification, Channel
 from logger import Logger

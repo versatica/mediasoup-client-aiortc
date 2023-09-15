@@ -43,7 +43,7 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
 
     # create channel
-    channel = Channel(loop, READ_FD, WRITE_FD)
+    channel = Channel(READ_FD, WRITE_FD)
 
     def getTrack(playerId: str, kind: str) -> MediaStreamTrack:
         player = players[playerId]

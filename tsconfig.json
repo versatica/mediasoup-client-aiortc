@@ -2,22 +2,16 @@
 	"compileOnSave": true,
 	"compilerOptions":
 	{
-		"lib": [ "es2018", "dom" ],
+		"lib": [ "es2020", "dom" ],
 		"target": "es2020",
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"esModuleInterop": true,
-		"declaration": true,
-		"declarationMap": true,
-		"outDir": "lib",
+		"isolatedModules": true,
 		"strict": true,
-		"strictNullChecks": false,
-		"noUnusedLocals": true,
-		"noUnusedParameters": false,
-		"noImplicitAny" : true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"resolveJsonModule": false
+		"outDir": "lib",
+		"declaration": true,
+		"declarationMap": true
 	},
 	"include": [ "src" ]
 }

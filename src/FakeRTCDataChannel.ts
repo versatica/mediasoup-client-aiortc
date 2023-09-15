@@ -20,26 +20,28 @@ export type FakeRTCDataChannelOptions =
 	protocol?: string;
 };
 
+// TODO: https://github.com/versatica/mediasoup-client-aiortc/issues/24
+// @ts-ignore
 export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 {
 	// Internal data.
-	private readonly _internal: { handlerId: string; dataChannelId: string };
+	readonly #internal: { handlerId: string; dataChannelId: string };
 	// Channel.
-	private readonly _channel: Channel;
+	readonly #channel: Channel;
 	// Members for RTCDataChannel standard public getters/setters.
-	private _id: number;
-	private _negotiated = true; // mediasoup just uses negotiated DataChannels.
-	private _ordered: boolean;
-	private _maxPacketLifeTime: number | null;
-	private _maxRetransmits: number | null;
-	private _label: string;
-	private _protocol: string;
-	private _readyState: RTCDataChannelState = 'connecting';
-	private _bufferedAmount = 0;
-	private _bufferedAmountLowThreshold = 0;
-	private _binaryType: BinaryType = 'arraybuffer';
+	#id: number;
+	#negotiated = true; // mediasoup just uses negotiated DataChannels.
+	#ordered: boolean;
+	#maxPacketLifeTime: number | null;
+	#maxRetransmits: number | null;
+	#label: string;
+	#protocol: string;
+	#readyState: RTCDataChannelState = 'connecting';
+	#bufferedAmount = 0;
+	#bufferedAmountLowThreshold = 0;
+	#binaryType: BinaryType = 'arraybuffer';
 	// NOTE: Deprecated as per spec, but still required by TS/ RTCDataChannel.
-	private _priority: RTCPriorityType = 'high';
+	#priority: RTCPriorityType = 'high';
 
 	constructor(
 		internal: { handlerId: string; dataChannelId: string },
@@ -64,82 +66,82 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 
 		logger.debug(`constructor() [id:${id}, ordered:${ordered}, maxPacketLifeTime:${maxPacketLifeTime}, maxRetransmits:${maxRetransmits}, label:${label}, protocol:${protocol}`);
 
-		this._internal = internal;
-		this._channel = channel;
-		this._id = id;
-		this._ordered = ordered;
-		this._maxPacketLifeTime = maxPacketLifeTime;
-		this._maxRetransmits = maxRetransmits;
-		this._label = label;
-		this._protocol = protocol;
-		this._readyState = status.readyState;
-		this._bufferedAmount = status.bufferedAmount;
-		this._bufferedAmountLowThreshold = status.bufferedAmountLowThreshold;
+		this.#internal = internal;
+		this.#channel = channel;
+		this.#id = id;
+		this.#ordered = ordered;
+		this.#maxPacketLifeTime = maxPacketLifeTime;
+		this.#maxRetransmits = maxRetransmits;
+		this.#label = label;
+		this.#protocol = protocol;
+		this.#readyState = status.readyState;
+		this.#bufferedAmount = status.bufferedAmount;
+		this.#bufferedAmountLowThreshold = status.bufferedAmountLowThreshold;
 
-		this._handleWorkerNotifications();
+		this.handleWorkerNotifications();
 	}
 
 	get id(): number
 	{
-		return this._id;
+		return this.#id;
 	}
 
 	get negotiated(): boolean
 	{
-		return this._negotiated;
+		return this.#negotiated;
 	}
 
 	get ordered(): boolean
 	{
-		return this._ordered;
+		return this.#ordered;
 	}
 
 	get maxPacketLifeTime(): number | null
 	{
-		return this._maxPacketLifeTime;
+		return this.#maxPacketLifeTime;
 	}
 
 	get maxRetransmits(): number | null
 	{
-		return this._maxRetransmits;
+		return this.#maxRetransmits;
 	}
 
 	get label(): string
 	{
-		return this._label;
+		return this.#label;
 	}
 
 	get protocol(): string
 	{
-		return this._protocol;
+		return this.#protocol;
 	}
 
 	get readyState(): RTCDataChannelState
 	{
-		return this._readyState;
+		return this.#readyState;
 	}
 
 	get bufferedAmount(): number
 	{
-		return this._bufferedAmount;
+		return this.#bufferedAmount;
 	}
 
 	get bufferedAmountLowThreshold(): number
 	{
-		return this._bufferedAmountLowThreshold;
+		return this.#bufferedAmountLowThreshold;
 	}
 
 	set bufferedAmountLowThreshold(value: number)
 	{
-		this._bufferedAmountLowThreshold = value;
+		this.#bufferedAmountLowThreshold = value;
 
-		this._channel.notify(
-			'datachannel.setBufferedAmountLowThreshold', this._internal, value);
+		this.#channel.notify(
+			'datachannel.setBufferedAmountLowThreshold', this.#internal, value);
 	}
 
 	get binaryType(): BinaryType
 	{
-		return this._binaryType;
+		return this.#binaryType;
 	}
 
 	// NOTE: Just 'arraybuffer' is valid for Node.js.
@@ -151,12 +153,12 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	// NOTE: Deprecated in the spec but required by RTCDataChannel TS definition.
 	get priority(): RTCPriorityType
 	{
-		return this._priority;
+		return this.#priority;
 	}
 
 	set priority(value: RTCPriorityType)
 	{
-		this._priority = value;
+		this.#priority = value;
 	}
 
 	get onopen(): any
@@ -221,16 +223,18 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 
 	close(): void
 	{
-		if ([ 'closing', 'closed' ].includes(this._readyState))
+		if ([ 'closing', 'closed' ].includes(this.#readyState))
+		{
 			return;
+		}
 
-		this._readyState = 'closed';
+		this.#readyState = 'closed';
 
 		// Remove notification subscriptions.
-		this._channel.removeAllListeners(this._internal.dataChannelId);
+		this.#channel.removeAllListeners(this.#internal.dataChannelId);
 
 		// Notify the worker.
-		this._channel.notify('datachannel.close', this._internal);
+		this.#channel.notify('datachannel.close', this.#internal);
 	}
 
 	/**
@@ -239,24 +243,26 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 	 */
 	send(data: string | ArrayBuffer | Buffer | ArrayBufferView | Blob): void
 	{
-		if (this._readyState !== 'open')
+		if (this.#readyState !== 'open')
+		{
 			throw new InvalidStateError('not open');
+		}
 
 		if (typeof data === 'string')
 		{
-			this._channel.notify('datachannel.send', this._internal, data);
+			this.#channel.notify('datachannel.send', this.#internal, data);
 		}
 		else if (data instanceof ArrayBuffer)
 		{
 			const buffer = Buffer.from(data);
 
-			this._channel.notify(
-				'datachannel.sendBinary', this._internal, buffer.toString('base64'));
+			this.#channel.notify(
+				'datachannel.sendBinary', this.#internal, buffer.toString('base64'));
 		}
 		else if (data instanceof Buffer)
 		{
-			this._channel.notify(
-				'datachannel.sendBinary', this._internal, data.toString('base64'));
+			this.#channel.notify(
+				'datachannel.sendBinary', this.#internal, data.toString('base64'));
 		}
 		else
 		{
@@ -264,15 +270,15 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 		}
 	}
 
-	private _handleWorkerNotifications(): void
+	private handleWorkerNotifications(): void
 	{
-		this._channel.on(this._internal.dataChannelId, (event: string, data?: any) =>
+		this.#channel.on(this.#internal.dataChannelId, (event: string, data?: any) =>
 		{
 			switch (event)
 			{
 				case 'open':
 				{
-					this._readyState = 'open';
+					this.#readyState = 'open';
 
 					this.dispatchEvent(new Event('open'));
 
@@ -282,13 +288,15 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 				case 'closing':
 				case 'close':
 				{
-					if (this._readyState === 'closed')
+					if (this.#readyState === 'closed')
+					{
 						break;
+					}
 
-					this._readyState = 'closed';
+					this.#readyState = 'closed';
 
 					// Remove notification subscriptions.
-					this._channel.removeAllListeners(this._internal.dataChannelId);
+					this.#channel.removeAllListeners(this.#internal.dataChannelId);
 
 					this.dispatchEvent(new Event('close'));
 
@@ -329,7 +337,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel
 
 				case 'bufferedamount':
 				{
-					this._bufferedAmount = data as number;
+					this.#bufferedAmount = data as number;
 
 					break;
 				}
