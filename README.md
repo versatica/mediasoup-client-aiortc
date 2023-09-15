@@ -1,5 +1,9 @@
 # mediasoup-client-aiortc
 
+[![][npm-shield-mediasoup-client-aiortc]][npm-mediasoup-client-aiortc]
+[![][github-actions-shield-mediasoup-client-aiortc]][github-actions-mediasoup-client-aiortc]
+[![][opencollective-shield-mediasoup]][opencollective-mediasoup]
+
 [mediasoup-client](https://github.com/versatica/mediasoup-client/) handler for [aiortc](https://github.com/aiortc/aiortc/) Python library. Suitable for building Node.js applications that connect to a mediasoup server using WebRTC and exchange real audio, video and DataChannel messages with it in both directions.
 
 
@@ -285,3 +289,12 @@ See the list of [open issues](https://github.com/versatica/mediasoup-client-aior
 ## License
 
 [ISC](./LICENSE)
+
+
+
+
+[npm-shield-mediasoup-client-aiortc]: https://img.shields.io/npm/v/mediasoup-client-aiortc.svg
+[npm-mediasoup-client-aiortc]: https://npmjs.org/package/mediasoup-client-aiortc
+[github-actions-shield-mediasoup-client-aiortc]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-client-aiortc.yaml/badge.svg
+[github-actions-mediasoup-client-aiortc]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-client.yaml
+[opencollective-shield-mediasoup]: https://img.shields.io/opencollective/all/mediasoup.svg
