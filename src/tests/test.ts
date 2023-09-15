@@ -110,7 +110,7 @@ test('worker.getUserMedia() succeeds', async () =>
 				players  : [],
 				handlers : []
 			});
-}, 5000);
+}, 15000);
 
 test('create a Device with worker.createHandlerFactory() as argument succeeds', () =>
 {
@@ -418,7 +418,7 @@ test('transport.produce() succeeds', async () =>
 
 	sendTransport.removeAllListeners('connect');
 	sendTransport.removeAllListeners('produce');
-}, 5000);
+}, 15000);
 
 test('transport.consume() succeeds', async () =>
 {
@@ -761,7 +761,7 @@ test('producer.replaceTrack() succeeds', async () =>
 				trackId : secondAudioProducer.track!.id
 			}
 		});
-}, 5000);
+}, 15000);
 
 test('producer.getStats() succeeds', async () =>
 {

@@ -25,10 +25,8 @@ export class Channel extends EnhancedEventEmitter
 {
 	// Closed flag.
 	#closed = false;
-	// Unix Socket instance for sending messages to the worker process.
-	readonly #sendSocket: Duplex;
-	// Unix Socket instance for receiving messages to the worker process.
-	readonly #recvSocket: Duplex;
+	// Unix Socket instance for communicating with the worker process.
+	readonly #socket: Duplex;
 	// Next id for requests sent to the worker process.
 	#nextId = 0;
 	// Map of pending sent requests.
@@ -38,13 +36,11 @@ export class Channel extends EnhancedEventEmitter
 
 	constructor(
 		{
-			sendSocket,
-			recvSocket,
+			socket,
 			pid
 		}:
 		{
-			sendSocket: any;
-			recvSocket: any;
+			socket: any;
 			pid: number;
 		})
 	{
@@ -52,11 +48,10 @@ export class Channel extends EnhancedEventEmitter
 
 		logger.debug('constructor()');
 
-		this.#sendSocket = sendSocket as Duplex;
-		this.#recvSocket = recvSocket as Duplex;
+		this.#socket = socket as Duplex;
 
 		// Read Channel responses/notifications from the worker.
-		this.#recvSocket.on('data', (buffer: Buffer) =>
+		this.#socket.on('data', (buffer: Buffer) =>
 		{
 			if (!this.#recvBuffer)
 			{
@@ -132,20 +127,12 @@ export class Channel extends EnhancedEventEmitter
 			}
 		});
 
-		this.#sendSocket.on('end', () => (
-			logger.debug('send Channel ended by the worker process')
+		this.#socket.on('end', () => (
+			logger.debug('Channel ended by the worker process')
 		));
 
-		this.#sendSocket.on('error', (error) => (
-			logger.error('send Channel error: %s', String(error))
-		));
-
-		this.#recvSocket.on('end', () => (
-			logger.debug('receive Channel ended by the worker process')
-		));
-
-		this.#recvSocket.on('error', (error) => (
-			logger.error('receive Channel error: %s', String(error))
+		this.#socket.on('error', (error) => (
+			logger.error('Channel error: %s', String(error))
 		));
 	}
 
@@ -168,20 +155,14 @@ export class Channel extends EnhancedEventEmitter
 
 		// Remove event listeners but leave a fake 'error' hander to avoid
 		// propagation.
-		this.#sendSocket.removeAllListeners('end');
-		this.#sendSocket.removeAllListeners('error');
-		this.#sendSocket.on('error', () => {});
-
-		this.#recvSocket.removeAllListeners('end');
-		this.#recvSocket.removeAllListeners('error');
-		this.#recvSocket.on('error', () => {});
+		this.#socket.removeAllListeners('end');
+		this.#socket.removeAllListeners('error');
+		this.#socket.on('error', () => {});
 
 		// Destroy the socket after a while to allow pending incoming messages.
 		setTimeout(() =>
 		{
-			try { this.#sendSocket.destroy(); }
-			catch (error) {}
-			try { this.#recvSocket.destroy(); }
+			try { this.#socket.destroy(); }
 			catch (error) {}
 		}, 200);
 	}
@@ -210,7 +191,7 @@ export class Channel extends EnhancedEventEmitter
 
 		// This may throw if closed or remote side ended.
 		// Terminate with \r\n since we are expecting for it on the python side.
-		this.#sendSocket.write(ns);
+		this.#socket.write(ns);
 
 		return new Promise((pResolve, pReject) =>
 		{
@@ -286,7 +267,7 @@ export class Channel extends EnhancedEventEmitter
 		// Terminate with \r\n since we are expecting for it on the python side.
 		try
 		{
-			this.#sendSocket.write(ns);
+			this.#socket.write(ns);
 		}
 		catch (error)
 		{

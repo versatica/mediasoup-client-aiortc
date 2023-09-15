@@ -34,9 +34,8 @@ Channel class
 
 
 class Channel:
-    def __init__(self, readfd, writefd) -> None:
-        self._readfd = readfd
-        self._writefd = writefd
+    def __init__(self, fd) -> None:
+        self._fd = fd
         self._reader = Optional[StreamReader]
         self._writer = Optional[StreamWriter]
         self._nsDecoder = pynetstring.Decoder()
@@ -49,24 +48,16 @@ class Channel:
         """
         Create the sender and receivers
         """
-        rsock = socket.socket(
-            socket.AF_UNIX, socket.SOCK_STREAM, 0, self._readfd)
-        self._reader, writer = await asyncio.open_connection(
-            sock=rsock)
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0, self._fd)
 
-        wsock = socket.socket(
-            socket.AF_UNIX, socket.SOCK_STREAM, 0, self._writefd)
-        reader, self._writer = await asyncio.open_connection(
-            sock=wsock)
-
+        self._reader, self._writer = await asyncio.open_connection(sock=sock)
         self._connected = True
 
     async def close(self) -> None:
         if self._writer is not None:
             self._writer.close()
 
-        if self._reader is not None:
-            self._reader.close()
+        # NOTE: For whatever reason I don't remember, we must not close self._reader.
 
     async def receive(self) -> Optional[Dict[str, Any]]:
         await self._connect()

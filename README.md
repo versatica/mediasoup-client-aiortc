@@ -256,38 +256,19 @@ When sending, `dataChannel.send()` (and hence `dataProducer.send()`) allows pass
 
 ## Development
 
-In order to run `npm run lint` task, the following Python dependencies are required:
+### Lint task
 
-- `flake8` >= 5.0.4
-- `mypy` >= 0.982
+In order to run `npm run lint` task, install Python dev dependencies:
 
 ```bash
 $ npm run install-python-dev-deps
 ```
 
-### Issue with Python >= 3.11
+### Make Python log to stdout/stderr while running tests
 
-See https://github.com/versatica/mediasoup-client-aiortc/issues/22.
-
-As a workaround:
-
-1. Install `python@3.10`.
-2. Make `PYTHON` environment variable point to it:
-  ```bash
-  export PYTHON=python3.10
-  ```
-3. Make `PIP` environment variable point to `pip@3.10`:
-  ```bash
-  export PIP=pip3.10
-  ```
-4. Install deps:
-  ```bash
-  npm ci
-  ```
-5. Run tests:
-  ```bash
-  npm test
-  ```
+```bash
+PYTHON_LOG_TO_STDOUT=true npm run test
+```
 
 
 ## Caveats
