@@ -13,7 +13,7 @@ import { Handler } from './Handler';
 // stdout and stderr.
 const PYTHON_LOG_VIA_PIPE = process.env.PYTHON_LOG_TO_STDOUT !== 'true';
 
-const logger = new Logger('aiortc:Worker');
+const logger = new Logger('Worker');
 
 export type WorkerSettings =
 {

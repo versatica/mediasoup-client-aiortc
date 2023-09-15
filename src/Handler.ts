@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as sdpTransform from 'sdp-transform';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
-import { Logger } from 'mediasoup-client/lib/Logger';
 import { UnsupportedError } from 'mediasoup-client/lib/errors';
 import * as utils from 'mediasoup-client/lib/utils';
 import * as ortc from 'mediasoup-client/lib/ortc';
@@ -28,11 +27,12 @@ import {
 	SctpCapabilities,
 	SctpStreamParameters
 } from 'mediasoup-client/lib/types';
+import { Logger } from './Logger';
 import { Channel } from './Channel';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 import { FakeRTCDataChannel } from './FakeRTCDataChannel';
 
-const logger = new Logger('aiortc:Handler');
+const logger = new Logger('Handler');
 
 const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 

@@ -4,11 +4,11 @@ import {
 	getEventAttributeValue,
 	setEventAttributeValue
 } from 'event-target-shim';
-import { Logger } from 'mediasoup-client/lib/Logger';
 import { InvalidStateError } from 'mediasoup-client/lib/errors';
+import { Logger } from './Logger';
 import { Channel } from './Channel';
 
-const logger = new Logger('aiortc:FakeRTCDataChannel');
+const logger = new Logger('FakeRTCDataChannel');
 
 export type FakeRTCDataChannelOptions =
 {

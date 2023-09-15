@@ -1,4 +1,4 @@
-import { Logger } from 'mediasoup-client/lib/Logger';
+import { Logger } from './Logger';
 import {
 	Worker,
 	WorkerSettings,
@@ -10,7 +10,7 @@ import {
 	AiortcMediaTrackConstraints
 } from './media';
 
-const logger = new Logger('aiortc');
+const logger = new Logger();
 
 /**
  * Expose version.
