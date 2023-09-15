@@ -3,7 +3,7 @@ import json
 import socket
 import pynetstring
 from asyncio import StreamReader, StreamWriter
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 from logger import Logger
 
@@ -37,8 +37,8 @@ class Channel:
     def __init__(self, readfd, writefd) -> None:
         self._readfd = readfd
         self._writefd = writefd
-        self._reader = Union[StreamReader, None]
-        self._writer = Union[StreamWriter, None]
+        self._reader = Optional[StreamReader]
+        self._writer = Optional[StreamWriter]
         self._nsDecoder = pynetstring.Decoder()
         self._connected = False
 
