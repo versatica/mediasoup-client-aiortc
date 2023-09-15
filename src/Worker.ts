@@ -49,7 +49,7 @@ export class Worker extends EnhancedEventEmitter
 
 		logger.debug('constructor() [logLevel:%o]', logLevel);
 
-		const spawnBin = process.env.PYTHON3 || 'python3';
+		const spawnBin = process.env.PYTHON || 'python3';
 		const spawnArgs: string[] = [];
 
 		spawnArgs.push('-u'); // Unbuffered stdio.
