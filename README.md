@@ -270,30 +270,6 @@ $ npm run install-python-dev-deps
 PYTHON_LOG_TO_STDOUT=true npm run test
 ```
 
-### Issue with Python >= 3.11
-
-See https://github.com/versatica/mediasoup-client-aiortc/issues/22.
-
-As a workaround:
-
-1. Install `python@3.10`.
-2. Make `PYTHON` environment variable point to it:
-  ```bash
-  export PYTHON=python3.10
-  ```
-3. Make `PIP` environment variable point to `pip@3.10`:
-  ```bash
-  export PIP=pip3.10
-  ```
-4. Install deps:
-  ```bash
-  npm ci
-  ```
-5. Run tests:
-  ```bash
-  npm test
-  ```
-
 
 ## Caveats
 
