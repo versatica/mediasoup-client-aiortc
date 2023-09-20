@@ -777,6 +777,14 @@ test('consumer.getStats() succeeds', async () =>
 	expect(typeof stats).toBe('object');
 }, 20000);
 
+test('consumer.close() succeed', () =>
+{
+	audioConsumer.close();
+
+	expect(audioConsumer.closed).toBe(true);
+	expect(audioConsumer.track.readyState).toBe('ended');
+});
+
 test('producer.close() succeed', async () =>
 {
 	audioProducer.close();
@@ -827,12 +835,11 @@ test('producer.close() succeed', async () =>
 		});
 }, 20000);
 
-test('consumer.close() succeed', () =>
+test('dataConsumer.close() succeed', () =>
 {
-	audioConsumer.close();
+	dataConsumer.close();
 
-	expect(audioConsumer.closed).toBe(true);
-	expect(audioConsumer.track.readyState).toBe('ended');
+	expect(dataConsumer.closed).toBe(true);
 });
 
 test('dataProducer.close() succeed', () =>
@@ -840,13 +847,6 @@ test('dataProducer.close() succeed', () =>
 	dataProducer.close();
 
 	expect(dataProducer.closed).toBe(true);
-});
-
-test('dataConsumer.close() succeed', () =>
-{
-	dataConsumer.close();
-
-	expect(dataConsumer.closed).toBe(true);
 });
 
 test('worker.close() succeeds', () =>
