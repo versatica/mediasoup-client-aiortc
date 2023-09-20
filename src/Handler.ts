@@ -252,7 +252,9 @@ export class Handler extends HandlerInterface
 		if (playerId)
 		{
 			await this.#channel.request(
-				'handler.addTrack', this.#internal, { localId, playerId, kind });
+				'handler.addTrack',
+				this.#internal,
+				{ localId, playerId, kind });
 		}
 		else if (remote)
 		{
@@ -268,7 +270,7 @@ export class Handler extends HandlerInterface
 		}
 
 		const sendingRtpParameters =
-			utils.clone(this.#sendingRtpParametersByKind![track.kind], {});
+			utils.clone<RtpParameters>(this.#sendingRtpParametersByKind![track.kind]);
 
 		// This may throw.
 		sendingRtpParameters.codecs =
@@ -317,7 +319,7 @@ export class Handler extends HandlerInterface
 		sendingRtpParameters.mid = mid;
 
 		// Set RTCP CNAME.
-		sendingRtpParameters.rtcp.cname =
+		sendingRtpParameters.rtcp!.cname =
 			sdpCommonUtils.getCname({ offerMediaObject });
 
 		// Set RTP encodings by parsing the SDP offer.
