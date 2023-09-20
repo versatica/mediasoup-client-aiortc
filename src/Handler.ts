@@ -304,7 +304,7 @@ export class Handler extends HandlerInterface
 
 		// Get the MID and the corresponding m= section.
 		const mid = await this.#channel.request(
-			'handler.getMid', this.#internal, { localId });
+			'handler.getSendMid', this.#internal, { localId });
 
 		offer = await this.#channel.request(
 			'handler.getLocalDescription', this.#internal);
@@ -835,7 +835,6 @@ export class Handler extends HandlerInterface
 		{
 			const { trackId, kind } = options;
 			const localId = mapLocalId.get(trackId)!;
-
 			const track = new FakeMediaStreamTrack(
 				{
 					kind,

@@ -777,6 +777,20 @@ test('consumer.getStats() succeeds', async () =>
 	expect(typeof stats).toBe('object');
 }, 20000);
 
+test('consumer.pause() succeed', async () =>
+{
+	audioConsumer.pause();
+
+	expect(audioConsumer.paused).toBe(true);
+});
+
+test('consumer.resume() succeed', async () =>
+{
+	audioConsumer.resume();
+
+	expect(audioConsumer.paused).toBe(false);
+});
+
 test('consumer.close() succeed', () =>
 {
 	audioConsumer.close();

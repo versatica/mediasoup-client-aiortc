@@ -28,7 +28,7 @@ class Handler:
         self._handlerId = handlerId
         self._channel = channel
         self._pc = RTCPeerConnection(configuration or None)
-        # dictionary of sending transceivers mapped by given localId
+        # dictionary of sending transceivers indexed by localId
         self._sendTransceivers = dict()  # type: Dict[str, RTCRtpTransceiver]
         # dictionary of dataChannelds mapped by internal id
         self._dataChannels = dict()  # type: Dict[str, RTCDataChannel]
@@ -172,7 +172,7 @@ class Handler:
             description = RTCSessionDescription(**data)
             await self._pc.setRemoteDescription(description)
 
-        elif request.method == "handler.getMid":
+        elif request.method == "handler.getSendMid":
             data = request.data
             localId = data.get("localId")
             if localId is None:
@@ -218,7 +218,8 @@ class Handler:
             transceiver.direction = "inactive"
             transceiver.sender.replaceTrack(None)
 
-            # NOTE: do not remove transceiver from the dictionary
+            # NOTE: do not remove transceiver from the self._sendTransceivers
+            # dictionary on purpose.
 
         elif request.method == "handler.replaceTrack":
             data = request.data
@@ -254,8 +255,16 @@ class Handler:
             if direction is None:
                 raise TypeError("missing data.direction")
 
-            transceiver = self._sendTransceivers[localId]
-            transceiver.direction = direction
+            # let's look for the given localId in our custom self._sendTransceivers
+            # (indexed by localId) and, if not found, let's assume this is a
+            # receive transceiver so match by MID (which has same value as the
+            # Consumer's localId).
+            if localId in self._sendTransceivers:
+                transceiver = self._sendTransceivers[localId]
+                transceiver.direction = direction
+            else:
+                transceiver = self._getTransceiverByMid(localId)
+                transceiver.direction = direction
 
         elif request.method == "handler.getTransportStats":
             result = {}
