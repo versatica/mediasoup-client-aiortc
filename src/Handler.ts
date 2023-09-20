@@ -965,7 +965,7 @@ export class Handler extends HandlerInterface
 
 		for (const localId of localIds)
 		{
-			logger.debug('pauseReceiving() [localId:%s]', localId);
+			logger.debug('resumeReceiving() [localId:%s]', localId);
 
 			const track = this.#mapLocalIdTracks.get(localId);
 
