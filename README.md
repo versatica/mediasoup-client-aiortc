@@ -9,7 +9,7 @@
 
 ## Requirements
 
-This module uses **aiortc** Python library, which needs Python 3 and these [requirements](https://github.com/aiortc/aiortc#installing) to be installed in your system.
+This module uses **aiortc** Python library, which requires Python 3. Check the installation requirements of **aiortc** in the [project site](https://github.com/aiortc/aiortc).
 
 
 ## Installation
