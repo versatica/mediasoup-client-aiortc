@@ -9,7 +9,7 @@
 
 ## Requirements
 
-This module uses **aiortc** Python library, which needs Python 3 and these [requirements](https://github.com/aiortc/aiortc#requirements) to be installed in your system.
+This module uses **aiortc** Python library, which needs Python 3 and these [requirements](https://github.com/aiortc/aiortc#installing) to be installed in your system.
 
 
 ## Installation
@@ -23,13 +23,13 @@ $ npm install --save mediasoup-client-aiortc
 The "postinstall" script in `package.json` will install the Python libraries (including **aiortc**) by using `pip3` command. If such a command is not in the `PATH` or has a different name in your system, you can override its location by setting the `PIP` environment variable:
 
 ```bash
-$ PIP=/home/me/bin/pip npm install --save mediasoup-client-aiortc
+$ PIP=/home/me/bin/pip3 npm install --save mediasoup-client-aiortc
 ```
 
 Once you run your Node.js application, **mediasoup-client-aiortc** will eventually spawn Python processes and communicate with them via `UnixSocket`. This module assumes that there is a `python3` executable in your `PATH` to spawn the Python executable. If not, you can override its location by setting the `PYTHON` environment variable:
 
 ```bash
-$ PYTHON=/home/me/bin/python-3.7 node my_app.js
+$ PYTHON=/home/me/bin/python3.12 node my_app.js
 ```
 
 
