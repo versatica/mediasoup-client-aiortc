@@ -19,6 +19,9 @@ export type AiortcMediaTrackConstraints =
 	url?: string;
 	format?: string;
 	options?: object;
+	timeout?: number;
+	loop?: boolean;
+	decode?: boolean;
 };
 
 type MediaPlayerInternal =
@@ -34,6 +37,9 @@ type MediaPlayerOptions =
 	file: string;
 	format?: string;
 	options?: object;
+	timeout?: number;
+	loop?: boolean;
+	decode?: boolean;
 };
 
 export async function getUserMedia(
@@ -68,26 +74,20 @@ export async function getUserMedia(
 		{
 			case 'device':
 			{
-				if (os.platform() === 'darwin')
+				audioPlayerOptions =
 				{
-					audioPlayerOptions =
-					{
-						source  : 'device',
-						file    : audio.device || 'none:0',
-						format  : audio.format || 'avfoundation',
-						options : audio.options
-					};
-				}
-				else
-				{
-					audioPlayerOptions =
-					{
-						source  : 'device',
-						file    : audio.device || 'hw:0',
-						format  : audio.format || 'alsa',
-						options : audio.options
-					};
-				}
+					source  : 'device',
+					file    : audio.device ?? os.platform() === 'darwin'
+						? 'none:0'
+						: 'hw:0',
+					format  : audio.format ?? os.platform() === 'darwin'
+						? 'avfoundation'
+						: 'alsa',
+					options : audio.options,
+					timeout : audio.timeout,
+					loop    : audio.loop,
+					decode  : audio.decode
+				};
 
 				break;
 			}
@@ -101,8 +101,13 @@ export async function getUserMedia(
 
 				audioPlayerOptions =
 				{
-					source : 'file',
-					file   : audio.file
+					source  : 'file',
+					file    : audio.file,
+					format  : audio.format,
+					options : audio.options,
+					timeout : audio.timeout,
+					loop    : audio.loop,
+					decode  : audio.decode
 				};
 
 				break;
@@ -117,8 +122,13 @@ export async function getUserMedia(
 
 				audioPlayerOptions =
 				{
-					source : 'url',
-					file   : audio.url
+					source  : 'url',
+					file    : audio.url,
+					format  : audio.format,
+					options : audio.options,
+					timeout : audio.timeout,
+					loop    : audio.loop,
+					decode  : audio.decode
 				};
 
 				break;
@@ -144,28 +154,21 @@ export async function getUserMedia(
 		{
 			case 'device':
 			{
-				if (os.platform() === 'darwin')
+				videoPlayerOptions =
 				{
-					videoPlayerOptions =
-					{
-						source  : 'device',
-						file    : video.device || 'default:none',
-						format  : video.format || 'avfoundation',
-						// eslint-disable-next-line camelcase
-						options : video.options || { framerate: '30', video_size: '640x480' }
-					};
-				}
-				else
-				{
-					videoPlayerOptions =
-					{
-						source  : 'device',
-						file    : video.device || '/dev/video0',
-						format  : video.format || 'v4l2',
-						// eslint-disable-next-line camelcase
-						options : video.options || { framerate: '30', video_size: '640x480' }
-					};
-				}
+					source  : 'device',
+					file    : video.device ?? os.platform() === 'darwin'
+						? 'default:none'
+						: '/dev/video0',
+					format  : video.format ?? os.platform() === 'darwin'
+						? 'avfoundation'
+						: 'v4l2',
+					// eslint-disable-next-line camelcase
+					options : video.options ?? { framerate: '30', video_size: '640x480' },
+					timeout : video.timeout,
+					loop    : video.loop,
+					decode  : video.decode
+				};
 
 				break;
 			}
@@ -179,8 +182,13 @@ export async function getUserMedia(
 
 				videoPlayerOptions =
 				{
-					source : 'file',
-					file   : video.file
+					source  : 'file',
+					file    : video.file,
+					format  : video.format,
+					options : video.options,
+					timeout : video.timeout,
+					loop    : video.loop,
+					decode  : video.decode
 				};
 
 				break;
@@ -195,8 +203,13 @@ export async function getUserMedia(
 
 				videoPlayerOptions =
 				{
-					source : 'url',
-					file   : video.url
+					source  : 'url',
+					file    : video.url,
+					format  : video.format,
+					options : video.options,
+					timeout : video.timeout,
+					loop    : video.loop,
+					decode  : video.decode
 				};
 
 				break;

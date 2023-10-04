@@ -194,6 +194,9 @@ type AiortcMediaTrackConstraints =
   url?: string;
   format?: string;
   options?: object;
+  timeout?: number;
+  loop?: boolean;
+  decode?: boolean;
 }
 ```
 
@@ -207,7 +210,7 @@ Determines which source **aiortc** will use to generate the audio or video track
 
 #### `device`
 
-If `source` is "device", this field is optional. If given, it specifies the device ID of the microphone or webcam to use. If unset, the default one in the system will be used.
+If `source` is "device" and this field is given, it specifies the device ID of the microphone or webcam to use. If unset, the default one in the system will be used.
 
 * Default values for `Darwin` platform:
   - "none:0" for audio.
@@ -226,7 +229,7 @@ Mandatory if `source` is "url". Must be the URL of an HTTP stream.
 
 #### `format`
 
-Just valid if `source` is "device". Specifies the device format used by `ffmpeg`.
+Specifies the device format used by `ffmpeg`.
 
 * Default values for `Darwin` platform:
   - "avfoundation" for audio.
@@ -238,7 +241,7 @@ Just valid if `source` is "device". Specifies the device format used by `ffmpeg`
 
 #### `options`
 
-Just valid if `source` is "device". Specifies the device options used by `ffmpeg`.
+Specifies the device options used by `ffmpeg`.
 
 * Default values for `Darwin` platform:
   - `{}` for audio.
@@ -247,6 +250,10 @@ Just valid if `source` is "device". Specifies the device options used by `ffmpeg
 * Default values for `Linux` platform:
   - `{}` for audio.
   - `{ framerate: "30", video_size: "640x480" }` for video.
+  
+#### `timeout`, `loop` and `decode`
+
+See [documentation](https://aiortc.readthedocs.io/en/latest/helpers.html#media-sources) in **aiortc** site (`decode` option is not documented but you can figure it out by reading usage [examples](https://github.com/aiortc/aiortc/blob/main/examples/webcam/README.rst)).
 
 
 ## Other considerations
