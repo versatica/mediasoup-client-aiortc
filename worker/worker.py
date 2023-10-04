@@ -103,8 +103,11 @@ if __name__ == "__main__":
             data = request.data
             player = MediaPlayer(
                 data["file"],
-                data["format"] if "format" in data else None,
-                data["options"] if "options" in data else None
+                format=data["format"] if "format" in data else None,
+                options=data["options"] if "options" in data else None,
+                timeout=data["timeout"] if "timeout" in data else None,
+                loop=data["loop"] if "loop" in data else False,
+                decode=data["decode"] if "decode" in data else True
             )
 
             # store the player in the map
