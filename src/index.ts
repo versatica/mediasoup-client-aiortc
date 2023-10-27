@@ -13,11 +13,6 @@ import {
 const logger = new Logger();
 
 /**
- * Expose version.
- */
-export const version = '__MEDIASOUP_CLIENT_AIORTC_VERSION__';
-
-/**
  * Expose Worker factory.
  */
 export async function createWorker(

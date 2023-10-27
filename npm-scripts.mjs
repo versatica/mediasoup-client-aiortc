@@ -42,7 +42,7 @@ async function run()
 		{
 			installNodeDeps();
 			buildTypescript(/* force */ true);
-			replaceVersion();
+			replacePythonVersion();
 
 			break;
 		}
@@ -80,7 +80,7 @@ async function run()
 		case 'test':
 		{
 			buildTypescript(/* force */ false);
-			replaceVersion();
+			replacePythonVersion();
 			test();
 
 			break;
@@ -89,7 +89,7 @@ async function run()
 		case 'coverage':
 		{
 			buildTypescript(/* force */ false);
-			replaceVersion();
+			replacePythonVersion();
 			executeCmd('jest --coverage');
 			executeCmd('open-cli coverage/lcov-report/index.html');
 
@@ -135,39 +135,6 @@ async function run()
 
 			exitWithError();
 		}
-	}
-}
-
-function replaceVersion()
-{
-	logInfo('replaceVersion()');
-
-	replaceNodeVersion();
-	replacePythonVersion();
-}
-
-function replaceNodeVersion()
-{
-	logInfo('replaceNodeVersion()');
-
-	const files = fs.readdirSync('lib',
-		{
-			withFileTypes : true,
-			recursive     : false
-		});
-
-	for (const file of files)
-	{
-		if (!file.isFile())
-		{
-			continue;
-		}
-
-		const filePath = path.join('lib', file.name);
-		const text = fs.readFileSync(filePath, { encoding: 'utf8' });
-		const result = text.replace(/__MEDIASOUP_CLIENT_AIORTC_VERSION__/g, PKG.version);
-
-		fs.writeFileSync(filePath, result, { encoding: 'utf8' });
 	}
 }
 
@@ -266,7 +233,7 @@ function checkRelease()
 	installNodeDeps();
 	installPythonDeps();
 	buildTypescript(/* force */ true);
-	replaceVersion();
+	replacePythonVersion();
 	lintNode();
 	// TODO: Disabled due to
 	// https://github.com/versatica/mediasoup-client-aiortc/issues/25
