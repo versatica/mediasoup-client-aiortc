@@ -38,7 +38,6 @@ $ PYTHON=/home/me/bin/python3.12 node my_app.js
 ```javascript
 // ES6 style.
 import {
-  version,
   createWorker,
   Worker,
   WorkerSettings,
@@ -50,7 +49,6 @@ import {
 
 // CommonJS style.
 const {
-  version,
   createWorker,
   Worker,
   WorkerSettings,
@@ -60,12 +58,6 @@ const {
   AiortcMediaTrackConstraints
 } = require("mediasoup-client-aiortc");
 ```
-
-### `version` getter
-
-The version of the module.
-
-> `@type` String, read only
 
 ### `async createWorker(settings: WorkerSettings)` function
 

@@ -1,6 +1,5 @@
 import process from 'process';
 import fs from 'fs';
-import path from 'path';
 import { execSync } from 'child_process';
 
 const PKG = JSON.parse(fs.readFileSync('./package.json').toString());
