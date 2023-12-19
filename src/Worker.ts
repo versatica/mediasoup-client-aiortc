@@ -1,6 +1,8 @@
+import process from 'node:process';
+import os from 'node:os';
+import path from 'node:path';
+import { spawn, execSync, ChildProcess } from 'node:child_process';
 import { v4 as uuidv4 } from 'uuid';
-import * as path from 'path';
-import { spawn, ChildProcess } from 'child_process';
 import { Logger } from 'mediasoup-client/lib/Logger';
 import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
 import { HandlerFactory } from 'mediasoup-client/lib/handlers/HandlerInterface';
@@ -12,6 +14,9 @@ import { Handler } from './Handler';
 // Whether the Python subprocess should log via PIPE to Node.js or directly to
 // stdout and stderr.
 const PYTHON_LOG_VIA_PIPE = process.env.PYTHON_LOG_TO_STDOUT !== 'true';
+const IS_WINDOWS = os.platform() === 'win32';
+const PYTHON = getPython();
+const PIP_DEPS_DIR = path.join(__dirname, '..', 'worker', 'pip_deps');
 
 const logger = new Logger('Worker');
 
@@ -49,7 +54,7 @@ export class Worker extends EnhancedEventEmitter
 
 		logger.debug('constructor() [logLevel:%o]', logLevel);
 
-		const spawnBin = process.env.PYTHON || 'python3';
+		const spawnBin = PYTHON;
 		const spawnArgs: string[] = [];
 
 		spawnArgs.push('-u'); // Unbuffered stdio.
@@ -71,6 +76,15 @@ export class Worker extends EnhancedEventEmitter
 			spawnArgs,
 			// options
 			{
+				// Set PYTHONPATH env since we use custom locations for locally
+				// installed PIP deps.
+				env      :
+				{
+					...process.env,
+					PYTHONPATH : IS_WINDOWS
+						? `${PIP_DEPS_DIR};${process.env.PYTHONPATH}`
+						: `${PIP_DEPS_DIR}:${process.env.PYTHONPATH}`
+				},
 				detached : false,
 				// fd 0 (stdin)   : Just ignore it.
 				// fd 1 (stdout)  : Pipe it for 3rd libraries that log their own stuff.
@@ -297,4 +311,24 @@ export class Worker extends EnhancedEventEmitter
 			return handler;
 		};
 	}
+}
+
+function getPython()
+{
+	let python = process.env.PYTHON;
+
+	if (!python)
+	{
+		try
+		{
+			execSync('python3 --version', { stdio: [ 'ignore', 'ignore', 'ignore' ] });
+			python = 'python3';
+		}
+		catch (error)
+		{
+			python = 'python';
+		}
+	}
+
+	return python;
 }

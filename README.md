@@ -9,27 +9,27 @@
 
 ## Requirements
 
-This module uses **aiortc** Python library, which requires Python 3. Check the installation requirements of **aiortc** in the [project site](https://github.com/aiortc/aiortc).
+- Python 3.
 
 
 ## Installation
 
-Once the requirements above are satisfied, install **mediasoup-client-aiortc** within your Node.js application:
+Install **mediasoup-client-aiortc** within your Node.js application:
 
 ```bash
-$ npm install --save mediasoup-client-aiortc
+npm install mediasoup-client-aiortc
 ```
 
-The "postinstall" script in `package.json` will install the Python libraries (including **aiortc**) by using `pip3` command. If such a command is not in the `PATH` or has a different name in your system, you can override its location by setting the `PIP` environment variable:
+The "postinstall" script in `package.json` will install the Python libraries (including **aiortc**). You can override the path to `python` executable by setting the `PYTHON` environment variable:
 
 ```bash
-$ PIP=/home/me/bin/pip3 npm install --save mediasoup-client-aiortc
+PYTHON=/home/me/bin/python3.13 npm install mediasoup-client-aiortc
 ```
 
-Once you run your Node.js application, **mediasoup-client-aiortc** will eventually spawn Python processes and communicate with them via `UnixSocket`. This module assumes that there is a `python3` executable in your `PATH` to spawn the Python executable. If not, you can override its location by setting the `PYTHON` environment variable:
+Same once you run your Node.js application. **mediasoup-client-aiortc** will spawn Python processes and communicate with them via `UnixSocket`. You can override the `python` executable path by setting the `PYTHON` environment variable:
 
 ```bash
-$ PYTHON=/home/me/bin/python3.12 node my_app.js
+PYTHON=/home/me/bin/python3.13 node my_app.js
 ```
 
 
@@ -259,13 +259,24 @@ When sending, `dataChannel.send()` (and hence `dataProducer.send()`) allows pass
 
 ## Development
 
-### Lint task
-
-In order to run `npm run lint` task, install Python dev dependencies:
+### Lint
 
 ```bash
-$ npm run install-python-dev-deps
+npm run lint
 ```
+
+### Test
+
+```bash
+npm run test
+```
+
+### Check release
+
+```bash
+npm run release:check
+```
+
 
 ### Make Python log to stdout/stderr while running tests
 

@@ -23,6 +23,10 @@ const eslintConfig =
 		lib     : [ 'es2022', 'dom' ],
 		project : 'tsconfig.json'
 	},
+	globals :
+	{
+		NodeJS : 'readonly'
+	},
 	rules :
 	{
 		'array-bracket-spacing' : [ 2, 'always',
@@ -42,6 +46,14 @@ const eslintConfig =
 		'computed-property-spacing' : 2,
 		'constructor-super'         : 2,
 		'curly'                     : [ 2, 'all' ],
+		// Unfortunatelly `curly` does not apply to blocks in `switch` cases so
+		// this is needed.
+		'no-restricted-syntax'      : [ 2,
+			{
+				'selector' : 'SwitchCase > *.consequent[type!="BlockStatement"]',
+				'message'  : 'Switch cases without blocks are disallowed'
+			}
+		],
 		'func-call-spacing'         : 2,
 		'generator-star-spacing'    : 2,
 		'guard-for-in'              : 2,
@@ -72,10 +84,10 @@ const eslintConfig =
 				beforeLineComment  : false
 			}
 		],
-		'max-len' : [ 2, 90,
+		'max-len' : [ 2, 100,
 			{
 				tabWidth               : 2,
-				comments               : 90,
+				comments               : 88,
 				ignoreUrls             : true,
 				ignoreStrings          : true,
 				ignoreTemplateLiterals : true,
@@ -163,7 +175,12 @@ const eslintConfig =
 		'prefer-rest-params'            : 2,
 		'prefer-spread'                 : 2,
 		'prefer-template'               : 2,
-		'quotes'                        : [ 2, 'single', { avoidEscape: true } ],
+		'quotes'                        : [ 2, 'single',
+			{
+				avoidEscape           : true,
+				allowTemplateLiterals : true
+			}
+		],
 		'semi'                          : [ 2, 'always' ],
 		'semi-spacing'                  : 2,
 		'space-before-blocks'           : 2,
