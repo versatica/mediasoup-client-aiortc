@@ -1,4 +1,4 @@
-import { Duplex } from 'stream';
+import { Duplex } from 'node:stream';
 // @ts-ignore
 import * as netstring from 'netstring';
 import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
@@ -306,11 +306,16 @@ export class Channel extends EnhancedEventEmitter
 				switch (msg.error)
 				{
 					case 'TypeError':
+					{
 						sent.reject(new TypeError(msg.reason));
+
 						break;
+					}
 
 					default:
+					{
 						sent.reject(new Error(msg.reason));
+					}
 				}
 			}
 			else

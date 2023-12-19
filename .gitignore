@@ -1,21 +1,13 @@
+# Node.
 /node_modules
 /lib
 /coverage
 
-# Vim temporal files.
-*.swp
-*.swo
-
-# Mac Stuff.
-.DS_Store
-
-# Vistual Studio Code stuff.
-/.vscode
-
-# Cache.
+# Others.
 .mypy_cache
-/.cache
-/.mypy_cache
+.cache
+/worker/pip_deps/
+/worker/pip_dev_deps/
 /worker/__pycache__
 /worker/build
 /worker/mediasoup_client_aiortc.egg-info

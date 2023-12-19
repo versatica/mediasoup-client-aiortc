@@ -1,4 +1,4 @@
-import * as os from 'os';
+import os from 'node:os';
 import { v4 as uuidv4 } from 'uuid';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import { clone } from 'mediasoup-client/lib/utils';

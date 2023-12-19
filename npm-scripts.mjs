@@ -1,11 +1,28 @@
-import process from 'process';
-import fs from 'fs';
-import { execSync } from 'child_process';
+import process from 'node:process';
+import os from 'node:os';
+import fs from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 const PKG = JSON.parse(fs.readFileSync('./package.json').toString());
+const IS_WINDOWS = os.platform() === 'win32';
 const MAYOR_VERSION = PKG.version.split('.')[0];
+const PYTHON = getPython();
+const PIP_DEPS_DIR = path.resolve('worker/pip_deps');
+const PIP_DEV_DEPS_DIR = path.resolve('worker/pip_dev_deps');
 
 const task = process.argv.slice(2).join(' ');
+
+// Set PYTHONPATH env since we use custom locations for locally installed PIP
+// deps.
+if (IS_WINDOWS)
+{
+	process.env.PYTHONPATH = `${PIP_DEPS_DIR};${PIP_DEV_DEPS_DIR};${process.env.PYTHONPATH}`;
+}
+else
+{
+	process.env.PYTHONPATH = `${PIP_DEPS_DIR}:${PIP_DEV_DEPS_DIR}:${process.env.PYTHONPATH}`;
+}
 
 run();
 
@@ -25,7 +42,7 @@ async function run()
 		// So here we compile TypeScript to JavaScript.
 		case 'prepare':
 		{
-			buildTypescript(/* force */ false);
+			buildTypescript({ force: false });
 
 			break;
 		}
@@ -40,7 +57,7 @@ async function run()
 		case 'typescript:build':
 		{
 			installNodeDeps();
-			buildTypescript(/* force */ true);
+			buildTypescript({ force: true });
 			replacePythonVersion();
 
 			break;
@@ -78,7 +95,7 @@ async function run()
 
 		case 'test':
 		{
-			buildTypescript(/* force */ false);
+			buildTypescript({ force: false });
 			replacePythonVersion();
 			test();
 
@@ -87,7 +104,7 @@ async function run()
 
 		case 'coverage':
 		{
-			buildTypescript(/* force */ false);
+			buildTypescript({ force: false });
 			replacePythonVersion();
 			executeCmd('jest --coverage');
 			executeCmd('open-cli coverage/lcov-report/index.html');
@@ -114,20 +131,6 @@ async function run()
 			break;
 		}
 
-		case 'install-python-deps':
-		{
-			installPythonDeps();
-
-			break;
-		}
-
-		case 'install-python-dev-deps':
-		{
-			installPythonDevDeps();
-
-			break;
-		}
-
 		default:
 		{
 			logError('unknown task');
@@ -135,6 +138,26 @@ async function run()
 			exitWithError();
 		}
 	}
+}
+
+function getPython()
+{
+	let python = process.env.PYTHON;
+
+	if (!python)
+	{
+		try
+		{
+			execSync('python3 --version', { stdio: [ 'ignore', 'ignore', 'ignore' ] });
+			python = 'python3';
+		}
+		catch (error)
+		{
+			python = 'python';
+		}
+	}
+
+	return python;
 }
 
 function replacePythonVersion()
@@ -157,10 +180,10 @@ function deleteNodeLib()
 
 	logInfo('deleteNodeLib()');
 
-	executeCmd('rm -rf lib');
+	fs.rmSync('node/lib', { recursive: true, force: true });
 }
 
-function buildTypescript(force = false)
+function buildTypescript({ force = false } = { force: false })
 {
 	if (!force && fs.existsSync('lib'))
 	{
@@ -184,10 +207,10 @@ function lintPython()
 {
 	logInfo('lintPython()');
 
-	const PYTHON = process.env.PYTHON || 'python3';
+	installPythonDevDeps();
 
-	executeCmd(`cd worker && ${PYTHON} -m flake8 && cd ..`);
-	executeCmd(`cd worker && ${PYTHON} -m mypy . && cd ..`);
+	executeCmd(`cd worker && "${PYTHON}" -m flake8 --filename *.py && cd ..`);
+	executeCmd(`cd worker && "${PYTHON}" -m mypy --exclude pip_deps --exclude pip_dev_deps . && cd ..`);
 }
 
 function test()
@@ -211,18 +234,24 @@ function installPythonDeps()
 {
 	logInfo('installPythonDeps()');
 
-	const PIP = process.env.PIP || 'pip3';
-
-	executeCmd(`${PIP} install --user worker/`);
+	// Install PIP deps into custom location, so we don't depend on system-wide
+	// installation.
+	executeCmd(
+		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" worker/`,
+		/* exitOnError */ true
+	);
 }
 
 function installPythonDevDeps()
 {
 	logInfo('installPythonDevDeps()');
 
-	const PIP = process.env.PIP || 'pip3';
-
-	executeCmd(`${PIP} install flake8 mypy`);
+	// Install PIP dev deps into custom location, so we don't depend on system-wide
+	// installation.
+	executeCmd(
+		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEV_DEPS_DIR}" flake8 mypy`,
+		/* exitOnError */ true
+	);
 }
 
 function checkRelease()
@@ -231,7 +260,7 @@ function checkRelease()
 
 	installNodeDeps();
 	installPythonDeps();
-	buildTypescript(/* force */ true);
+	buildTypescript({ force: true });
 	replacePythonVersion();
 	lintNode();
 	// TODO: Disabled due to
