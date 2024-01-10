@@ -46,7 +46,7 @@ jobs:
             ${{ matrix.ci.os }}-node-
 
       - name: npm ci
-        run: npm ci --foreground-scripts
+        run: npm ci --force --foreground-scripts
 
       # NOTE: Avoid lint:python due to
       # https://github.com/versatica/mediasoup-client-aiortc/issues/25
