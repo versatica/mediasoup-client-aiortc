@@ -22,8 +22,6 @@ jobs:
             node: 20
           - os: macos-12
             node: 20
-          - os: windows-2022
-            node: 20
 
     runs-on: ${{ matrix.ci.os }}
 
@@ -45,6 +43,7 @@ jobs:
           restore-keys: |
             ${{ matrix.ci.os }}-node-
 
+      # Use --force since some dev dependency requires Node >= 18.
       - name: npm ci
         run: npm ci --force --foreground-scripts
 

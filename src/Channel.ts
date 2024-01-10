@@ -167,7 +167,7 @@ export class Channel extends EnhancedEventEmitter {
 		this.#socket.write(ns);
 
 		return new Promise((pResolve, pReject) => {
-			const timeout = 1000 * (15 + 0.1 * this.#sents.size);
+			const timeout = 2000 * (15 + 0.1 * this.#sents.size);
 			const sent: Sent = {
 				id: id,
 				method: method,
