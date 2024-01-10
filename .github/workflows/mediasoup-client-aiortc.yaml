@@ -11,6 +11,7 @@ concurrency:
 jobs:
   ci:
     strategy:
+      fail-fast: false
       matrix:
         ci:
           - os: ubuntu-20.04
