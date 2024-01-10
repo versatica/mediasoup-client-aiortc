@@ -1,13 +1,9 @@
 import { Logger } from './Logger';
-import {
-	Worker,
-	WorkerSettings,
-	WorkerLogLevel
-} from './Worker';
+import { Worker, WorkerSettings, WorkerLogLevel } from './Worker';
 import { AiortcMediaStream } from './AiortcMediaStream';
 import {
 	AiortcMediaStreamConstraints,
-	AiortcMediaTrackConstraints
+	AiortcMediaTrackConstraints,
 } from './media';
 
 const logger = new Logger();
@@ -15,16 +11,14 @@ const logger = new Logger();
 /**
  * Expose Worker factory.
  */
-export async function createWorker(
-	{ logLevel = 'error' }:	WorkerSettings = {}
-): Promise<Worker>
-{
+export async function createWorker({
+	logLevel = 'error',
+}: WorkerSettings = {}): Promise<Worker> {
 	logger.debug('createWorker()');
 
 	const worker = new Worker({ logLevel });
 
-	return new Promise<Worker>((resolve, reject) =>
-	{
+	return new Promise<Worker>((resolve, reject) => {
 		worker.on('@success', () => resolve(worker));
 		worker.on('@failure', reject);
 	});
@@ -33,11 +27,7 @@ export async function createWorker(
 /**
  * Expose Worker class and related types.
  */
-export {
-	Worker,
-	type WorkerSettings,
-	type WorkerLogLevel
-};
+export { Worker, type WorkerSettings, type WorkerLogLevel };
 
 /**
  * Expose AiortcMediaStream class and related types.
@@ -45,5 +35,5 @@ export {
 export {
 	AiortcMediaStream,
 	type AiortcMediaStreamConstraints,
-	type AiortcMediaTrackConstraints
+	type AiortcMediaTrackConstraints,
 };

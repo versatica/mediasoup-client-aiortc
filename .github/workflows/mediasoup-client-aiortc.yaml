@@ -1,6 +1,6 @@
 name: mediasoup-client-aiortc
 
-on: [push, pull_request]
+on: [pull_request, workflow_dispatch]
 
 concurrency:
   # Cancel a currently running workflow from the same PR, branch or tag when a
@@ -11,24 +11,26 @@ concurrency:
 jobs:
   ci:
     strategy:
+      fail-fast: false
       matrix:
-        # Different Node versions on Ubuntu, the latest Node on other platforms.
         ci:
-          - os: ubuntu-22.04
+          - os: ubuntu-20.04
             node: 16
-          - os: macos-12
+          - os: ubuntu-20.04
             node: 18
           - os: ubuntu-22.04
+            node: 20
+          - os: macos-12
             node: 20
 
     runs-on: ${{ matrix.ci.os }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.ci.node }}
 
@@ -41,6 +43,7 @@ jobs:
           restore-keys: |
             ${{ matrix.ci.os }}-node-
 
+      # Use --force since some dev dependency requires Node >= 18.
       - name: npm ci
         run: npm ci --force --foreground-scripts
 
