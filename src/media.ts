@@ -5,14 +5,12 @@ import { clone } from 'mediasoup-client/lib/utils';
 import { Channel } from './Channel';
 import { AiortcMediaStream } from './AiortcMediaStream';
 
-export type AiortcMediaStreamConstraints =
-{
+export type AiortcMediaStreamConstraints = {
 	audio?: AiortcMediaTrackConstraints | boolean;
 	video?: AiortcMediaTrackConstraints | boolean;
 };
 
-export type AiortcMediaTrackConstraints =
-{
+export type AiortcMediaTrackConstraints = {
 	source: 'device' | 'file' | 'url';
 	device?: string;
 	file?: string;
@@ -24,15 +22,13 @@ export type AiortcMediaTrackConstraints =
 	decode?: boolean;
 };
 
-type MediaPlayerInternal =
-{
+type MediaPlayerInternal = {
 	playerId: string;
 	audioTrackId?: string;
 	videoTrackId?: string;
 };
 
-type MediaPlayerOptions =
-{
+type MediaPlayerOptions = {
 	source: 'device' | 'file' | 'url';
 	file: string;
 	format?: string;
@@ -44,9 +40,8 @@ type MediaPlayerOptions =
 
 export async function getUserMedia(
 	channel: Channel,
-	constraints: AiortcMediaStreamConstraints = {}
-): Promise<AiortcMediaStream>
-{
+	constraints: AiortcMediaStreamConstraints = {},
+): Promise<AiortcMediaStream> {
 	constraints = clone(constraints) as AiortcMediaStreamConstraints;
 
 	let { audio, video } = constraints;
@@ -56,167 +51,143 @@ export async function getUserMedia(
 	let videoPlayerOptions: MediaPlayerOptions | undefined;
 	const tracks: FakeMediaStreamTrack[] = [];
 
-	if (!audio && !video)
-	{
+	if (!audio && !video) {
 		throw new TypeError('at least audio or video constraints must be given');
 	}
 
-	if (audio)
-	{
+	if (audio) {
 		audioPlayerInternal = { playerId: uuidv4() };
 
-		if (audio === true)
-		{
+		if (audio === true) {
 			audio = { source: 'device' };
 		}
 
-		switch (audio.source)
-		{
-			case 'device':
-			{
-				audioPlayerOptions =
-				{
-					source  : 'device',
-					file    : audio.device ?? os.platform() === 'darwin'
-						? 'none:0'
-						: 'hw:0',
-					format  : audio.format ?? os.platform() === 'darwin'
-						? 'avfoundation'
-						: 'alsa',
-					options : audio.options,
-					timeout : audio.timeout,
-					loop    : audio.loop,
-					decode  : audio.decode
+		switch (audio.source) {
+			case 'device': {
+				audioPlayerOptions = {
+					source: 'device',
+					file: audio.device ?? os.platform() === 'darwin' ? 'none:0' : 'hw:0',
+					format:
+						audio.format ?? os.platform() === 'darwin'
+							? 'avfoundation'
+							: 'alsa',
+					options: audio.options,
+					timeout: audio.timeout,
+					loop: audio.loop,
+					decode: audio.decode,
 				};
 
 				break;
 			}
 
-			case 'file':
-			{
-				if (!audio.file)
-				{
+			case 'file': {
+				if (!audio.file) {
 					throw new TypeError('missing audio.file');
 				}
 
-				audioPlayerOptions =
-				{
-					source  : 'file',
-					file    : audio.file,
-					format  : audio.format,
-					options : audio.options,
-					timeout : audio.timeout,
-					loop    : audio.loop,
-					decode  : audio.decode
+				audioPlayerOptions = {
+					source: 'file',
+					file: audio.file,
+					format: audio.format,
+					options: audio.options,
+					timeout: audio.timeout,
+					loop: audio.loop,
+					decode: audio.decode,
 				};
 
 				break;
 			}
 
-			case 'url':
-			{
-				if (!audio.url)
-				{
+			case 'url': {
+				if (!audio.url) {
 					throw new TypeError('missing audio.url');
 				}
 
-				audioPlayerOptions =
-				{
-					source  : 'url',
-					file    : audio.url,
-					format  : audio.format,
-					options : audio.options,
-					timeout : audio.timeout,
-					loop    : audio.loop,
-					decode  : audio.decode
+				audioPlayerOptions = {
+					source: 'url',
+					file: audio.url,
+					format: audio.format,
+					options: audio.options,
+					timeout: audio.timeout,
+					loop: audio.loop,
+					decode: audio.decode,
 				};
 
 				break;
 			}
 
-			default:
-			{
+			default: {
 				throw new TypeError(`invalid audio.source "${audio.source}"`);
 			}
 		}
 	}
 
-	if (video)
-	{
+	if (video) {
 		videoPlayerInternal = { playerId: uuidv4() };
 
-		if (video === true)
-		{
+		if (video === true) {
 			video = { source: 'device' };
 		}
 
-		switch (video.source)
-		{
-			case 'device':
-			{
-				videoPlayerOptions =
-				{
-					source  : 'device',
-					file    : video.device ?? os.platform() === 'darwin'
-						? 'default:none'
-						: '/dev/video0',
-					format  : video.format ?? os.platform() === 'darwin'
-						? 'avfoundation'
-						: 'v4l2',
+		switch (video.source) {
+			case 'device': {
+				videoPlayerOptions = {
+					source: 'device',
+					file:
+						video.device ?? os.platform() === 'darwin'
+							? 'default:none'
+							: '/dev/video0',
+					format:
+						video.format ?? os.platform() === 'darwin'
+							? 'avfoundation'
+							: 'v4l2',
 					// eslint-disable-next-line camelcase
-					options : video.options ?? { framerate: '30', video_size: '640x480' },
-					timeout : video.timeout,
-					loop    : video.loop,
-					decode  : video.decode
+					options: video.options ?? { framerate: '30', video_size: '640x480' },
+					timeout: video.timeout,
+					loop: video.loop,
+					decode: video.decode,
 				};
 
 				break;
 			}
 
-			case 'file':
-			{
-				if (!video.file)
-				{
+			case 'file': {
+				if (!video.file) {
 					throw new TypeError('missing video.file');
 				}
 
-				videoPlayerOptions =
-				{
-					source  : 'file',
-					file    : video.file,
-					format  : video.format,
-					options : video.options,
-					timeout : video.timeout,
-					loop    : video.loop,
-					decode  : video.decode
+				videoPlayerOptions = {
+					source: 'file',
+					file: video.file,
+					format: video.format,
+					options: video.options,
+					timeout: video.timeout,
+					loop: video.loop,
+					decode: video.decode,
 				};
 
 				break;
 			}
 
-			case 'url':
-			{
-				if (!video.url)
-				{
+			case 'url': {
+				if (!video.url) {
 					throw new TypeError('missing video.url');
 				}
 
-				videoPlayerOptions =
-				{
-					source  : 'url',
-					file    : video.url,
-					format  : video.format,
-					options : video.options,
-					timeout : video.timeout,
-					loop    : video.loop,
-					decode  : video.decode
+				videoPlayerOptions = {
+					source: 'url',
+					file: video.url,
+					format: video.format,
+					options: video.options,
+					timeout: video.timeout,
+					loop: video.loop,
+					decode: video.decode,
 				};
 
 				break;
 			}
 
-			default:
-			{
+			default: {
 				throw new TypeError(`invalid video.source "${video.source}"`);
 			}
 		}
@@ -225,57 +196,49 @@ export async function getUserMedia(
 	// If both players have source 'file' or 'url' and their file match, just
 	// create a single MediaPlayer.
 	const areSamePlayer =
-	(
 		audioPlayerInternal &&
 		videoPlayerInternal &&
-		[ 'file', 'url' ].includes(audioPlayerOptions!.source) &&
+		['file', 'url'].includes(audioPlayerOptions!.source) &&
 		audioPlayerOptions!.source === videoPlayerOptions!.source &&
-		audioPlayerOptions!.file === videoPlayerOptions!.file
-	);
+		audioPlayerOptions!.file === videoPlayerOptions!.file;
 
-	let result:
-	{
+	let result: {
 		audioTrackId?: string;
 		videoTrackId?: string;
-	} =
-	{
-		audioTrackId : undefined,
-		videoTrackId : undefined
+	} = {
+		audioTrackId: undefined,
+		videoTrackId: undefined,
 	};
 
-	if (audioPlayerInternal)
-	{
+	if (audioPlayerInternal) {
 		result = await channel.request(
-			'createPlayer', audioPlayerInternal, audioPlayerOptions);
+			'createPlayer',
+			audioPlayerInternal,
+			audioPlayerOptions,
+		);
 
-		if (!result.audioTrackId)
-		{
+		if (!result.audioTrackId) {
 			throw new Error('no audioTrackId in result');
 		}
 
 		audioPlayerInternal.audioTrackId = result.audioTrackId;
 	}
 
-	if (videoPlayerInternal)
-	{
+	if (videoPlayerInternal) {
 		// If both audio and video share same file/url, do not create a video
 		// player and set the same playerId in both.
-		if (areSamePlayer)
-		{
+		if (areSamePlayer) {
 			videoPlayerInternal.playerId = audioPlayerInternal!.playerId;
-		}
-		else
-		{
-			try
-			{
+		} else {
+			try {
 				result = await channel.request(
-					'createPlayer', videoPlayerInternal, videoPlayerOptions);
-			}
-			catch (error)
-			{
+					'createPlayer',
+					videoPlayerInternal,
+					videoPlayerOptions,
+				);
+			} catch (error) {
 				// If the video player fails and we created an audio player, close it.
-				if (audioPlayerInternal)
-				{
+				if (audioPlayerInternal) {
 					channel.notify('player.close', audioPlayerInternal);
 				}
 
@@ -283,45 +246,40 @@ export async function getUserMedia(
 			}
 		}
 
-		if (!result.videoTrackId)
-		{
+		if (!result.videoTrackId) {
 			throw new Error('no videoTrackId in result');
 		}
 
 		videoPlayerInternal.videoTrackId = result.videoTrackId;
 	}
 
-	if (audioPlayerInternal)
-	{
-		const track = new FakeMediaStreamTrack(
-			{
-				id   : audioPlayerInternal.audioTrackId,
-				kind : 'audio',
-				data : { playerId: audioPlayerInternal.playerId }
-			});
+	if (audioPlayerInternal) {
+		const track = new FakeMediaStreamTrack({
+			id: audioPlayerInternal.audioTrackId,
+			kind: 'audio',
+			data: { playerId: audioPlayerInternal.playerId },
+		});
 
-		track.addEventListener('@stop', () =>
-		{
-			channel.notify(
-				'player.stopTrack', audioPlayerInternal, { kind: 'audio' });
+		track.addEventListener('@stop', () => {
+			channel.notify('player.stopTrack', audioPlayerInternal, {
+				kind: 'audio',
+			});
 		});
 
 		tracks.push(track);
 	}
 
-	if (videoPlayerInternal)
-	{
-		const track = new FakeMediaStreamTrack(
-			{
-				id   : videoPlayerInternal.videoTrackId,
-				kind : 'video',
-				data : { playerId: videoPlayerInternal.playerId }
-			});
+	if (videoPlayerInternal) {
+		const track = new FakeMediaStreamTrack({
+			id: videoPlayerInternal.videoTrackId,
+			kind: 'video',
+			data: { playerId: videoPlayerInternal.playerId },
+		});
 
-		track.addEventListener('@stop', () =>
-		{
-			channel.notify(
-				'player.stopTrack', videoPlayerInternal, { kind: 'video' });
+		track.addEventListener('@stop', () => {
+			channel.notify('player.stopTrack', videoPlayerInternal, {
+				kind: 'video',
+			});
 		});
 
 		tracks.push(track);
@@ -329,15 +287,12 @@ export async function getUserMedia(
 
 	const stream = new AiortcMediaStream(tracks);
 
-	stream.addEventListener('@close', () =>
-	{
-		if (audioPlayerInternal)
-		{
+	stream.addEventListener('@close', () => {
+		if (audioPlayerInternal) {
 			channel.notify('player.close', audioPlayerInternal);
 		}
 
-		if (videoPlayerInternal && !areSamePlayer)
-		{
+		if (videoPlayerInternal && !areSamePlayer) {
 			channel.notify('player.close', videoPlayerInternal);
 		}
 	});

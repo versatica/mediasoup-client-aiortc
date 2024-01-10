@@ -3,12 +3,11 @@ import {
 	EventTarget,
 	Event,
 	getEventAttributeValue,
-	setEventAttributeValue
+	setEventAttributeValue,
 } from 'event-target-shim';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 
-export class AiortcMediaStream extends EventTarget implements MediaStream
-{
+export class AiortcMediaStream extends EventTarget implements MediaStream {
 	readonly #id: string;
 	readonly #tracks: Map<string, FakeMediaStreamTrack> = new Map();
 
@@ -17,101 +16,87 @@ export class AiortcMediaStream extends EventTarget implements MediaStream
 	// public onaddtrack: (this: AiortcMediaStream, ev: Event) => any;
 	// public onremovetrack: (this: MediaStream, ev: Event) => any;
 
-	constructor(tracks: FakeMediaStreamTrack[])
-	{
+	constructor(tracks: FakeMediaStreamTrack[]) {
 		super();
 
 		this.#id = uuidv4();
 
-		for (const track of tracks)
-		{
+		for (const track of tracks) {
 			this.#tracks.set(track.id, track);
 		}
 	}
 
-	get id(): string
-	{
+	get id(): string {
 		return this.#id;
 	}
 
-	get active(): boolean
-	{
-		return Array.from(this.#tracks.values())
-			.some((track) => track.readyState === 'live');
+	get active(): boolean {
+		return Array.from(this.#tracks.values()).some(
+			track => track.readyState === 'live',
+		);
 	}
 
-	get onaddtrack(): any
-	{
+	get onaddtrack(): any {
 		return getEventAttributeValue(this, 'addtrack');
 	}
 
-	set onaddtrack(listener)
-	{
+	set onaddtrack(listener) {
 		setEventAttributeValue(this, 'addtrack', listener);
 	}
 
-	get onremovetrack(): any
-	{
+	get onremovetrack(): any {
 		return getEventAttributeValue(this, 'removetrack');
 	}
 
-	set onremovetrack(listener)
-	{
+	set onremovetrack(listener) {
 		setEventAttributeValue(this, 'removetrack', listener);
 	}
 
 	/**
 	 * Custom method to close associated MediaPlayers in aiortc.
 	 */
-	close(): void
-	{
+	close(): void {
 		this.dispatchEvent(new Event('@close'));
 
-		for (const track of this.#tracks.values())
-		{
+		for (const track of this.#tracks.values()) {
 			track.stop();
 		}
 	}
 
-	getAudioTracks(): FakeMediaStreamTrack[]
-	{
-		return Array.from(this.#tracks.values())
-			.filter((track) => track.kind === 'audio');
+	getAudioTracks(): FakeMediaStreamTrack[] {
+		return Array.from(this.#tracks.values()).filter(
+			track => track.kind === 'audio',
+		);
 	}
 
-	getVideoTracks(): FakeMediaStreamTrack[]
-	{
-		return Array.from(this.#tracks.values())
-			.filter((track) => track.kind === 'video');
+	getVideoTracks(): FakeMediaStreamTrack[] {
+		return Array.from(this.#tracks.values()).filter(
+			track => track.kind === 'video',
+		);
 	}
 
-	getTracks(): FakeMediaStreamTrack[]
-	{
+	getTracks(): FakeMediaStreamTrack[] {
 		return Array.from(this.#tracks.values());
 	}
 
 	// NOTE: TypeScript things that mediaStream.getTrackById() should return null
 	// instead of undefined. It's wrong.
 	// @ts-ignore
-	getTrackById(trackId: string): FakeMediaStreamTrack | undefined
-	{
+	getTrackById(trackId: string): FakeMediaStreamTrack | undefined {
 		return this.#tracks.get(trackId);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	addTrack(track: FakeMediaStreamTrack): void
-	{
+	addTrack(track: FakeMediaStreamTrack): void {
 		throw new Error('not implemented');
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	removeTrack(track: FakeMediaStreamTrack): void
-	{
+	removeTrack(track: FakeMediaStreamTrack): void {
 		throw new Error('not implemented');
 	}
 
-	clone(): MediaStream
-	{
+	clone(): MediaStream {
 		throw new Error('not implemented');
 	}
 }

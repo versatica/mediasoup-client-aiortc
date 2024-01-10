@@ -11,8 +11,7 @@ const NS_PAYLOAD_MAX_LEN = 4194304;
 
 const logger = new Logger('Channel');
 
-interface Sent
-{
+interface Sent {
 	id: number;
 	method: string;
 	resolve: (data?: any) => void;
@@ -21,8 +20,7 @@ interface Sent
 	close: () => void;
 }
 
-export class Channel extends EnhancedEventEmitter
-{
+export class Channel extends EnhancedEventEmitter {
 	// Closed flag.
 	#closed = false;
 	// Unix Socket instance for communicating with the worker process.
@@ -34,16 +32,7 @@ export class Channel extends EnhancedEventEmitter
 	// Buffer for reading messages from the worker.
 	#recvBuffer?: Buffer;
 
-	constructor(
-		{
-			socket,
-			pid
-		}:
-		{
-			socket: any;
-			pid: number;
-		})
-	{
+	constructor({ socket, pid }: { socket: any; pid: number }) {
 		super();
 
 		logger.debug('constructor()');
@@ -51,21 +40,17 @@ export class Channel extends EnhancedEventEmitter
 		this.#socket = socket as Duplex;
 
 		// Read Channel responses/notifications from the worker.
-		this.#socket.on('data', (buffer: Buffer) =>
-		{
-			if (!this.#recvBuffer)
-			{
+		this.#socket.on('data', (buffer: Buffer) => {
+			if (!this.#recvBuffer) {
 				this.#recvBuffer = buffer;
-			}
-			else
-			{
+			} else {
 				this.#recvBuffer = Buffer.concat(
-					[ this.#recvBuffer, buffer ],
-					this.#recvBuffer.length + buffer.length);
+					[this.#recvBuffer, buffer],
+					this.#recvBuffer.length + buffer.length,
+				);
 			}
 
-			if (this.#recvBuffer.length > NS_PAYLOAD_MAX_LEN)
-			{
+			if (this.#recvBuffer.length > NS_PAYLOAD_MAX_LEN) {
 				logger.error('receiving buffer is full, discarding all data into it');
 
 				// Reset the buffer and exit.
@@ -74,19 +59,17 @@ export class Channel extends EnhancedEventEmitter
 				return;
 			}
 
-			while (true) // eslint-disable-line no-constant-condition
-			{
+			// eslint-disable-next-line no-constant-condition
+			while (true) {
 				let nsPayload;
 
-				try
-				{
+				try {
 					nsPayload = netstring.nsPayload(this.#recvBuffer);
-				}
-				catch (error)
-				{
+				} catch (error) {
 					logger.error(
 						'invalid netstring data received from the worker process: %s',
-						String(error));
+						String(error),
+					);
 
 					// Reset the buffer and exit.
 					this.#recvBuffer = undefined;
@@ -95,31 +78,28 @@ export class Channel extends EnhancedEventEmitter
 				}
 
 				// Incomplete netstring message.
-				if (nsPayload === -1)
-				{
+				if (nsPayload === -1) {
 					return;
 				}
 
 				// We only expect JSON messages (Channel messages).
 				// 123 = '{' (a Channel JSON messsage).
-				if (nsPayload[0] === 123)
-				{
+				if (nsPayload[0] === 123) {
 					this.processMessage(JSON.parse(nsPayload));
-				}
-				else
-				{
+				} else {
 					// eslint-disable-next-line no-console
 					console.warn(
 						`worker[pid:${pid}] unexpected data: %s`,
-						nsPayload.toString('utf8', 1));
+						nsPayload.toString('utf8', 1),
+					);
 				}
 
 				// Remove the read payload from the buffer.
-				this.#recvBuffer =
-					this.#recvBuffer.slice(netstring.nsLength(this.#recvBuffer));
+				this.#recvBuffer = this.#recvBuffer.slice(
+					netstring.nsLength(this.#recvBuffer),
+				);
 
-				if (!this.#recvBuffer.length)
-				{
+				if (!this.#recvBuffer.length) {
 					this.#recvBuffer = undefined;
 
 					return;
@@ -127,29 +107,26 @@ export class Channel extends EnhancedEventEmitter
 			}
 		});
 
-		this.#socket.on('end', () => (
-			logger.debug('Channel ended by the worker process')
-		));
+		this.#socket.on('end', () =>
+			logger.debug('Channel ended by the worker process'),
+		);
 
-		this.#socket.on('error', (error) => (
-			logger.error('Channel error: %s', String(error))
-		));
+		this.#socket.on('error', error =>
+			logger.error('Channel error: %s', String(error)),
+		);
 	}
 
-	close(): void
-	{
-		logger.debug('close()');
-
-		if (this.#closed)
-		{
+	close(): void {
+		if (this.#closed) {
 			return;
 		}
+
+		logger.debug('close()');
 
 		this.#closed = true;
 
 		// Close every pending sent.
-		for (const sent of this.#sents.values())
-		{
+		for (const sent of this.#sents.values()) {
 			sent.close();
 		}
 
@@ -159,81 +136,68 @@ export class Channel extends EnhancedEventEmitter
 		this.#socket.removeAllListeners('error');
 		this.#socket.on('error', () => {});
 
-		// Destroy the socket after a while to allow pending incoming messages.
-		setTimeout(() =>
-		{
-			try { this.#socket.destroy(); }
-			catch (error) {}
-		}, 200);
+		// Destroy the socket.
+		try {
+			this.#socket.destroy();
+		} catch (error) {}
 	}
 
-	async request(method: string, internal?: object, data?: any): Promise<any>
-	{
+	async request(method: string, internal?: object, data?: any): Promise<any> {
 		this.#nextId < 4294967295 ? ++this.#nextId : (this.#nextId = 1);
 
 		const id = this.#nextId;
 
 		logger.debug('request() [method:%s, id:%s]', method, id);
 
-		if (this.#closed)
-		{
+		if (this.#closed) {
 			throw new InvalidStateError('Channel closed');
 		}
 
 		const request = { id, method, internal, data };
 		const ns = netstring.nsWrite(JSON.stringify(request));
 
-		if (Buffer.byteLength(ns) > NS_MESSAGE_MAX_LEN)
-		{
+		if (Buffer.byteLength(ns) > NS_MESSAGE_MAX_LEN) {
 			throw new Error(
-				`Channel request too big [length:${Buffer.byteLength(ns)}]`);
+				`Channel request too big [length:${Buffer.byteLength(ns)}]`,
+			);
 		}
 
 		// This may throw if closed or remote side ended.
 		// Terminate with \r\n since we are expecting for it on the python side.
 		this.#socket.write(ns);
 
-		return new Promise((pResolve, pReject) =>
-		{
-			const timeout = 1000 * (15 + (0.1 * this.#sents.size));
-			const sent: Sent =
-			{
-				id      : id,
-				method  : method,
-				resolve : (data2) =>
-				{
-					if (!this.#sents.delete(id))
-					{
+		return new Promise((pResolve, pReject) => {
+			const timeout = 1000 * (15 + 0.1 * this.#sents.size);
+			const sent: Sent = {
+				id: id,
+				method: method,
+				resolve: data2 => {
+					if (!this.#sents.delete(id)) {
 						return;
 					}
 
 					clearTimeout(sent.timer);
 					pResolve(data2);
 				},
-				reject : (error) =>
-				{
-					if (!this.#sents.delete(id))
-					{
+				reject: error => {
+					if (!this.#sents.delete(id)) {
 						return;
 					}
 
 					clearTimeout(sent.timer);
 					pReject(error);
 				},
-				timer : setTimeout(() =>
-				{
-					if (!this.#sents.delete(id))
-					{
+				timer: setTimeout(() => {
+					if (!this.#sents.delete(id)) {
 						return;
 					}
 
 					pReject(new Error('Channel request timeout'));
 				}, timeout),
-				close : () =>
-				{
+				close: () => {
 					clearTimeout(sent.timer);
 					pReject(new InvalidStateError('Channel closed'));
-				}
+				},
 			};
 
 			// Add sent stuff to the map.
@@ -241,12 +205,10 @@ export class Channel extends EnhancedEventEmitter
 		});
 	}
 
-	notify(event: string, internal?: object, data?: any): any
-	{
+	notify(event: string, internal?: object, data?: any): any {
 		logger.debug('notify() [event:%s]', event);
 
-		if (this.#closed)
-		{
+		if (this.#closed) {
 			logger.warn('notify() | Channel closed');
 
 			return;
@@ -255,86 +217,80 @@ export class Channel extends EnhancedEventEmitter
 		const notification = { event, internal, data };
 		const ns = netstring.nsWrite(JSON.stringify(notification));
 
-		if (Buffer.byteLength(ns) > NS_MESSAGE_MAX_LEN)
-		{
+		if (Buffer.byteLength(ns) > NS_MESSAGE_MAX_LEN) {
 			logger.error(
-				'notify() | notification too big [length:%s]', Buffer.byteLength(ns));
+				'notify() | notification too big [length:%s]',
+				Buffer.byteLength(ns),
+			);
 
 			return;
 		}
 
 		// This may throw if closed or remote side ended.
 		// Terminate with \r\n since we are expecting for it on the python side.
-		try
-		{
+		try {
 			this.#socket.write(ns);
-		}
-		catch (error)
-		{
+		} catch (error) {
 			logger.warn('notify() | failed: %s', String(error));
 		}
 	}
 
-	private processMessage(msg: any): void
-	{
+	private processMessage(msg: any): void {
 		// If a response retrieve its associated request.
-		if (msg.id)
-		{
+		if (msg.id) {
 			const sent = this.#sents.get(msg.id);
 
-			if (!sent)
-			{
+			if (!sent) {
 				logger.error(
-					'received response does not match any sent request [id:%s]', msg.id);
+					'received response does not match any sent request [id:%s]',
+					msg.id,
+				);
 
 				return;
 			}
 
-			if (msg.accepted)
-			{
+			if (msg.accepted) {
 				logger.debug(
-					'request succeeded [method:%s, id:%s]', sent.method, sent.id);
+					'request succeeded [method:%s, id:%s]',
+					sent.method,
+					sent.id,
+				);
 
 				sent.resolve(msg.data);
-			}
-			else if (msg.error)
-			{
+			} else if (msg.error) {
 				logger.warn(
 					'request failed [method:%s, id:%s]: %s',
-					sent.method, sent.id, msg.reason);
+					sent.method,
+					sent.id,
+					msg.reason,
+				);
 
-				switch (msg.error)
-				{
-					case 'TypeError':
-					{
+				switch (msg.error) {
+					case 'TypeError': {
 						sent.reject(new TypeError(msg.reason));
 
 						break;
 					}
 
-					default:
-					{
+					default: {
 						sent.reject(new Error(msg.reason));
 					}
 				}
-			}
-			else
-			{
+			} else {
 				logger.error(
 					'received response is not accepted nor rejected [method:%s, id:%s]',
-					sent.method, sent.id);
+					sent.method,
+					sent.id,
+				);
 			}
 		}
 		// If a notification emit it to the corresponding entity.
-		else if (msg.event)
-		{
+		else if (msg.event) {
 			this.emit(msg.targetId, msg.event, msg.data);
 		}
 		// Otherwise unexpected message.
-		else
-		{
-			logger.error(
-				'received message is not a response nor a notification');
+		else {
+			logger.error('received message is not a response nor a notification');
 		}
 	}
 }

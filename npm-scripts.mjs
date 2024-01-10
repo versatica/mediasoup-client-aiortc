@@ -11,25 +11,23 @@ const PYTHON = getPython();
 const PIP_DEPS_DIR = path.resolve('worker/pip_deps');
 const PIP_DEV_DEPS_DIR = path.resolve('worker/pip_dev_deps');
 
-const task = process.argv.slice(2).join(' ');
+const task = process.argv[2];
+const args = process.argv.slice(3).join(' ');
 
 // Set PYTHONPATH env since we use custom locations for locally installed PIP
 // deps.
-if (IS_WINDOWS)
-{
+if (IS_WINDOWS) {
 	process.env.PYTHONPATH = `${PIP_DEPS_DIR};${PIP_DEV_DEPS_DIR};${process.env.PYTHONPATH}`;
-}
-else
-{
+} else {
 	process.env.PYTHONPATH = `${PIP_DEPS_DIR}:${PIP_DEV_DEPS_DIR}:${process.env.PYTHONPATH}`;
 }
 
 run();
 
-async function run()
-{
-	switch (task)
-	{
+async function run() {
+	logInfo(args ? `[args:"${args}"]` : '');
+
+	switch (task) {
 		// As per NPM documentation (https://docs.npmjs.com/cli/v9/using-npm/scripts)
 		// `prepare` script:
 		//
@@ -40,22 +38,19 @@ async function run()
 		//   script will be run, before the package is packaged and installed.
 		//
 		// So here we compile TypeScript to JavaScript.
-		case 'prepare':
-		{
+		case 'prepare': {
 			buildTypescript({ force: false });
 
 			break;
 		}
 
-		case 'postinstall':
-		{
+		case 'postinstall': {
 			installPythonDeps();
 
 			break;
 		}
 
-		case 'typescript:build':
-		{
+		case 'typescript:build': {
 			installNodeDeps();
 			buildTypescript({ force: true });
 			replacePythonVersion();
@@ -63,38 +58,32 @@ async function run()
 			break;
 		}
 
-		case 'typescript:watch':
-		{
+		case 'typescript:watch': {
 			deleteNodeLib();
-			executeCmd('tsc --watch');
+			executeCmd(`tsc --watch ${args}`);
 
 			break;
 		}
 
-		case 'lint':
-		{
-			lintNode();
-			lintPython();
-
-			break;
-		}
-
-		case 'lint:node':
-		{
+		case 'lint:node': {
 			lintNode();
 
 			break;
 		}
 
-		case 'lint:python':
-		{
+		case 'lint:python': {
 			lintPython();
 
 			break;
 		}
 
-		case 'test':
-		{
+		case 'format:node': {
+			formatNode();
+
+			break;
+		}
+
+		case 'test': {
 			buildTypescript({ force: false });
 			replacePythonVersion();
 			test();
@@ -102,8 +91,7 @@ async function run()
 			break;
 		}
 
-		case 'coverage':
-		{
+		case 'coverage': {
 			buildTypescript({ force: false });
 			replacePythonVersion();
 			executeCmd('jest --coverage');
@@ -112,15 +100,13 @@ async function run()
 			break;
 		}
 
-		case 'release:check':
-		{
+		case 'release:check': {
 			checkRelease();
 
 			break;
 		}
 
-		case 'release':
-		{
+		case 'release': {
 			checkRelease();
 			executeCmd(`git commit -am '${PKG.version}'`, /* exitOnError */ false);
 			executeCmd(`git tag -a ${PKG.version} -m '${PKG.version}'`);
@@ -131,8 +117,7 @@ async function run()
 			break;
 		}
 
-		default:
-		{
+		default: {
 			logError('unknown task');
 
 			exitWithError();
@@ -140,19 +125,14 @@ async function run()
 	}
 }
 
-function getPython()
-{
+function getPython() {
 	let python = process.env.PYTHON;
 
-	if (!python)
-	{
-		try
-		{
-			execSync('python3 --version', { stdio: [ 'ignore', 'ignore', 'ignore' ] });
+	if (!python) {
+		try {
+			execSync('python3 --version', { stdio: ['ignore', 'ignore', 'ignore'] });
 			python = 'python3';
-		}
-		catch (error)
-		{
+		} catch (error) {
 			python = 'python';
 		}
 	}
@@ -160,8 +140,7 @@ function getPython()
 	return python;
 }
 
-function replacePythonVersion()
-{
+function replacePythonVersion() {
 	logInfo('replacePythonVersion()');
 
 	const file = 'worker/setup.py';
@@ -171,10 +150,8 @@ function replacePythonVersion()
 	fs.writeFileSync(file, result, { encoding: 'utf8' });
 }
 
-function deleteNodeLib()
-{
-	if (!fs.existsSync('lib'))
-	{
+function deleteNodeLib() {
+	if (!fs.existsSync('lib')) {
 		return;
 	}
 
@@ -183,10 +160,8 @@ function deleteNodeLib()
 	fs.rmSync('node/lib', { recursive: true, force: true });
 }
 
-function buildTypescript({ force = false } = { force: false })
-{
-	if (!force && fs.existsSync('lib'))
-	{
+function buildTypescript({ force = false } = { force: false }) {
+	if (!force && fs.existsSync('lib')) {
 		return;
 	}
 
@@ -196,32 +171,44 @@ function buildTypescript({ force = false } = { force: false })
 	executeCmd('tsc');
 }
 
-function lintNode()
-{
+function lintNode() {
 	logInfo('lintNode()');
 
-	executeCmd('eslint -c .eslintrc.js --max-warnings 0 src .eslintrc.js npm-scripts.mjs');
+	executeCmd('prettier . --check');
+
+	// Ensure there are no rules that are unnecessary or conflict with Prettier
+	// rules.
+	executeCmd('eslint-config-prettier .eslintrc.js');
+
+	executeCmd(
+		'eslint -c .eslintrc.js --ignore-path .eslintignore --max-warnings 0 .',
+	);
 }
 
-function lintPython()
-{
+function lintPython() {
 	logInfo('lintPython()');
 
 	installPythonDevDeps();
 
 	executeCmd(`cd worker && "${PYTHON}" -m flake8 --filename *.py && cd ..`);
-	executeCmd(`cd worker && "${PYTHON}" -m mypy --exclude pip_deps --exclude pip_dev_deps . && cd ..`);
+	executeCmd(
+		`cd worker && "${PYTHON}" -m mypy --exclude pip_deps --exclude pip_dev_deps . && cd ..`,
+	);
 }
 
-function test()
-{
+function formatNode() {
+	logInfo('formatNode()');
+
+	executeCmd('prettier . --write');
+}
+
+function test() {
 	logInfo('test()');
 
-	executeCmd('jest --runInBand');
+	executeCmd(`jest --silent false --detectOpenHandles ${args}`);
 }
 
-function installNodeDeps()
-{
+function installNodeDeps() {
 	logInfo('installNodeDeps()');
 
 	// Install/update deps.
@@ -230,32 +217,29 @@ function installNodeDeps()
 	executeCmd('npm install --package-lock-only --ignore-scripts');
 }
 
-function installPythonDeps()
-{
+function installPythonDeps() {
 	logInfo('installPythonDeps()');
 
 	// Install PIP deps into custom location, so we don't depend on system-wide
 	// installation.
 	executeCmd(
 		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" worker/`,
-		/* exitOnError */ true
+		/* exitOnError */ true,
 	);
 }
 
-function installPythonDevDeps()
-{
+function installPythonDevDeps() {
 	logInfo('installPythonDevDeps()');
 
 	// Install PIP dev deps into custom location, so we don't depend on system-wide
 	// installation.
 	executeCmd(
 		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEV_DEPS_DIR}" flake8 mypy`,
-		/* exitOnError */ true
+		/* exitOnError */ true,
 	);
 }
 
-function checkRelease()
-{
+function checkRelease() {
 	logInfo('checkRelease()');
 
 	installNodeDeps();
@@ -269,49 +253,38 @@ function checkRelease()
 	test();
 }
 
-function executeCmd(command, exitOnError = true)
-{
+function executeCmd(command, exitOnError = true) {
 	logInfo(`executeCmd(): ${command}`);
 
-	try
-	{
-		execSync(command, { stdio: [ 'ignore', process.stdout, process.stderr ] });
-	}
-	catch (error)
-	{
-		if (exitOnError)
-		{
+	try {
+		execSync(command, { stdio: ['ignore', process.stdout, process.stderr] });
+	} catch (error) {
+		if (exitOnError) {
 			logError(`executeCmd() failed, exiting: ${error}`);
 
 			exitWithError();
-		}
-		else
-		{
+		} else {
 			logInfo(`executeCmd() failed, ignoring: ${error}`);
 		}
 	}
 }
 
-function logInfo(message)
-{
+function logInfo(message) {
 	// eslint-disable-next-line no-console
-	console.log(`npm-scripts \x1b[36m[INFO] [${task}]\x1b\[0m`, message);
+	console.log(`npm-scripts \x1b[36m[INFO] [${task}]\x1b[0m`, message);
 }
 
 // eslint-disable-next-line no-unused-vars
-function logWarn(message)
-{
+function logWarn(message) {
 	// eslint-disable-next-line no-console
-	console.warn(`npm-scripts \x1b[33m[WARN] [${task}]\x1b\[0m`, message);
+	console.warn(`npm-scripts \x1b[33m[WARN] [${task}]\x1b[0m`, message);
 }
 
-function logError(message)
-{
+function logError(message) {
 	// eslint-disable-next-line no-console
-	console.error(`npm-scripts \x1b[31m[ERROR] [${task}]\x1b\[0m`, message);
+	console.error(`npm-scripts \x1b[31m[ERROR] [${task}]\x1b[0m`, message);
 }
 
-function exitWithError()
-{
+function exitWithError() {
 	process.exit(1);
 }
