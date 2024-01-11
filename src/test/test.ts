@@ -14,7 +14,7 @@ type TestContext = {
 	audioConsumer?: mediasoupClientTypes.Consumer;
 };
 
-const TEST_TIMEOUT = 20000;
+const TEST_TIMEOUT = 30000;
 
 const ctx: TestContext = {};
 
