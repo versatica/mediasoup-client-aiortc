@@ -53,7 +53,7 @@ jobs:
         run: npm run lint:node
 
       - name: npm run test
-        run: npm run test
+        run: npm run test -- --forceExit
         env:
           DEBUG: 'mediasoup-client-aiortc:WARN* mediasoup-client-aiortc:ERROR*'
           PYTHON_LOG_TO_STDOUT: 'true'
