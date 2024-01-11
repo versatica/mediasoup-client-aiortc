@@ -22,6 +22,8 @@ jobs:
             node: 20
           - os: macos-12
             node: 20
+          - os: windows-2022
+            node: 20
 
     runs-on: ${{ matrix.ci.os }}
 
@@ -53,4 +55,7 @@ jobs:
         run: npm run lint:node
 
       - name: npm run test
-        run: DEBUG="mediasoup-client-aiortc:WARN* mediasoup-client-aiortc:ERROR*" PYTHON_LOG_TO_STDOUT=true npm run test
+        run: npm run test
+        env:
+          DEBUG: 'mediasoup-client-aiortc:WARN* mediasoup-client-aiortc:ERROR*'
+          PYTHON_LOG_TO_STDOUT: 'true'
