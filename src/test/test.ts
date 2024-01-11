@@ -19,8 +19,6 @@ const TEST_TIMEOUT = 20000;
 const ctx: TestContext = {};
 
 beforeEach(async () => {
-	jest.setTimeout(TEST_TIMEOUT);
-
 	ctx.worker = await createWorker({ logLevel: 'debug' });
 
 	ctx.device = new Device({
@@ -116,7 +114,7 @@ beforeEach(async () => {
 		kind: audioConsumerRemoteParameters.kind,
 		rtpParameters: audioConsumerRemoteParameters.rtpParameters,
 	});
-});
+}, TEST_TIMEOUT);
 
 afterEach(async () => {
 	ctx.worker?.close();
@@ -126,7 +124,7 @@ afterEach(async () => {
 			resolve => ctx.worker?.on('subprocessclose', resolve),
 		);
 	}
-});
+}, TEST_TIMEOUT);
 
 test(
 	'create a Worker succeeds',
