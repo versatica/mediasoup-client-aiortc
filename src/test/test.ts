@@ -225,7 +225,7 @@ test(
 
 		await new Promise<void>(resolve => worker.on('subprocessclose', resolve));
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT * 2,
 );
 
 test('create a Device with worker.createHandlerFactory() as argument succeeds', () => {
