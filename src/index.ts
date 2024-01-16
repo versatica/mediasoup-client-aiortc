@@ -28,16 +28,10 @@ export async function createWorker({
  * Expose Worker class and related types.
  */
 export { Worker };
-export type {
-	WorkerSettings,
-	WorkerLogLevel,
-};
+export type { WorkerSettings, WorkerLogLevel };
 
 /**
  * Expose AiortcMediaStream class and related types.
  */
 export { AiortcMediaStream };
-export type {
-	AiortcMediaStreamConstraints,
-	AiortcMediaTrackConstraints,
-};
+export type { AiortcMediaStreamConstraints, AiortcMediaTrackConstraints };

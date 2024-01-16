@@ -120,8 +120,8 @@ afterEach(async () => {
 	ctx.worker?.close();
 
 	if (ctx.worker?.subprocessClosed === false) {
-		await new Promise<void>(
-			resolve => ctx.worker?.on('subprocessclose', resolve),
+		await new Promise<void>(resolve =>
+			ctx.worker?.on('subprocessclose', resolve),
 		);
 	}
 }, TEST_TIMEOUT);
