@@ -156,7 +156,7 @@ export class Handler extends HandlerInterface {
 
 		// aiortc only supports "sha-256" hash algorithm.
 		dtlsParameters.fingerprints = dtlsParameters.fingerprints.filter(
-			f => f.algorithm === 'sha-256',
+			f => f.algorithm === 'sha-256'
 		);
 
 		this.#remoteSdp = new RemoteSdp({
@@ -174,11 +174,11 @@ export class Handler extends HandlerInterface {
 		this.#sendingRemoteRtpParametersByKind = {
 			audio: ortc.getSendingRemoteRtpParameters(
 				'audio',
-				extendedRtpCapabilities,
+				extendedRtpCapabilities
 			),
 			video: ortc.getSendingRemoteRtpParameters(
 				'video',
-				extendedRtpCapabilities,
+				extendedRtpCapabilities
 			),
 		};
 
@@ -214,7 +214,7 @@ export class Handler extends HandlerInterface {
 	async getTransportStats(): Promise<FakeRTCStatsReport> {
 		const data = await this.#channel.request(
 			'handler.getTransportStats',
-			this.#internal,
+			this.#internal
 		);
 
 		return new FakeRTCStatsReport(data);
@@ -222,7 +222,7 @@ export class Handler extends HandlerInterface {
 
 	async send(
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		{ track, encodings, codecOptions, codec }: HandlerSendOptions,
+		{ track, encodings, codecOptions, codec }: HandlerSendOptions
 	): Promise<HandlerSendResult> {
 		this.assertSendDirection();
 
@@ -230,7 +230,7 @@ export class Handler extends HandlerInterface {
 			'send() [kind:%s, track.id:%s, track.data:%o]',
 			track.kind,
 			track.id,
-			(track as FakeMediaStreamTrack).data,
+			(track as FakeMediaStreamTrack).data
 		);
 
 		const localId = track.id;
@@ -251,18 +251,18 @@ export class Handler extends HandlerInterface {
 			});
 		} else {
 			throw new TypeError(
-				'invalid track, missing data.playerId or data.remote',
+				'invalid track, missing data.playerId or data.remote'
 			);
 		}
 
 		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this.#sendingRtpParametersByKind![track.kind],
+			this.#sendingRtpParametersByKind![track.kind]
 		);
 
 		// This may throw.
 		sendingRtpParameters.codecs = ortc.reduceCodecs(
 			sendingRtpParameters.codecs,
-			codec,
+			codec
 		);
 
 		const sendingRemoteRtpParameters =
@@ -271,12 +271,12 @@ export class Handler extends HandlerInterface {
 		// This may throw.
 		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
 			sendingRemoteRtpParameters.codecs,
-			codec,
+			codec
 		);
 
 		let offer = await this.#channel.request(
 			'handler.createOffer',
-			this.#internal,
+			this.#internal
 		);
 
 		let localSdpObject = sdpTransform.parse(offer.sdp);
@@ -287,31 +287,31 @@ export class Handler extends HandlerInterface {
 
 		logger.debug(
 			'send() | calling handler.setLocalDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			offer as RTCSessionDescription,
+			offer as RTCSessionDescription
 		);
 
 		// Get the MID and the corresponding m= section.
 		const mid = await this.#channel.request(
 			'handler.getSendMid',
 			this.#internal,
-			{ localId },
+			{ localId }
 		);
 
 		offer = await this.#channel.request(
 			'handler.getLocalDescription',
-			this.#internal,
+			this.#internal
 		);
 
 		localSdpObject = sdpTransform.parse(offer.sdp);
 
 		const offerMediaObject = localSdpObject.media.find(
-			m => String(m.mid) === String(mid),
+			m => String(m.mid) === String(mid)
 		);
 
 		// Set MID.
@@ -340,13 +340,13 @@ export class Handler extends HandlerInterface {
 
 		logger.debug(
 			'send() | calling handler.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			answer as RTCSessionDescription,
+			answer as RTCSessionDescription
 		);
 
 		// Store the original track into our map and listen for events.
@@ -412,31 +412,31 @@ export class Handler extends HandlerInterface {
 
 		const offer = await this.#channel.request(
 			'handler.createOffer',
-			this.#internal,
+			this.#internal
 		);
 
 		logger.debug(
 			'stopSending() | calling handler.setLocalDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			offer as RTCSessionDescription,
+			offer as RTCSessionDescription
 		);
 
 		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
 
 		logger.debug(
 			'stopSending() | calling handler.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			answer as RTCSessionDescription,
+			answer as RTCSessionDescription
 		);
 	}
 
@@ -464,31 +464,31 @@ export class Handler extends HandlerInterface {
 
 		const offer = await this.#channel.request(
 			'handler.createOffer',
-			this.#internal,
+			this.#internal
 		);
 
 		logger.debug(
 			'pauseSending() | calling handler.setLocalDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			offer as RTCSessionDescription,
+			offer as RTCSessionDescription
 		);
 
 		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
 
 		logger.debug(
 			'pauseSending() | calling handler.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			answer as RTCSessionDescription,
+			answer as RTCSessionDescription
 		);
 	}
 
@@ -516,37 +516,37 @@ export class Handler extends HandlerInterface {
 
 		const offer = await this.#channel.request(
 			'handler.createOffer',
-			this.#internal,
+			this.#internal
 		);
 
 		logger.debug(
 			'resumeSending() | calling handler.setLocalDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			offer as RTCSessionDescription,
+			offer as RTCSessionDescription
 		);
 
 		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
 
 		logger.debug(
 			'stopSending() | calling handler.setRemoteDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			answer as RTCSessionDescription,
+			answer as RTCSessionDescription
 		);
 	}
 
 	async replaceTrack(
 		localId: string,
-		track: MediaStreamTrack | null,
+		track: MediaStreamTrack | null
 	): Promise<void> {
 		this.assertSendDirection();
 
@@ -554,13 +554,13 @@ export class Handler extends HandlerInterface {
 			logger.debug(
 				'replaceTrack() [localId:%s, track.id:%s]',
 				localId,
-				track.id,
+				track.id
 			);
 		} else {
 			logger.debug('replaceTrack() [localId:%s, no track]', localId);
 
 			throw new UnsupportedError(
-				'replaceTrack() with null track not implemented',
+				'replaceTrack() with null track not implemented'
 			);
 		}
 
@@ -617,7 +617,7 @@ export class Handler extends HandlerInterface {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		localId: string,
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		spatialLayer: number,
+		spatialLayer: number
 	): Promise<void> {
 		throw new UnsupportedError('not implemented');
 	}
@@ -639,7 +639,7 @@ export class Handler extends HandlerInterface {
 		const data = await this.#channel.request(
 			'handler.getSenderStats',
 			this.#internal,
-			{ mid },
+			{ mid }
 		);
 
 		return new FakeRTCStatsReport(data);
@@ -674,7 +674,7 @@ export class Handler extends HandlerInterface {
 		const result = await this.#channel.request(
 			'handler.createDataChannel',
 			internal,
-			options,
+			options
 		);
 
 		const dataChannel = new FakeRTCDataChannel(
@@ -694,7 +694,7 @@ export class Handler extends HandlerInterface {
 				readyState: result.readyState,
 				bufferedAmount: result.bufferedAmount,
 				bufferedAmountLowThreshold: result.bufferedAmountLowThreshold,
-			},
+			}
 		);
 
 		// Increase next id.
@@ -706,12 +706,12 @@ export class Handler extends HandlerInterface {
 		if (!this.#hasDataChannelMediaSection) {
 			const offer = await this.#channel.request(
 				'handler.createOffer',
-				this.#internal,
+				this.#internal
 			);
 
 			const localSdpObject = sdpTransform.parse(offer.sdp);
 			const offerMediaObject = localSdpObject.media.find(
-				(m: any) => m.type === 'application',
+				(m: any) => m.type === 'application'
 			);
 
 			if (!this.#transportReady) {
@@ -720,13 +720,13 @@ export class Handler extends HandlerInterface {
 
 			logger.debug(
 				'sendDataChannel() | calling handler.setLocalDescription() [offer:%o]',
-				offer,
+				offer
 			);
 
 			await this.#channel.request(
 				'handler.setLocalDescription',
 				this.#internal,
-				offer as RTCSessionDescription,
+				offer as RTCSessionDescription
 			);
 
 			this.#remoteSdp!.sendSctpAssociation({ offerMediaObject });
@@ -735,13 +735,13 @@ export class Handler extends HandlerInterface {
 
 			logger.debug(
 				'sendDataChannel() | calling handler.setRemoteDescription() [answer:%o]',
-				answer,
+				answer
 			);
 
 			await this.#channel.request(
 				'handler.setRemoteDescription',
 				this.#internal,
-				answer as RTCSessionDescription,
+				answer as RTCSessionDescription
 			);
 
 			this.#hasDataChannelMediaSection = true;
@@ -763,7 +763,7 @@ export class Handler extends HandlerInterface {
 	}
 
 	async receive(
-		optionsList: HandlerReceiveOptions[],
+		optionsList: HandlerReceiveOptions[]
 	): Promise<HandlerReceiveResult[]> {
 		this.assertRecvDirection();
 
@@ -792,18 +792,18 @@ export class Handler extends HandlerInterface {
 
 		logger.debug(
 			'receive() | calling handler.setRemoteDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			offer as RTCSessionDescription,
+			offer as RTCSessionDescription
 		);
 
 		let answer = await this.#channel.request(
 			'handler.createAnswer',
-			this.#internal,
+			this.#internal
 		);
 
 		const localSdpObject = sdpTransform.parse(answer.sdp);
@@ -812,7 +812,7 @@ export class Handler extends HandlerInterface {
 			const { trackId, rtpParameters } = options;
 			const localId = mapLocalId.get(trackId);
 			const answerMediaObject = localSdpObject.media.find(
-				(m: any) => String(m.mid) === localId,
+				(m: any) => String(m.mid) === localId
 			);
 
 			// May need to modify codec parameters in the answer based on codec
@@ -834,13 +834,13 @@ export class Handler extends HandlerInterface {
 
 		logger.debug(
 			'receive() | calling handler.setLocalDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			answer as RTCSessionDescription,
+			answer as RTCSessionDescription
 		);
 
 		// Create fake remote tracks to be returned.
@@ -894,29 +894,29 @@ export class Handler extends HandlerInterface {
 
 		logger.debug(
 			'stopReceiving() | calling handler.setRemoteDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			offer as RTCSessionDescription,
+			offer as RTCSessionDescription
 		);
 
 		const answer = await this.#channel.request(
 			'handler.createAnswer',
-			this.#internal,
+			this.#internal
 		);
 
 		logger.debug(
 			'stopReceiving() | calling handler.setLocalDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			answer as RTCSessionDescription,
+			answer as RTCSessionDescription
 		);
 	}
 
@@ -946,34 +946,34 @@ export class Handler extends HandlerInterface {
 
 		const offer = await this.#channel.request(
 			'handler.createOffer',
-			this.#internal,
+			this.#internal
 		);
 
 		logger.debug(
 			'pauseReceiving() | calling handler.setRemoteDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			offer as RTCSessionDescription,
+			offer as RTCSessionDescription
 		);
 
 		const answer = await this.#channel.request(
 			'handler.createAnswer',
-			this.#internal,
+			this.#internal
 		);
 
 		logger.debug(
 			'pauseReceiving() | calling handler.setLocalDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			answer as RTCSessionDescription,
+			answer as RTCSessionDescription
 		);
 	}
 
@@ -1003,34 +1003,34 @@ export class Handler extends HandlerInterface {
 
 		const offer = await this.#channel.request(
 			'handler.createOffer',
-			this.#internal,
+			this.#internal
 		);
 
 		logger.debug(
 			'resumeReceiving() | calling handler.setRemoteDescription() [offer:%o]',
-			offer,
+			offer
 		);
 
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			offer as RTCSessionDescription,
+			offer as RTCSessionDescription
 		);
 
 		const answer = await this.#channel.request(
 			'handler.createAnswer',
-			this.#internal,
+			this.#internal
 		);
 
 		logger.debug(
 			'resumeReceiving() | calling handler.setLocalDescription() [answer:%o]',
-			answer,
+			answer
 		);
 
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			answer as RTCSessionDescription,
+			answer as RTCSessionDescription
 		);
 	}
 
@@ -1046,7 +1046,7 @@ export class Handler extends HandlerInterface {
 		const data = await this.#channel.request(
 			'handler.getReceiverStats',
 			this.#internal,
-			{ mid },
+			{ mid }
 		);
 
 		return new FakeRTCStatsReport(data);
@@ -1086,7 +1086,7 @@ export class Handler extends HandlerInterface {
 		const result = await this.#channel.request(
 			'handler.createDataChannel',
 			internal,
-			options,
+			options
 		);
 
 		const dataChannel = new FakeRTCDataChannel(
@@ -1106,7 +1106,7 @@ export class Handler extends HandlerInterface {
 				readyState: result.readyState,
 				bufferedAmount: result.bufferedAmount,
 				bufferedAmountLowThreshold: result.bufferedAmountLowThreshold,
-			},
+			}
 		);
 
 		// If this is the first DataChannel we need to create the SDP offer with
@@ -1118,18 +1118,18 @@ export class Handler extends HandlerInterface {
 
 			logger.debug(
 				'receiveDataChannel() | calling handler.setRemoteDescription() [offer:%o]',
-				offer,
+				offer
 			);
 
 			await this.#channel.request(
 				'handler.setRemoteDescription',
 				this.#internal,
-				offer as RTCSessionDescription,
+				offer as RTCSessionDescription
 			);
 
 			const answer = await this.#channel.request(
 				'handler.createAnswer',
-				this.#internal,
+				this.#internal
 			);
 
 			if (!this.#transportReady) {
@@ -1140,13 +1140,13 @@ export class Handler extends HandlerInterface {
 
 			logger.debug(
 				'receiveDataChannel() | calling handler.setRemoteDescription() [answer:%o]',
-				answer,
+				answer
 			);
 
 			await this.#channel.request(
 				'handler.setLocalDescription',
 				this.#internal,
-				answer as RTCSessionDescription,
+				answer as RTCSessionDescription
 			);
 
 			this.#hasDataChannelMediaSection = true;
@@ -1167,7 +1167,7 @@ export class Handler extends HandlerInterface {
 		if (!localSdpObject) {
 			const offer = await this.#channel.request(
 				'handler.getLocalDescription',
-				this.#internal,
+				this.#internal
 			);
 
 			localSdpObject = sdpTransform.parse(offer.sdp);
@@ -1183,7 +1183,7 @@ export class Handler extends HandlerInterface {
 
 		// Update the remote DTLS role in the SDP.
 		this.#remoteSdp!.updateDtlsRole(
-			localDtlsRole === 'client' ? 'server' : 'client',
+			localDtlsRole === 'client' ? 'server' : 'client'
 		);
 
 		// Need to tell the remote transport about our parameters.
@@ -1197,7 +1197,7 @@ export class Handler extends HandlerInterface {
 	private assertSendDirection(): void {
 		if (this.#direction !== 'send') {
 			throw new Error(
-				'method can just be called for handlers with "send" direction',
+				'method can just be called for handlers with "send" direction'
 			);
 		}
 	}
@@ -1205,7 +1205,7 @@ export class Handler extends HandlerInterface {
 	private assertRecvDirection(): void {
 		if (this.#direction !== 'recv') {
 			throw new Error(
-				'method can just be called for handlers with "recv" direction',
+				'method can just be called for handlers with "recv" direction'
 			);
 		}
 	}

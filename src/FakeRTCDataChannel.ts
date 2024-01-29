@@ -56,12 +56,12 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 			readyState: RTCDataChannelState;
 			bufferedAmount: number;
 			bufferedAmountLowThreshold: number;
-		},
+		}
 	) {
 		super();
 
 		logger.debug(
-			`constructor() [id:${id}, ordered:${ordered}, maxPacketLifeTime:${maxPacketLifeTime}, maxRetransmits:${maxRetransmits}, label:${label}, protocol:${protocol}`,
+			`constructor() [id:${id}, ordered:${ordered}, maxPacketLifeTime:${maxPacketLifeTime}, maxRetransmits:${maxRetransmits}, label:${label}, protocol:${protocol}`
 		);
 
 		this.#internal = internal;
@@ -125,7 +125,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		this.#channel.notify(
 			'datachannel.setBufferedAmountLowThreshold',
 			this.#internal,
-			value,
+			value
 		);
 	}
 
@@ -226,13 +226,13 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 			this.#channel.notify(
 				'datachannel.sendBinary',
 				this.#internal,
-				buffer.toString('base64'),
+				buffer.toString('base64')
 			);
 		} else if (data instanceof Buffer) {
 			this.#channel.notify(
 				'datachannel.sendBinary',
 				this.#internal,
-				data.toString('base64'),
+				data.toString('base64')
 			);
 		} else {
 			throw new TypeError('invalid data type');
@@ -286,7 +286,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 
 						this.dispatchEvent(
 							// @ts-ignore
-							new MessageEvent('message', { data: arrayBuffer }),
+							new MessageEvent('message', { data: arrayBuffer })
 						);
 
 						break;
@@ -317,7 +317,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 						logger.error('ignoring unknown event "%s"', event);
 					}
 				}
-			},
+			}
 		);
 	}
 }

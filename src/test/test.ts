@@ -52,7 +52,7 @@ beforeEach(async () => {
 		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
 		({ dtlsParameters }, callback /* errback */) => {
 			setTimeout(callback);
-		},
+		}
 	);
 
 	ctx.connectedSendTransport.on(
@@ -63,7 +63,7 @@ beforeEach(async () => {
 			const { id } = fakeParameters.generateProducerRemoteParameters();
 
 			setTimeout(() => callback({ id }));
-		},
+		}
 	);
 
 	ctx.connectedSendTransport.on(
@@ -74,7 +74,7 @@ beforeEach(async () => {
 			const { id } = fakeParameters.generateDataProducerRemoteParameters();
 
 			setTimeout(() => callback({ id }));
-		},
+		}
 	);
 
 	ctx.connectedRecvTransport = ctx.loadedDevice.createRecvTransport({
@@ -90,7 +90,7 @@ beforeEach(async () => {
 		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
 		({ dtlsParameters }, callback /* errback */) => {
 			setTimeout(callback);
-		},
+		}
 	);
 
 	const stream = await ctx.worker!.getUserMedia({
@@ -120,8 +120,8 @@ afterEach(async () => {
 	ctx.worker?.close();
 
 	if (ctx.worker?.subprocessClosed === false) {
-		await new Promise<void>(
-			resolve => ctx.worker?.on('subprocessclose', resolve),
+		await new Promise<void>(resolve =>
+			ctx.worker?.on('subprocessclose', resolve)
 		);
 	}
 }, TEST_TIMEOUT);
@@ -138,7 +138,7 @@ test(
 
 		await new Promise<void>(resolve => worker.on('subprocessclose', resolve));
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test(
@@ -157,7 +157,7 @@ test(
 
 		await new Promise<void>(resolve => worker.on('subprocessclose', resolve));
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test(
@@ -225,7 +225,7 @@ test(
 
 		await new Promise<void>(resolve => worker.on('subprocessclose', resolve));
 	},
-	TEST_TIMEOUT * 2,
+	TEST_TIMEOUT * 2
 );
 
 test('create a Device with worker.createHandlerFactory() as argument succeeds', () => {
@@ -245,12 +245,12 @@ test(
 			fakeParameters.generateRouterRtpCapabilities();
 
 		await expect(ctx.device!.load({ routerRtpCapabilities })).resolves.toBe(
-			undefined,
+			undefined
 		);
 
 		expect(ctx.device!.loaded).toBe(true);
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test('device.rtpCapabilities getter succeeds', () => {
@@ -321,12 +321,12 @@ test(
 
 		ctx.connectedSendTransport!.prependListener(
 			'connect',
-			() => ++connectEventNumTimesCalled,
+			() => ++connectEventNumTimesCalled
 		);
 
 		ctx.connectedSendTransport!.prependListener(
 			'produce',
-			() => ++produceEventNumTimesCalled,
+			() => ++produceEventNumTimesCalled
 		);
 
 		let codecs;
@@ -361,10 +361,10 @@ test(
 
 		expect(headerExtensions!.length).toBe(2);
 		expect(headerExtensions![0].uri).toBe(
-			'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
+			'urn:ietf:params:rtp-hdrext:ssrc-audio-level'
 		);
 		expect(headerExtensions![1].uri).toBe(
-			'urn:ietf:params:rtp-hdrext:sdes:mid',
+			'urn:ietf:params:rtp-hdrext:sdes:mid'
 		);
 
 		encodings = audioProducer.rtpParameters.encodings;
@@ -400,7 +400,7 @@ test(
 					mid: '1',
 					localId: audioProducer.track!.id,
 				},
-			]),
+			])
 		);
 		expect(handler.transceivers.length).toBe(2);
 		expect(handler.transceivers[0]).toMatchObject({
@@ -443,10 +443,10 @@ test(
 
 		expect(headerExtensions!.length).toBe(2);
 		expect(headerExtensions![0].uri).toBe(
-			'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+			'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time'
 		);
 		expect(headerExtensions![1].uri).toBe(
-			'urn:ietf:params:rtp-hdrext:sdes:mid',
+			'urn:ietf:params:rtp-hdrext:sdes:mid'
 		);
 
 		encodings = videoProducer.rtpParameters.encodings;
@@ -489,7 +489,7 @@ test(
 					mid: '2',
 					localId: videoProducer.track!.id,
 				},
-			]),
+			])
 		);
 		expect(handler.transceivers.length).toBe(3);
 		expect(handler.transceivers[0]).toMatchObject({
@@ -517,7 +517,7 @@ test(
 			},
 		});
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test(
@@ -547,7 +547,7 @@ test(
 
 		expect(audioConsumer.id).toBe(audioConsumerRemoteParameters.id);
 		expect(audioConsumer.producerId).toBe(
-			audioConsumerRemoteParameters.producerId,
+			audioConsumerRemoteParameters.producerId
 		);
 		expect(audioConsumer.closed).toBe(false);
 		expect(audioConsumer.kind).toBe('audio');
@@ -599,7 +599,7 @@ test(
 
 		expect(videoConsumer.id).toBe(videoConsumerRemoteParameters.id);
 		expect(videoConsumer.producerId).toBe(
-			videoConsumerRemoteParameters.producerId,
+			videoConsumerRemoteParameters.producerId
 		);
 		expect(videoConsumer.closed).toBe(false);
 		expect(videoConsumer.kind).toBe('video');
@@ -665,7 +665,7 @@ test(
 		expect(videoConsumer.paused).toBe(false);
 		expect(videoConsumer.appData).toEqual({});
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test(
@@ -688,7 +688,7 @@ test(
 		expect(dataProducer.label).toBe('FOO');
 		expect(dataProducer.protocol).toBe('BAR');
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test(
@@ -708,7 +708,7 @@ test(
 
 		expect(dataConsumer.id).toBe(dataConsumerRemoteParameters.id);
 		expect(dataConsumer.dataProducerId).toBe(
-			dataConsumerRemoteParameters.dataProducerId,
+			dataConsumerRemoteParameters.dataProducerId
 		);
 		expect(dataConsumer.closed).toBe(false);
 		expect(typeof dataConsumer.sctpStreamParameters).toBe('object');
@@ -716,7 +716,7 @@ test(
 		expect(dataConsumer.label).toBe('FOO');
 		expect(dataConsumer.protocol).toBe('BAR');
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test(
@@ -733,7 +733,7 @@ test(
 		expect(audioProducer.kind).toBe('audio');
 		expect(audioProducer.track).toBe(audioTrack);
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test(
@@ -743,7 +743,7 @@ test(
 
 		expect(typeof stats).toBe('object');
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test(
@@ -761,7 +761,7 @@ test(
 		const audioProducerPreviousTrack = ctx.audioProducer!.track;
 
 		await expect(
-			ctx.audioProducer!.replaceTrack({ track: newAudioTrack }),
+			ctx.audioProducer!.replaceTrack({ track: newAudioTrack })
 		).resolves.toBe(undefined);
 
 		expect(audioProducerPreviousTrack!.readyState).toBe('ended');
@@ -791,7 +791,7 @@ test(
 			},
 		});
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test(
@@ -801,7 +801,7 @@ test(
 
 		expect(typeof stats).toBe('object');
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test(
@@ -811,7 +811,7 @@ test(
 
 		expect(typeof stats).toBe('object');
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test('consumer.pause() succeed', async () => {
@@ -856,7 +856,7 @@ test(
 			},
 		});
 	},
-	TEST_TIMEOUT,
+	TEST_TIMEOUT
 );
 
 test('worker.close() succeeds', () => {

@@ -72,7 +72,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 		logger.debug(
 			'spawning worker process: %s %s',
 			spawnBin,
-			spawnArgs.join(' '),
+			spawnArgs.join(' ')
 		);
 
 		this.#child = spawn(
@@ -101,7 +101,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 					PYTHON_LOG_VIA_PIPE ? 'pipe' : 'inherit',
 					'pipe',
 				],
-			},
+			}
 		);
 
 		this.#pid = this.#child.pid!;
@@ -136,7 +136,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 				if (code === 42) {
 					logger.error(
 						'worker process failed due to wrong settings [pid:%s]',
-						this.#pid,
+						this.#pid
 					);
 
 					this.close();
@@ -146,13 +146,13 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 						'worker process failed unexpectedly [pid:%s, code:%s, signal:%s]',
 						this.#pid,
 						code,
-						signal,
+						signal
 					);
 
 					this.close();
 					this.emit(
 						'@failure',
-						new Error(`[pid:${this.#pid}, code:${code}, signal:${signal}]`),
+						new Error(`[pid:${this.#pid}, code:${code}, signal:${signal}]`)
 					);
 				}
 			} else {
@@ -160,7 +160,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 					'worker process died unexpectedly [pid:%s, code:%s, signal:%s]',
 					this.#pid,
 					code,
-					signal,
+					signal
 				);
 
 				this.#died = true;
@@ -168,7 +168,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 				this.close();
 				this.safeEmit(
 					'died',
-					new Error(`[pid:${this.#pid}, code:${code}, signal:${signal}]`),
+					new Error(`[pid:${this.#pid}, code:${code}, signal:${signal}]`)
 				);
 			}
 		});
@@ -185,7 +185,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 				logger.error(
 					'worker process failed [pid:%s]: %s',
 					this.#pid,
-					error.message,
+					error.message
 				);
 
 				this.close();
@@ -194,7 +194,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 				logger.error(
 					'worker process error [pid:%s]: %s',
 					this.#pid,
-					error.message,
+					error.message
 				);
 
 				this.close();
@@ -207,7 +207,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 				'worker subprocess closed [pid:%s, code:%s, signal:%s]',
 				this.#pid,
 				code,
-				signal,
+				signal
 			);
 
 			this.#subprocessClosed = true;
@@ -299,7 +299,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 	 * Create a AiortcMediaStream with audio/video tracks.
 	 */
 	async getUserMedia(
-		constraints: media.AiortcMediaStreamConstraints,
+		constraints: media.AiortcMediaStreamConstraints
 	): Promise<AiortcMediaStream> {
 		logger.debug('getUserMedia() [constraints:%o]', constraints);
 

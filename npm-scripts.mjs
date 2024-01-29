@@ -181,7 +181,7 @@ function lintNode() {
 	executeCmd('eslint-config-prettier .eslintrc.js');
 
 	executeCmd(
-		'eslint -c .eslintrc.js --ignore-path .eslintignore --max-warnings 0 .',
+		'eslint -c .eslintrc.js --ignore-path .eslintignore --max-warnings 0 .'
 	);
 }
 
@@ -192,7 +192,7 @@ function lintPython() {
 
 	executeCmd(`cd worker && "${PYTHON}" -m flake8 --filename *.py && cd ..`);
 	executeCmd(
-		`cd worker && "${PYTHON}" -m mypy --exclude pip_deps --exclude pip_dev_deps . && cd ..`,
+		`cd worker && "${PYTHON}" -m mypy --exclude pip_deps --exclude pip_dev_deps . && cd ..`
 	);
 }
 
@@ -224,7 +224,7 @@ function installPythonDeps() {
 	// installation.
 	executeCmd(
 		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" worker/`,
-		/* exitOnError */ true,
+		/* exitOnError */ true
 	);
 }
 
@@ -235,7 +235,7 @@ function installPythonDevDeps() {
 	// installation.
 	executeCmd(
 		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEV_DEPS_DIR}" flake8 mypy`,
-		/* exitOnError */ true,
+		/* exitOnError */ true
 	);
 }
 

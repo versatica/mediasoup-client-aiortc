@@ -46,7 +46,7 @@ export class Channel extends EnhancedEventEmitter {
 			} else {
 				this.#recvBuffer = Buffer.concat(
 					[this.#recvBuffer, buffer],
-					this.#recvBuffer.length + buffer.length,
+					this.#recvBuffer.length + buffer.length
 				);
 			}
 
@@ -68,7 +68,7 @@ export class Channel extends EnhancedEventEmitter {
 				} catch (error) {
 					logger.error(
 						'invalid netstring data received from the worker process: %s',
-						String(error),
+						String(error)
 					);
 
 					// Reset the buffer and exit.
@@ -90,13 +90,13 @@ export class Channel extends EnhancedEventEmitter {
 					// eslint-disable-next-line no-console
 					console.warn(
 						`worker[pid:${pid}] unexpected data: %s`,
-						nsPayload.toString('utf8', 1),
+						nsPayload.toString('utf8', 1)
 					);
 				}
 
 				// Remove the read payload from the buffer.
 				this.#recvBuffer = this.#recvBuffer.slice(
-					netstring.nsLength(this.#recvBuffer),
+					netstring.nsLength(this.#recvBuffer)
 				);
 
 				if (!this.#recvBuffer.length) {
@@ -108,11 +108,11 @@ export class Channel extends EnhancedEventEmitter {
 		});
 
 		this.#socket.on('end', () =>
-			logger.debug('Channel ended by the worker process'),
+			logger.debug('Channel ended by the worker process')
 		);
 
 		this.#socket.on('error', error =>
-			logger.error('Channel error: %s', String(error)),
+			logger.error('Channel error: %s', String(error))
 		);
 	}
 
@@ -158,7 +158,7 @@ export class Channel extends EnhancedEventEmitter {
 
 		if (Buffer.byteLength(ns) > NS_MESSAGE_MAX_LEN) {
 			throw new Error(
-				`Channel request too big [length:${Buffer.byteLength(ns)}]`,
+				`Channel request too big [length:${Buffer.byteLength(ns)}]`
 			);
 		}
 
@@ -220,7 +220,7 @@ export class Channel extends EnhancedEventEmitter {
 		if (Buffer.byteLength(ns) > NS_MESSAGE_MAX_LEN) {
 			logger.error(
 				'notify() | notification too big [length:%s]',
-				Buffer.byteLength(ns),
+				Buffer.byteLength(ns)
 			);
 
 			return;
@@ -243,7 +243,7 @@ export class Channel extends EnhancedEventEmitter {
 			if (!sent) {
 				logger.error(
 					'received response does not match any sent request [id:%s]',
-					msg.id,
+					msg.id
 				);
 
 				return;
@@ -253,7 +253,7 @@ export class Channel extends EnhancedEventEmitter {
 				logger.debug(
 					'request succeeded [method:%s, id:%s]',
 					sent.method,
-					sent.id,
+					sent.id
 				);
 
 				sent.resolve(msg.data);
@@ -262,7 +262,7 @@ export class Channel extends EnhancedEventEmitter {
 					'request failed [method:%s, id:%s]: %s',
 					sent.method,
 					sent.id,
-					msg.reason,
+					msg.reason
 				);
 
 				switch (msg.error) {
@@ -280,7 +280,7 @@ export class Channel extends EnhancedEventEmitter {
 				logger.error(
 					'received response is not accepted nor rejected [method:%s, id:%s]',
 					sent.method,
-					sent.id,
+					sent.id
 				);
 			}
 		}

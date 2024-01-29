@@ -40,7 +40,7 @@ type MediaPlayerOptions = {
 
 export async function getUserMedia(
 	channel: Channel,
-	constraints: AiortcMediaStreamConstraints = {},
+	constraints: AiortcMediaStreamConstraints = {}
 ): Promise<AiortcMediaStream> {
 	constraints = clone(constraints) as AiortcMediaStreamConstraints;
 
@@ -214,7 +214,7 @@ export async function getUserMedia(
 		result = await channel.request(
 			'createPlayer',
 			audioPlayerInternal,
-			audioPlayerOptions,
+			audioPlayerOptions
 		);
 
 		if (!result.audioTrackId) {
@@ -234,7 +234,7 @@ export async function getUserMedia(
 				result = await channel.request(
 					'createPlayer',
 					videoPlayerInternal,
-					videoPlayerOptions,
+					videoPlayerOptions
 				);
 			} catch (error) {
 				// If the video player fails and we created an audio player, close it.

@@ -32,7 +32,7 @@ export class AiortcMediaStream extends EventTarget implements MediaStream {
 
 	get active(): boolean {
 		return Array.from(this.#tracks.values()).some(
-			track => track.readyState === 'live',
+			track => track.readyState === 'live'
 		);
 	}
 
@@ -65,13 +65,13 @@ export class AiortcMediaStream extends EventTarget implements MediaStream {
 
 	getAudioTracks(): FakeMediaStreamTrack[] {
 		return Array.from(this.#tracks.values()).filter(
-			track => track.kind === 'audio',
+			track => track.kind === 'audio'
 		);
 	}
 
 	getVideoTracks(): FakeMediaStreamTrack[] {
 		return Array.from(this.#tracks.values()).filter(
-			track => track.kind === 'video',
+			track => track.kind === 'video'
 		);
 	}
 
