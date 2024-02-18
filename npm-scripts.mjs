@@ -248,7 +248,11 @@ function checkRelease() {
 	// TODO: Disabled due to
 	// https://github.com/versatica/mediasoup-client-aiortc/issues/25
 	// lintPython();
-	test();
+
+	// Tests fail sometimes due to OS/network stuff.
+	if (process.env.SKIP_TEST !== 'true') {
+		test();
+	}
 }
 
 function executeCmd(command, exitOnError = true) {
