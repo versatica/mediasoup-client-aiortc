@@ -50,7 +50,7 @@ beforeEach(async () => {
 	ctx.connectedSendTransport.on(
 		'connect',
 		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
-		({ dtlsParameters }, callback /* errback */) => {
+		({ iceParameters, dtlsParameters }, callback /* errback */) => {
 			setTimeout(callback);
 		}
 	);
@@ -88,7 +88,7 @@ beforeEach(async () => {
 	ctx.connectedRecvTransport.on(
 		'connect',
 		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
-		({ dtlsParameters }, callback /* errback */) => {
+		({ iceParameters, dtlsParameters }, callback /* errback */) => {
 			setTimeout(callback);
 		}
 	);

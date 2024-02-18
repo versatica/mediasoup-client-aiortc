@@ -134,6 +134,7 @@ export function generateTransportRemoteParameters(): mediasoupClientTypes.Transp
 			{
 				foundation: 'udpcandidate',
 				ip: '9.9.9.9',
+				address: '9.9.9.9',
 				port: 40533,
 				priority: 1078862079,
 				protocol: 'udp',
@@ -142,6 +143,7 @@ export function generateTransportRemoteParameters(): mediasoupClientTypes.Transp
 			{
 				foundation: 'udpcandidate',
 				ip: '9:9:9:9:9:9',
+				address: '9:9:9:9:9:9',
 				port: 41333,
 				priority: 1078862089,
 				protocol: 'udp',
