@@ -1,7 +1,0 @@
-# NOTE: This file and .eslintignore must contain same paths.
-
-/node_modules
-/lib
-/coverage
-/worker
-.cache
