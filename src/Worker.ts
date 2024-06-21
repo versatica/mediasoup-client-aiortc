@@ -4,7 +4,7 @@ import path from 'node:path';
 import { spawn, execSync, ChildProcess } from 'node:child_process';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from 'mediasoup-client/lib/Logger';
-import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
+import { EnhancedEventEmitter } from './enhancedEvents';
 import { HandlerFactory } from 'mediasoup-client/lib/handlers/HandlerInterface';
 import { Channel } from './Channel';
 import * as media from './media';

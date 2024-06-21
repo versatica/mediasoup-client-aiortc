@@ -1,7 +1,7 @@
 import { Duplex } from 'node:stream';
 // @ts-ignore
 import * as netstring from 'netstring';
-import { EnhancedEventEmitter } from 'mediasoup-client/lib/EnhancedEventEmitter';
+import { EnhancedEventEmitter } from './enhancedEvents';
 import { InvalidStateError } from 'mediasoup-client/lib/errors';
 import { Logger } from './Logger';
 
