@@ -1,5 +1,5 @@
 import { Duplex } from 'node:stream';
-// @ts-ignore
+// @ts-expect-error --- netstring doesn't have types.
 import * as netstring from 'netstring';
 import { EnhancedEventEmitter } from './enhancedEvents';
 import { InvalidStateError } from 'mediasoup-client/lib/errors';
@@ -59,7 +59,6 @@ export class Channel extends EnhancedEventEmitter {
 				return;
 			}
 
-			// eslint-disable-next-line no-constant-condition
 			while (true) {
 				let nsPayload;
 
@@ -143,7 +142,11 @@ export class Channel extends EnhancedEventEmitter {
 	}
 
 	async request(method: string, internal?: object, data?: any): Promise<any> {
-		this.#nextId < 4294967295 ? ++this.#nextId : (this.#nextId = 1);
+		if (this.#nextId < 4294967295) {
+			++this.#nextId;
+		} else {
+			this.#nextId = 1;
+		}
 
 		const id = this.#nextId;
 

@@ -42,7 +42,7 @@ export async function getUserMedia(
 	channel: Channel,
 	constraints: AiortcMediaStreamConstraints = {}
 ): Promise<AiortcMediaStream> {
-	constraints = clone(constraints) as AiortcMediaStreamConstraints;
+	constraints = clone<AiortcMediaStreamConstraints>(constraints);
 
 	let { audio, video } = constraints;
 	let audioPlayerInternal: MediaPlayerInternal | undefined;
@@ -66,9 +66,10 @@ export async function getUserMedia(
 			case 'device': {
 				audioPlayerOptions = {
 					source: 'device',
-					file: audio.device ?? os.platform() === 'darwin' ? 'none:0' : 'hw:0',
+					file:
+						(audio.device ?? os.platform() === 'darwin') ? 'none:0' : 'hw:0',
 					format:
-						audio.format ?? os.platform() === 'darwin'
+						(audio.format ?? os.platform() === 'darwin')
 							? 'avfoundation'
 							: 'alsa',
 					options: audio.options,
@@ -134,14 +135,13 @@ export async function getUserMedia(
 				videoPlayerOptions = {
 					source: 'device',
 					file:
-						video.device ?? os.platform() === 'darwin'
+						(video.device ?? os.platform() === 'darwin')
 							? 'default:none'
 							: '/dev/video0',
 					format:
-						video.format ?? os.platform() === 'darwin'
+						(video.format ?? os.platform() === 'darwin')
 							? 'avfoundation'
 							: 'v4l2',
-					// eslint-disable-next-line camelcase
 					options: video.options ?? { framerate: '30', video_size: '640x480' },
 					timeout: video.timeout,
 					loop: video.loop,

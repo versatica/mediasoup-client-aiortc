@@ -12,7 +12,7 @@ const PIP_DEPS_DIR = path.resolve('worker/pip_deps');
 const PIP_DEV_DEPS_DIR = path.resolve('worker/pip_dev_deps');
 
 // Paths for ESLint to check. Converted to string for convenience.
-const ESLINT_PATHS = ['src', 'npm-scripts.mjs'].join(' ');
+const ESLINT_PATHS = ['eslint.config.mjs', 'src', 'npm-scripts.mjs'].join(' ');
 // Paths for ESLint to ignore. Converted to string argument for convenience.
 const ESLINT_IGNORE_PATTERN_ARGS = []
 	.map(entry => `--ignore-pattern ${entry}`)
@@ -22,6 +22,7 @@ const ESLINT_IGNORE_PATTERN_ARGS = []
 // node/src/fbs.
 const PRETTIER_PATHS = [
 	'README.md',
+	'eslint.config.mjs',
 	'src',
 	'npm-scripts.mjs',
 	'package.json',
@@ -193,10 +194,10 @@ function lintNode() {
 
 	// Ensure there are no rules that are unnecessary or conflict with Prettier
 	// rules.
-	executeCmd('eslint-config-prettier .eslintrc.js');
+	executeCmd('eslint-config-prettier eslint.config.mjs');
 
 	executeCmd(
-		`eslint -c .eslintrc.js --ext=ts,js,mjs --max-warnings 0 ${ESLINT_IGNORE_PATTERN_ARGS} ${ESLINT_PATHS}`
+		`eslint -c eslint.config.mjs --max-warnings 0 ${ESLINT_IGNORE_PATTERN_ARGS} ${ESLINT_PATHS}`
 	);
 
 	executeCmd(`prettier --check ${PRETTIER_PATHS}`);

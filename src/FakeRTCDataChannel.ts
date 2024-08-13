@@ -19,8 +19,8 @@ export type FakeRTCDataChannelOptions = {
 	protocol?: string;
 };
 
-// TODO: https://github.com/versatica/mediasoup-client-aiortc/issues/24
-// @ts-ignore
+// @ts-expect-error --- TODO:
+// https://github.com/versatica/mediasoup-client-aiortc/issues/24
 export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 	// Internal data.
 	readonly #internal: { handlerId: string; dataChannelId: string };
@@ -269,7 +269,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 					}
 
 					case 'message': {
-						// @ts-ignore
+						// @ts-expect-error --- On purpose.
 						this.dispatchEvent(new MessageEvent('message', { data }));
 
 						break;
@@ -285,7 +285,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 						}
 
 						this.dispatchEvent(
-							// @ts-ignore
+							// @ts-expect-error --- On purpose.
 							new MessageEvent('message', { data: arrayBuffer })
 						);
 

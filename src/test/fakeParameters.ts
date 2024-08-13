@@ -84,13 +84,13 @@ export function generateRouterRtpCapabilities(): mediasoupClientTypes.RtpCapabil
 			},
 			{
 				kind: 'audio',
-				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time', // eslint-disable-line max-len
+				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
 				preferredId: 3,
 				preferredEncrypt: false,
 			},
 			{
 				kind: 'video',
-				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time', // eslint-disable-line max-len
+				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
 				preferredId: 3,
 				preferredEncrypt: false,
 			},
@@ -195,7 +195,7 @@ export function generateConsumerRemoteParameters({
 	switch (codecMimeType) {
 		case 'audio/opus': {
 			return {
-				id: id || uuidv4(),
+				id: id ?? uuidv4(),
 				producerId: uuidv4(),
 				kind: 'audio',
 				rtpParameters: {
@@ -229,7 +229,7 @@ export function generateConsumerRemoteParameters({
 
 		case 'audio/ISAC': {
 			return {
-				id: id || uuidv4(),
+				id: id ?? uuidv4(),
 				producerId: uuidv4(),
 				kind: 'audio',
 				rtpParameters: {
@@ -260,7 +260,7 @@ export function generateConsumerRemoteParameters({
 
 		case 'video/VP8': {
 			return {
-				id: id || uuidv4(),
+				id: id ?? uuidv4(),
 				producerId: uuidv4(),
 				kind: 'video',
 				rtpParameters: {
@@ -299,7 +299,7 @@ export function generateConsumerRemoteParameters({
 					],
 					headerExtensions: [
 						{
-							uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time', // eslint-disable-line max-len
+							uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
 							id: 3,
 						},
 					],
@@ -328,7 +328,7 @@ export function generateDataConsumerRemoteParameters({
 	id,
 }: { id?: string } = {}): mediasoupClientTypes.DataConsumerOptions {
 	return {
-		id: id || uuidv4(),
+		id: id ?? uuidv4(),
 		dataProducerId: uuidv4(),
 		sctpStreamParameters: {
 			streamId: 666,

@@ -34,6 +34,7 @@ import { FakeRTCDataChannel } from './FakeRTCDataChannel';
 
 const logger = new Logger('Handler');
 
+const NAME = 'Aiortc';
 const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 
 export class Handler extends HandlerInterface {
@@ -88,7 +89,7 @@ export class Handler extends HandlerInterface {
 	}
 
 	get name(): string {
-		return 'Aiortc';
+		return NAME;
 	}
 
 	close(): void {
@@ -663,8 +664,8 @@ export class Handler extends HandlerInterface {
 			negotiated: true,
 			id: this.#nextSendSctpStreamId,
 			ordered,
-			maxPacketLifeTime: maxPacketLifeTime || null, // Important.
-			maxRetransmits: maxRetransmits || null, // Important.
+			maxPacketLifeTime: maxPacketLifeTime ?? null, // Important.
+			maxRetransmits: maxRetransmits ?? null, // Important.
 			label,
 			protocol,
 		};
@@ -750,13 +751,13 @@ export class Handler extends HandlerInterface {
 		const sctpStreamParameters: SctpStreamParameters = {
 			streamId: result.streamId,
 			ordered: result.ordered,
-			maxPacketLifeTime: result.maxPacketLifeTime || undefined,
-			maxRetransmits: result.maxRetransmits || undefined,
+			maxPacketLifeTime: result.maxPacketLifeTime ?? undefined,
+			maxRetransmits: result.maxRetransmits ?? undefined,
 		};
 
 		return {
-			// TODO: https://github.com/versatica/mediasoup-client-aiortc/issues/24
-			// @ts-ignore
+			// @ts-expect-error --- TODO:
+			// https://github.com/versatica/mediasoup-client-aiortc/issues/24
 			dataChannel,
 			sctpStreamParameters,
 		};
@@ -775,7 +776,7 @@ export class Handler extends HandlerInterface {
 
 			logger.debug('receive() [trackId:%s, kind:%s]', trackId, kind);
 
-			const localId = rtpParameters.mid || String(this.#mapLocalIdMid.size);
+			const localId = rtpParameters.mid ?? String(this.#mapLocalIdMid.size);
 
 			mapLocalId.set(trackId, localId);
 
@@ -1075,8 +1076,8 @@ export class Handler extends HandlerInterface {
 			negotiated: true,
 			id: streamId,
 			ordered,
-			maxPacketLifeTime: maxPacketLifeTime || null, // Important.
-			maxRetransmits: maxRetransmits || null, // Important.
+			maxPacketLifeTime: maxPacketLifeTime ?? null, // Important.
+			maxRetransmits: maxRetransmits ?? null, // Important.
 			label,
 			protocol,
 		};
@@ -1152,8 +1153,8 @@ export class Handler extends HandlerInterface {
 			this.#hasDataChannelMediaSection = true;
 		}
 
-		// TODO: https://github.com/versatica/mediasoup-client-aiortc/issues/24
-		// @ts-ignore
+		// @ts-expect-error --- TODO:
+		// https://github.com/versatica/mediasoup-client-aiortc/issues/24
 		return { dataChannel };
 	}
 

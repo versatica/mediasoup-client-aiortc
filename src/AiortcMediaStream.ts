@@ -79,9 +79,8 @@ export class AiortcMediaStream extends EventTarget implements MediaStream {
 		return Array.from(this.#tracks.values());
 	}
 
-	// NOTE: TypeScript things that mediaStream.getTrackById() should return null
-	// instead of undefined. It's wrong.
-	// @ts-ignore
+	// @ts-expect-error --- // TypeScript things that mediaStream.getTrackById()
+	// should return null instead of undefined. It's wrong.
 	getTrackById(trackId: string): FakeMediaStreamTrack | undefined {
 		return this.#tracks.get(trackId);
 	}

@@ -57,7 +57,7 @@ beforeEach(async () => {
 
 	ctx.connectedSendTransport.on(
 		'produce',
-		// eslint-disable-next-line no-shadow, @typescript-eslint/no-unused-vars
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		({ kind, rtpParameters, appData }, callback /* errback */) => {
 			// eslint-disable-next-line no-shadow
 			const { id } = fakeParameters.generateProducerRemoteParameters();
