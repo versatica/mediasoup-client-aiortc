@@ -240,10 +240,19 @@ function installPythonDeps() {
 
 	// Install PIP deps into custom location, so we don't depend on system-wide
 	// installation.
-	executeCmd(
-		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" --break-system-packages worker/`,
-		/* exitOnError */ true
+	// However this may fail due to different PIP and OS versions, so let's do a
+	// best effort.
+	const res = executeCmd(
+		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" ${args} worker/`,
+		/* exitOnError */ false
 	);
+
+	if (!res) {
+		executeCmd(
+			`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" ${args} --break-system-packages worker/`,
+			/* exitOnError */ true
+		);
+	}
 }
 
 function installPythonDevDeps() {
@@ -275,11 +284,19 @@ function checkRelease() {
 	}
 }
 
+/**
+ * Returns true if the command succeeded, 0 otherwise.
+ *
+ * If exitOnError is set and command fails, then process is terminated with
+ * error.
+ */
 function executeCmd(command, exitOnError = true) {
 	logInfo(`executeCmd(): ${command}`);
 
 	try {
 		execSync(command, { stdio: ['ignore', process.stdout, process.stderr] });
+
+		return true;
 	} catch (error) {
 		if (exitOnError) {
 			logError(`executeCmd() failed, exiting: ${error}`);
@@ -287,6 +304,8 @@ function executeCmd(command, exitOnError = true) {
 			exitWithError();
 		} else {
 			logInfo(`executeCmd() failed, ignoring: ${error}`);
+
+			return false;
 		}
 	}
 }
