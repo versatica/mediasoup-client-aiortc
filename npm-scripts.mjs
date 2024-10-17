@@ -241,7 +241,7 @@ function installPythonDeps() {
 	// Install PIP deps into custom location, so we don't depend on system-wide
 	// installation.
 	executeCmd(
-		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" worker/`,
+		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" --break-system-packages worker/`,
 		/* exitOnError */ true
 	);
 }
