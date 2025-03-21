@@ -477,83 +477,83 @@ class Handler:
     def _serializeInboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
             # RTCStats
-            "timestamp": stats.timestamp.timestamp(),
-            "type": stats.type,
-            "id": stats.id,
+            "timestamp": stats["timestamp"].timestamp(),
+            "type": stats["type"],
+            "id": stats["id"],
             # RTCStreamStats
-            "ssrc": stats.ssrc,
-            "kind": stats.kind,
-            "transportId": stats.transportId,
+            "ssrc": stats["ssrc"],
+            "kind": stats["kind"],
+            "transportId": stats["transportId"],
             # RTCReceivedRtpStreamStats
-            "packetsReceived": stats.packetsReceived,
-            "packetsLost": stats.packetsLost,
-            "jitter": stats.jitter
+            "packetsReceived": stats["packetsReceived"],
+            "packetsLost": stats["packetsLost"],
+            "jitter": stats["jitter"]
         }
 
     def _serializeOutboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
             # RTCStats
-            "timestamp": stats.timestamp.timestamp(),
-            "type": stats.type,
-            "id": stats.id,
+            "timestamp": stats["timestamp"].timestamp(),
+            "type": stats["type"],
+            "id": stats["id"],
             # RTCStreamStats
-            "ssrc": stats.ssrc,
-            "kind": stats.kind,
-            "transportId": stats.transportId,
+            "ssrc": stats["ssrc"],
+            "kind": stats["kind"],
+            "transportId": stats["transportId"],
             # RTCSentRtpStreamStats
-            "packetsSent": stats.packetsSent,
-            "bytesSent": stats.bytesSent,
+            "packetsSent": stats["packetsSent"],
+            "bytesSent": stats["bytesSent"],
             # RTCOutboundRtpStreamStats
-            "trackId": stats.trackId
+            "trackId": stats["trackId"]
         }
 
     def _serializeRemoteInboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
             # RTCStats
-            "timestamp": stats.timestamp.timestamp(),
-            "type": stats.type,
-            "id": stats.id,
+            "timestamp": stats["timestamp"].timestamp(),
+            "type": stats["type"],
+            "id": stats["id"],
             # RTCStreamStats
-            "ssrc": stats.ssrc,
-            "kind": stats.kind,
-            "transportId": stats.transportId,
+            "ssrc": stats["ssrc"],
+            "kind": stats["kind"],
+            "transportId": stats["transportId"],
             # RTCReceivedRtpStreamStats
-            "packetsReceived": stats.packetsReceived,
-            "packetsLost": stats.packetsLost,
-            "jitter": stats.jitter,
+            "packetsReceived": stats["packetsReceived"],
+            "packetsLost": stats["packetsLost"],
+            "jitter": stats["jitter"],
             # RTCRemoteInboundRtpStreamStats
-            "roundTripTime": stats.roundTripTime,
-            "fractionLost": stats.fractionLost
+            "roundTripTime": stats["roundTripTime"],
+            "fractionLost": stats["fractionLost"]
         }
 
     def _serializeRemoteOutboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
             # RTCStats
-            "timestamp": stats.timestamp.timestamp(),
-            "type": stats.type,
-            "id": stats.id,
+            "timestamp": stats["timestamp"].timestamp(),
+            "type": stats["type"],
+            "id": stats["id"],
             # RTCStreamStats
-            "ssrc": stats.ssrc,
-            "kind": stats.kind,
-            "transportId": stats.transportId,
+            "ssrc": stats["ssrc"],
+            "kind": stats["kind"],
+            "transportId": stats["transportId"],
             # RTCSentRtpStreamStats
-            "packetsSent": stats.packetsSent,
-            "bytesSent": stats.bytesSent,
+            "packetsSent": stats["packetsSent"],
+            "bytesSent": stats["bytesSent"],
             # RTCRemoteOutboundRtpStreamStats
-            "remoteTimestamp": stats.remoteTimestamp.timestamp()
+            "remoteTimestamp": stats["remoteTimestamp"].timestamp()
         }
 
     def _serializeTransportStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
             # RTCStats
-            "timestamp": stats.timestamp.timestamp(),
-            "type": stats.type,
-            "id": stats.id,
+            "timestamp": stats["timestamp"].timestamp(),
+            "type": stats["type"],
+            "id": stats["id"],
             # RTCTransportStats
-            "packetsSent": stats.packetsSent,
-            "packetsReceived": stats.packetsReceived,
-            "bytesSent": stats.bytesSent,
-            "bytesReceived": stats.bytesReceived,
-            "iceRole": stats.iceRole,
-            "dtlsState": stats.dtlsState
+            "packetsSent": stats["packetsSent"],
+            "packetsReceived": stats["packetsReceived"],
+            "bytesSent": stats["bytesSent"],
+            "bytesReceived": stats["bytesReceived"],
+            "iceRole": stats["iceRole"],
+            "dtlsState": stats["dtlsState"]
         }

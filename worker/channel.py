@@ -36,8 +36,8 @@ Channel class
 class Channel:
     def __init__(self, fd) -> None:
         self._fd = fd
-        self._reader = Optional[StreamReader]
-        self._writer = Optional[StreamWriter]
+        self._reader: Optional[StreamReader] = None
+        self._writer: Optional[StreamWriter] = None
         self._nsDecoder = pynetstring.Decoder()
         self._connected = False
 
