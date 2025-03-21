@@ -281,7 +281,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 						const view = new Uint8Array(arrayBuffer);
 
 						for (let i = 0; i < buffer.length; ++i) {
-							view[i] = buffer[i];
+							view[i] = buffer[i]!;
 						}
 
 						this.dispatchEvent(

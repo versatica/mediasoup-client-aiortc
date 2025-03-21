@@ -257,7 +257,7 @@ export class Handler extends HandlerInterface {
 		}
 
 		const sendingRtpParameters = utils.clone<RtpParameters>(
-			this.#sendingRtpParametersByKind![track.kind]
+			this.#sendingRtpParametersByKind![track.kind]!
 		);
 
 		// This may throw.
@@ -267,7 +267,7 @@ export class Handler extends HandlerInterface {
 		);
 
 		const sendingRemoteRtpParameters =
-			this.#sendingRemoteRtpParametersByKind![track.kind];
+			this.#sendingRemoteRtpParametersByKind![track.kind]!;
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
