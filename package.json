@@ -58,7 +58,7 @@
 		"debug": "^4.4.0",
 		"event-target-shim": "^6.0.2",
 		"fake-mediastreamtrack": "^1.2.0",
-		"mediasoup-client": "^3.9.1",
+		"mediasoup-client": "^3.9.3",
 		"netstring": "^0.3.0",
 		"sdp-transform": "^2.15.0",
 		"uuid": "^11.1.0"

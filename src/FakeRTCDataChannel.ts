@@ -4,9 +4,9 @@ import {
 	getEventAttributeValue,
 	setEventAttributeValue,
 } from 'event-target-shim';
-import { InvalidStateError } from 'mediasoup-client/lib/errors';
 import { Logger } from './Logger';
 import { Channel } from './Channel';
+import { InvalidStateError } from './errors';
 
 const logger = new Logger('FakeRTCDataChannel');
 

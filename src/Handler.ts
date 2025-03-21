@@ -1,12 +1,17 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as sdpTransform from 'sdp-transform';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
-import { UnsupportedError } from 'mediasoup-client/lib/errors';
 import * as utils from 'mediasoup-client/lib/utils';
 import * as ortc from 'mediasoup-client/lib/ortc';
-import * as sdpCommonUtils from 'mediasoup-client/lib/handlers/sdp/commonUtils';
-import * as sdpUnifiedPlanUtils from 'mediasoup-client/lib/handlers/sdp/unifiedPlanUtils';
+import * as sdpCommonUtils from 'mediasoup-client/handlers/sdp/commonUtils';
+import * as sdpUnifiedPlanUtils from 'mediasoup-client/handlers/sdp/unifiedPlanUtils';
 import {
+	IceParameters,
+	DtlsRole,
+	RtpCapabilities,
+	RtpParameters,
+	SctpCapabilities,
+	SctpStreamParameters,
 	HandlerInterface,
 	HandlerRunOptions,
 	HandlerSendOptions,
@@ -17,20 +22,13 @@ import {
 	HandlerSendDataChannelResult,
 	HandlerReceiveDataChannelOptions,
 	HandlerReceiveDataChannelResult,
-} from 'mediasoup-client/lib/handlers/HandlerInterface';
-import { RemoteSdp } from 'mediasoup-client/lib/handlers/sdp/RemoteSdp';
-import {
-	IceParameters,
-	DtlsRole,
-	RtpCapabilities,
-	RtpParameters,
-	SctpCapabilities,
-	SctpStreamParameters,
-} from 'mediasoup-client/lib/types';
+} from 'mediasoup-client/types';
+import { RemoteSdp } from 'mediasoup-client/handlers/sdp/RemoteSdp';
 import { Logger } from './Logger';
 import { Channel } from './Channel';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 import { FakeRTCDataChannel } from './FakeRTCDataChannel';
+import { UnsupportedError } from './errors';
 
 const logger = new Logger('Handler');
 
@@ -334,7 +332,6 @@ export class Handler extends HandlerInterface {
 			offerRtpParameters: sendingRtpParameters,
 			answerRtpParameters: sendingRemoteRtpParameters,
 			codecOptions,
-			extmapAllowMixed: false,
 		});
 
 		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
