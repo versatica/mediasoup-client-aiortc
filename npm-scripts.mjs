@@ -12,21 +12,27 @@ const PIP_DEPS_DIR = path.resolve('worker/pip_deps');
 const PIP_DEV_DEPS_DIR = path.resolve('worker/pip_dev_deps');
 
 // Paths for ESLint to check. Converted to string for convenience.
-const ESLINT_PATHS = ['eslint.config.mjs', 'src', 'npm-scripts.mjs'].join(' ');
+const ESLINT_PATHS = [
+	'eslint.config.mjs',
+	'jest.config.mjs',
+	'npm-scripts.mjs',
+	'src',
+].join(' ');
+
 // Paths for ESLint to ignore. Converted to string argument for convenience.
 const ESLINT_IGNORE_PATTERN_ARGS = []
 	.map(entry => `--ignore-pattern ${entry}`)
 	.join(' ');
+
 // Paths for Prettier to check/write. Converted to string for convenience.
-// NOTE: Prettier ignores paths in .gitignore so we don't need to care about
-// node/src/fbs.
 const PRETTIER_PATHS = [
 	'README.md',
 	'eslint.config.mjs',
-	'src',
+	'jest.config.mjs',
 	'npm-scripts.mjs',
 	'package.json',
 	'tsconfig.json',
+	'src',
 ].join(' ');
 
 const task = process.argv[2];
@@ -40,7 +46,7 @@ if (IS_WINDOWS) {
 	process.env.PYTHONPATH = `${PIP_DEPS_DIR}:${PIP_DEV_DEPS_DIR}:${process.env.PYTHONPATH}`;
 }
 
-run();
+void run();
 
 async function run() {
 	logInfo(args ? `[args:"${args}"]` : '');
@@ -49,15 +55,17 @@ async function run() {
 		// As per NPM documentation (https://docs.npmjs.com/cli/v9/using-npm/scripts)
 		// `prepare` script:
 		//
-		// - Runs BEFORE the package is packed, i.e. during `npm publish` and `npm pack`.
+		// - Runs BEFORE the package is packed, i.e. during `npm publish` and
+		//   `npm pack`.
 		// - Runs on local `npm install` without any arguments.
-		// - NOTE: If a package being installed through git contains a `prepare` script,
-		//   its dependencies and devDependencies will be installed, and the `prepare`
-		//   script will be run, before the package is packaged and installed.
+		// - NOTE: If a package being installed through git contains a `prepare`
+		//   script, its dependencies and devDependencies will be installed, and
+		//   the `prepare` script will be run, before the package is packaged and
+		//   installed.
 		//
 		// So here we compile TypeScript to JavaScript.
 		case 'prepare': {
-			buildTypescript({ force: false });
+			buildTypescript();
 
 			break;
 		}
@@ -69,16 +77,14 @@ async function run() {
 		}
 
 		case 'typescript:build': {
-			installNodeDeps();
-			buildTypescript({ force: true });
+			buildTypescript();
 			replacePythonVersion();
 
 			break;
 		}
 
 		case 'typescript:watch': {
-			deleteNodeLib();
-			executeCmd(`tsc --watch ${args}`);
+			watchTypescript();
 
 			break;
 		}
@@ -102,7 +108,6 @@ async function run() {
 		}
 
 		case 'test': {
-			buildTypescript({ force: false });
 			replacePythonVersion();
 			test();
 
@@ -110,9 +115,8 @@ async function run() {
 		}
 
 		case 'coverage': {
-			buildTypescript({ force: false });
 			replacePythonVersion();
-			executeCmd('jest --coverage');
+			executeCmd(`jest --coverage ${args}`);
 			executeCmd('open-cli coverage/lcov-report/index.html');
 
 			break;
@@ -126,7 +130,7 @@ async function run() {
 
 		case 'release': {
 			checkRelease();
-			executeCmd(`git commit -am '${PKG.version}'`, /* exitOnError */ false);
+			executeCmd(`git commit -am '${PKG.version}'`);
 			executeCmd(`git tag -a ${PKG.version} -m '${PKG.version}'`);
 			executeCmd(`git push origin v${MAYOR_VERSION}`);
 			executeCmd(`git push origin '${PKG.version}'`);
@@ -178,15 +182,21 @@ function deleteNodeLib() {
 	fs.rmSync('node/lib', { recursive: true, force: true });
 }
 
-function buildTypescript({ force = false } = { force: false }) {
-	if (!force && fs.existsSync('lib')) {
-		return;
-	}
-
+function buildTypescript() {
 	logInfo('buildTypescript()');
 
 	deleteNodeLib();
+
+	// Generate .js CommonJS code and .d.ts TypeScript declaration files in lib/.
 	executeCmd('tsc');
+}
+
+function watchTypescript() {
+	logInfo('watchTypescript()');
+
+	deleteNodeLib();
+
+	executeCmd('tsc --watch');
 }
 
 function lintNode() {
@@ -271,12 +281,10 @@ function checkRelease() {
 
 	installNodeDeps();
 	installPythonDeps();
-	buildTypescript({ force: true });
+	buildTypescript();
 	replacePythonVersion();
 	lintNode();
-	// TODO: Disabled due to
-	// https://github.com/versatica/mediasoup-client-aiortc/issues/25
-	// lintPython();
+	lintPython();
 
 	// Tests fail sometimes due to OS/network stuff.
 	if (process.env.SKIP_TEST !== 'true') {

@@ -1,9 +1,9 @@
 import { Duplex } from 'node:stream';
 // @ts-expect-error --- netstring doesn't have types.
 import * as netstring from 'netstring';
-import { EnhancedEventEmitter } from './enhancedEvents';
-import { InvalidStateError } from 'mediasoup-client/lib/errors';
 import { Logger } from './Logger';
+import { EnhancedEventEmitter } from './enhancedEvents';
+import { InvalidStateError } from './errors';
 
 // netstring length for a 4194304 bytes payload.
 const NS_MESSAGE_MAX_LEN = 4194313;
@@ -45,7 +45,10 @@ export class Channel extends EnhancedEventEmitter {
 				this.#recvBuffer = buffer;
 			} else {
 				this.#recvBuffer = Buffer.concat(
-					[this.#recvBuffer, buffer],
+					[
+						this.#recvBuffer as Uint8Array<ArrayBufferLike>,
+						buffer as Uint8Array<ArrayBufferLike>,
+					],
 					this.#recvBuffer.length + buffer.length
 				);
 			}

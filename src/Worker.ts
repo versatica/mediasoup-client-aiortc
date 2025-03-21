@@ -1,11 +1,11 @@
-import process from 'node:process';
-import os from 'node:os';
-import path from 'node:path';
+import * as process from 'node:process';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { spawn, execSync, ChildProcess } from 'node:child_process';
 import { v4 as uuidv4 } from 'uuid';
-import { Logger } from 'mediasoup-client/lib/Logger';
+import { HandlerFactory } from 'mediasoup-client/types';
+import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';
-import { HandlerFactory } from 'mediasoup-client/lib/handlers/HandlerInterface';
 import { Channel } from './Channel';
 import * as media from './media';
 import { AiortcMediaStream } from './AiortcMediaStream';
@@ -13,7 +13,7 @@ import { Handler } from './Handler';
 
 // Whether the Python subprocess should log via PIPE to Node.js or directly to
 // stdout and stderr.
-const PYTHON_LOG_VIA_PIPE = process.env.PYTHON_LOG_TO_STDOUT !== 'true';
+const PYTHON_LOG_VIA_PIPE = process.env['PYTHON_LOG_TO_STDOUT'] !== 'true';
 const IS_WINDOWS = os.platform() === 'win32';
 const PYTHON = getPython();
 const PIP_DEPS_DIR = path.join(__dirname, '..', 'worker', 'pip_deps');
@@ -87,8 +87,8 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 				env: {
 					...process.env,
 					PYTHONPATH: IS_WINDOWS
-						? `${PIP_DEPS_DIR};${process.env.PYTHONPATH}`
-						: `${PIP_DEPS_DIR}:${process.env.PYTHONPATH}`,
+						? `${PIP_DEPS_DIR};${process.env['PYTHONPATH']}`
+						: `${PIP_DEPS_DIR}:${process.env['PYTHONPATH']}`,
 				},
 				detached: false,
 				// fd 0 (stdin)   : Just ignore it.
@@ -328,7 +328,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 }
 
 function getPython() {
-	let python = process.env.PYTHON;
+	let python = process.env['PYTHON'];
 
 	if (!python) {
 		try {

@@ -51,10 +51,8 @@ jobs:
       - name: npm ci
         run: npm ci --force --foreground-scripts
 
-      # NOTE: Avoid lint:python due to
-      # https://github.com/versatica/mediasoup-client-aiortc/issues/25
-      - name: npm run lint:node
-        run: npm run lint:node
+      - name: npm run lint
+        run: npm run lint
 
       - name: npm run test
         run: npm run test -- --forceExit

@@ -1,9 +1,9 @@
-import os from 'node:os';
+import * as os from 'node:os';
 import { v4 as uuidv4 } from 'uuid';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
-import { clone } from 'mediasoup-client/lib/utils';
 import { Channel } from './Channel';
 import { AiortcMediaStream } from './AiortcMediaStream';
+import { clone } from './utils';
 
 export type AiortcMediaStreamConstraints = {
 	audio?: AiortcMediaTrackConstraints | boolean;

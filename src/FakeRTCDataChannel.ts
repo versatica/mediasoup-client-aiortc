@@ -4,9 +4,9 @@ import {
 	getEventAttributeValue,
 	setEventAttributeValue,
 } from 'event-target-shim';
-import { InvalidStateError } from 'mediasoup-client/lib/errors';
 import { Logger } from './Logger';
 import { Channel } from './Channel';
+import { InvalidStateError } from './errors';
 
 const logger = new Logger('FakeRTCDataChannel');
 
@@ -281,7 +281,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 						const view = new Uint8Array(arrayBuffer);
 
 						for (let i = 0; i < buffer.length; ++i) {
-							view[i] = buffer[i];
+							view[i] = buffer[i]!;
 						}
 
 						this.dispatchEvent(
