@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as sdpTransform from 'sdp-transform';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
-import * as utils from 'mediasoup-client/lib/utils';
 import * as ortc from 'mediasoup-client/lib/ortc';
 import * as sdpCommonUtils from 'mediasoup-client/handlers/sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from 'mediasoup-client/handlers/sdp/unifiedPlanUtils';
@@ -28,6 +27,7 @@ import { Logger } from './Logger';
 import { Channel } from './Channel';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 import { FakeRTCDataChannel } from './FakeRTCDataChannel';
+import { clone } from './utils';
 import { UnsupportedError } from './errors';
 
 const logger = new Logger('Handler');
@@ -254,7 +254,7 @@ export class Handler extends HandlerInterface {
 			);
 		}
 
-		const sendingRtpParameters = utils.clone<RtpParameters>(
+		const sendingRtpParameters = clone<RtpParameters>(
 			this.#sendingRtpParametersByKind![track.kind]!
 		);
 
