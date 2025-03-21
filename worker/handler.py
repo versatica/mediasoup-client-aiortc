@@ -477,83 +477,83 @@ class Handler:
     def _serializeInboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
             # RTCStats
-            "timestamp": stats["timestamp"].timestamp(),
-            "type": stats["type"],
-            "id": stats["id"],
+            "timestamp": stats.timestamp.timestamp(),  # type: ignore[attr-defined]
+            "type": stats["type"],  # type: ignore[attr-defined]
+            "id": stats.id,  # type: ignore[attr-defined]
             # RTCStreamStats
-            "ssrc": stats["ssrc"],
-            "kind": stats["kind"],
-            "transportId": stats["transportId"],
+            "ssrc": stats.ssrc,  # type: ignore[attr-defined]
+            "kind": stats.kind,  # type: ignore[attr-defined]
+            "transportId": stats.transportId,  # type: ignore[attr-defined]
             # RTCReceivedRtpStreamStats
-            "packetsReceived": stats["packetsReceived"],
-            "packetsLost": stats["packetsLost"],
-            "jitter": stats["jitter"]
+            "packetsReceived": stats.packetsReceived,  # type: ignore[attr-defined]
+            "packetsLost": stats.packetsLost,  # type: ignore[attr-defined]
+            "jitter": stats.jitter  # type: ignore[attr-defined]
         }
 
     def _serializeOutboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
             # RTCStats
-            "timestamp": stats["timestamp"].timestamp(),
-            "type": stats["type"],
-            "id": stats["id"],
+            "timestamp": stats.timestamp.timestamp(),  # type: ignore[attr-defined]
+            "type": stats.type,  # type: ignore[attr-defined]
+            "id": stats.id,  # type: ignore[attr-defined]
             # RTCStreamStats
-            "ssrc": stats["ssrc"],
-            "kind": stats["kind"],
-            "transportId": stats["transportId"],
+            "ssrc": stats.ssrc,  # type: ignore[attr-defined]
+            "kind": stats.kind,  # type: ignore[attr-defined]
+            "transportId": stats.transportId,  # type: ignore[attr-defined]
             # RTCSentRtpStreamStats
-            "packetsSent": stats["packetsSent"],
-            "bytesSent": stats["bytesSent"],
+            "packetsSent": stats.packetsSent,  # type: ignore[attr-defined]
+            "bytesSent": stats.bytesSent,  # type: ignore[attr-defined]
             # RTCOutboundRtpStreamStats
-            "trackId": stats["trackId"]
+            "trackId": stats.trackId  # type: ignore[attr-defined]
         }
 
     def _serializeRemoteInboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
             # RTCStats
-            "timestamp": stats["timestamp"].timestamp(),
-            "type": stats["type"],
-            "id": stats["id"],
+            "timestamp": stats.timestamp.timestamp(),  # type: ignore[attr-defined]
+            "type": stats.type,  # type: ignore[attr-defined]
+            "id": stats.id,  # type: ignore[attr-defined]
             # RTCStreamStats
-            "ssrc": stats["ssrc"],
-            "kind": stats["kind"],
-            "transportId": stats["transportId"],
+            "ssrc": stats.ssrc,  # type: ignore[attr-defined]
+            "kind": stats.kind,  # type: ignore[attr-defined]
+            "transportId": stats.transportId,  # type: ignore[attr-defined]
             # RTCReceivedRtpStreamStats
-            "packetsReceived": stats["packetsReceived"],
-            "packetsLost": stats["packetsLost"],
-            "jitter": stats["jitter"],
+            "packetsReceived": stats.packetsReceived,  # type: ignore[attr-defined]
+            "packetsLost": stats.packetsLost,  # type: ignore[attr-defined]
+            "jitter": stats.jitter,  # type: ignore[attr-defined]
             # RTCRemoteInboundRtpStreamStats
-            "roundTripTime": stats["roundTripTime"],
-            "fractionLost": stats["fractionLost"]
+            "roundTripTime": stats.roundTripTime,  # type: ignore[attr-defined]
+            "fractionLost": stats.fractionLost  # type: ignore[attr-defined]
         }
 
     def _serializeRemoteOutboundStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
             # RTCStats
-            "timestamp": stats["timestamp"].timestamp(),
-            "type": stats["type"],
-            "id": stats["id"],
+            "timestamp": stats.timestamp.timestamp(),  # type: ignore[attr-defined]
+            "type": stats.type,  # type: ignore[attr-defined]
+            "id": stats.id,  # type: ignore[attr-defined]
             # RTCStreamStats
-            "ssrc": stats["ssrc"],
-            "kind": stats["kind"],
-            "transportId": stats["transportId"],
+            "ssrc": stats.ssrc,  # type: ignore[attr-defined]
+            "kind": stats.kind,  # type: ignore[attr-defined]
+            "transportId": stats.transportId,  # type: ignore[attr-defined]
             # RTCSentRtpStreamStats
-            "packetsSent": stats["packetsSent"],
-            "bytesSent": stats["bytesSent"],
+            "packetsSent": stats.packetsSent,  # type: ignore[attr-defined]
+            "bytesSent": stats.bytesSent,  # type: ignore[attr-defined]
             # RTCRemoteOutboundRtpStreamStats
-            "remoteTimestamp": stats["remoteTimestamp"].timestamp()
+            "remoteTimestamp": stats.remoteTimestamp.timestamp()  # type: ignore[attr-defined]
         }
 
     def _serializeTransportStats(self, stats: RTCStatsReport) -> Dict[str, Any]:
         return {
             # RTCStats
-            "timestamp": stats["timestamp"].timestamp(),
-            "type": stats["type"],
-            "id": stats["id"],
+            "timestamp": stats.timestamp.timestamp(),  # type: ignore[attr-defined]
+            "type": stats.type,  # type: ignore[attr-defined]
+            "id": stats.id,  # type: ignore[attr-defined]
             # RTCTransportStats
-            "packetsSent": stats["packetsSent"],
-            "packetsReceived": stats["packetsReceived"],
-            "bytesSent": stats["bytesSent"],
-            "bytesReceived": stats["bytesReceived"],
-            "iceRole": stats["iceRole"],
-            "dtlsState": stats["dtlsState"]
+            "packetsSent": stats.packetsSent,  # type: ignore[attr-defined]
+            "packetsReceived": stats.packetsReceived,  # type: ignore[attr-defined]
+            "bytesSent": stats.bytesSent,  # type: ignore[attr-defined]
+            "bytesReceived": stats.bytesReceived,  # type: ignore[attr-defined]
+            "iceRole": stats.iceRole,  # type: ignore[attr-defined]
+            "dtlsState": stats.dtlsState  # type: ignore[attr-defined]
         }
