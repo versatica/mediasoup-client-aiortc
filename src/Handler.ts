@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as sdpTransform from 'sdp-transform';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
-import * as ortc from 'mediasoup-client/lib/ortc';
+import * as ortc from 'mediasoup-client/ortc';
 import * as sdpCommonUtils from 'mediasoup-client/handlers/sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from 'mediasoup-client/handlers/sdp/unifiedPlanUtils';
 import {
