@@ -1,20 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import {
-	EventTarget,
-	Event,
-	getEventAttributeValue,
-	setEventAttributeValue,
-} from 'event-target-shim';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 
 export class AiortcMediaStream extends EventTarget implements MediaStream {
 	readonly #id: string;
 	readonly #tracks: Map<string, FakeMediaStreamTrack> = new Map();
-
-	// Event listeners. These are cosmetic public members to make TS happy.
-	// NOTE: We never emit these events.
-	// public onaddtrack: (this: AiortcMediaStream, ev: Event) => any;
-	// public onremovetrack: (this: MediaStream, ev: Event) => any;
+	// Events.
+	#onaddtrack: ((this: AiortcMediaStream, ev: Event) => any) | null = null;
+	#onremovetrack: ((this: AiortcMediaStream, ev: Event) => any) | null = null;
 
 	constructor(tracks: FakeMediaStreamTrack[]) {
 		super();
@@ -36,20 +28,40 @@ export class AiortcMediaStream extends EventTarget implements MediaStream {
 		);
 	}
 
-	get onaddtrack(): any {
-		return getEventAttributeValue(this, 'addtrack');
+	get onaddtrack(): ((this: MediaStream, ev: Event) => any) | null {
+		return this.#onaddtrack as ((this: MediaStream, ev: Event) => any) | null;
 	}
 
-	set onaddtrack(listener) {
-		setEventAttributeValue(this, 'addtrack', listener);
+	set onaddtrack(handler: ((this: MediaStream, ev: Event) => any) | null) {
+		if (this.#onaddtrack) {
+			this.removeEventListener('addtrack', this.#onaddtrack);
+		}
+
+		this.#onaddtrack = handler;
+
+		if (handler) {
+			this.addEventListener('addtrack', handler);
+		}
 	}
 
-	get onremovetrack(): any {
-		return getEventAttributeValue(this, 'removetrack');
+	get onremovetrack():
+		| ((this: MediaStream, ev: MediaStreamTrackEvent) => any)
+		| null {
+		return this.#onremovetrack as
+			| ((this: MediaStream, ev: Event) => any)
+			| null;
 	}
 
-	set onremovetrack(listener) {
-		setEventAttributeValue(this, 'removetrack', listener);
+	set onremovetrack(handler: ((this: MediaStream, ev: Event) => any) | null) {
+		if (this.#onremovetrack) {
+			this.removeEventListener('removetrack', this.#onremovetrack);
+		}
+
+		this.#onremovetrack = handler;
+
+		if (handler) {
+			this.addEventListener('removetrack', handler);
+		}
 	}
 
 	/**
@@ -79,10 +91,8 @@ export class AiortcMediaStream extends EventTarget implements MediaStream {
 		return Array.from(this.#tracks.values());
 	}
 
-	// @ts-expect-error --- // TypeScript things that mediaStream.getTrackById()
-	// should return null instead of undefined. It's wrong.
-	getTrackById(trackId: string): FakeMediaStreamTrack | undefined {
-		return this.#tracks.get(trackId);
+	getTrackById(trackId: string): FakeMediaStreamTrack | null {
+		return this.#tracks.get(trackId) ?? null;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
