@@ -65,8 +65,7 @@ async function run() {
 		//
 		// So here we compile TypeScript to JavaScript.
 		case 'prepare': {
-			buildTypescript();
-			replacePythonVersion();
+			buildTypescript({ force: false });
 
 			break;
 		}
@@ -78,7 +77,7 @@ async function run() {
 		}
 
 		case 'typescript:build': {
-			buildTypescript();
+			buildTypescript({ force: true });
 			replacePythonVersion();
 
 			break;
@@ -183,7 +182,11 @@ function deleteNodeLib() {
 	fs.rmSync('node/lib', { recursive: true, force: true });
 }
 
-function buildTypescript() {
+function buildTypescript({ force }) {
+	if (!force && fs.existsSync('node/lib')) {
+		return;
+	}
+
 	logInfo('buildTypescript()');
 
 	deleteNodeLib();
@@ -282,7 +285,7 @@ function checkRelease() {
 
 	installNodeDeps();
 	installPythonDeps();
-	buildTypescript();
+	buildTypescript({ force: true });
 	replacePythonVersion();
 	lintNode();
 	lintPython();

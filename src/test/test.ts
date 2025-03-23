@@ -1,7 +1,7 @@
 import { Device, types as mediasoupClientTypes } from 'mediasoup-client';
-import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import { createWorker } from '../';
 import { Worker } from '../Worker';
+import { AiortcMediaStreamTrack } from '../AiortcMediaStream';
 import * as fakeParameters from './fakeParameters';
 
 type TestContext = {
@@ -722,7 +722,7 @@ test(
 test(
 	'transport.produce() with a receiving track succeeds',
 	async () => {
-		const audioTrack = ctx.audioConsumer!.track as FakeMediaStreamTrack;
+		const audioTrack = ctx.audioConsumer!.track as AiortcMediaStreamTrack;
 
 		expect(audioTrack.data.remote).toBe(true);
 
@@ -814,13 +814,13 @@ test(
 	TEST_TIMEOUT
 );
 
-test('consumer.pause() succeed', async () => {
+test('consumer.pause() succeed', () => {
 	ctx.audioConsumer!.pause();
 
 	expect(ctx.audioConsumer!.paused).toBe(true);
 });
 
-test('consumer.resume() succeed', async () => {
+test('consumer.resume() succeed', () => {
 	ctx.audioConsumer!.resume();
 
 	expect(ctx.audioConsumer!.paused).toBe(false);

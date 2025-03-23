@@ -327,7 +327,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 	}
 }
 
-function getPython() {
+function getPython(): string {
 	let python = process.env['PYTHON'];
 
 	if (!python) {

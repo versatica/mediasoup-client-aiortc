@@ -145,22 +145,20 @@ const config = tsEslint.config(
 			],
 			// We want to use `type` instead of `interface`.
 			'@typescript-eslint/consistent-type-definitions': 0,
+			'@typescript-eslint/explicit-function-return-type': [
+				2,
+				{ allowExpressions: true },
+			],
 			// Sorry, we need many `any` usage.
 			'@typescript-eslint/no-explicit-any': 0,
 			'@typescript-eslint/no-unsafe-member-access': 0,
 			'@typescript-eslint/no-unsafe-assignment': 0,
 			'@typescript-eslint/no-unsafe-call': 0,
-			'@typescript-eslint/no-unsafe-return': 0,
 			'@typescript-eslint/no-unsafe-argument': 0,
 			'@typescript-eslint/consistent-indexed-object-style': 0,
 			'@typescript-eslint/no-empty-function': 0,
 			'@typescript-eslint/require-await': 0,
 			'@typescript-eslint/restrict-template-expressions': 0,
-			'@typescript-eslint/no-duplicate-type-constituents': [
-				2,
-				{ ignoreUnions: true },
-			],
-			'@typescript-eslint/unbound-method': 0,
 		},
 	},
 	{

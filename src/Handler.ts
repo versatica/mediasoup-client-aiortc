@@ -25,6 +25,7 @@ import {
 import { RemoteSdp } from 'mediasoup-client/handlers/sdp/RemoteSdp';
 import { Logger } from './Logger';
 import { Channel } from './Channel';
+import type { AiortcMediaStreamTrack } from './AiortcMediaStream';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 import { FakeRTCDataChannel } from './FakeRTCDataChannel';
 import { clone } from './utils';
@@ -54,7 +55,7 @@ export class Handler extends HandlerInterface {
 	// remote answer.
 	#sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
 	// Map of sending and receiving tracks indexed by localId.
-	readonly #mapLocalIdTracks: Map<string, FakeMediaStreamTrack> = new Map();
+	readonly #mapLocalIdTracks: Map<string, AiortcMediaStreamTrack> = new Map();
 	// Map of MID indexed by local ids.
 	readonly #mapLocalIdMid: Map<string, string> = new Map();
 	// Got transport local and remote parameters.
@@ -229,12 +230,12 @@ export class Handler extends HandlerInterface {
 			'send() [kind:%s, track.id:%s, track.data:%o]',
 			track.kind,
 			track.id,
-			(track as FakeMediaStreamTrack).data
+			(track as AiortcMediaStreamTrack).data
 		);
 
 		const localId = track.id;
 		const kind = track.kind;
-		const { playerId, remote } = (track as FakeMediaStreamTrack).data;
+		const { playerId, remote } = (track as AiortcMediaStreamTrack).data;
 
 		if (playerId) {
 			await this.#channel.request('handler.addTrack', this.#internal, {
@@ -292,7 +293,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			offer as RTCSessionDescription
+			offer
 		);
 
 		// Get the MID and the corresponding m= section.
@@ -344,11 +345,11 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			answer as RTCSessionDescription
+			answer
 		);
 
 		// Store the original track into our map and listen for events.
-		this.#mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
+		this.#mapLocalIdTracks.set(localId, track as AiortcMediaStreamTrack);
 
 		track.addEventListener('@enabledchange', () => {
 			// Ensure we are still sending this track.
@@ -421,7 +422,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			offer as RTCSessionDescription
+			offer
 		);
 
 		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
@@ -434,7 +435,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			answer as RTCSessionDescription
+			answer
 		);
 	}
 
@@ -473,7 +474,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			offer as RTCSessionDescription
+			offer
 		);
 
 		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
@@ -486,7 +487,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			answer as RTCSessionDescription
+			answer
 		);
 	}
 
@@ -525,7 +526,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			offer as RTCSessionDescription
+			offer
 		);
 
 		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
@@ -538,7 +539,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			answer as RTCSessionDescription
+			answer
 		);
 	}
 
@@ -569,7 +570,7 @@ export class Handler extends HandlerInterface {
 		}
 
 		const kind = track.kind;
-		const { playerId, remote } = (track as FakeMediaStreamTrack).data;
+		const { playerId, remote } = (track as AiortcMediaStreamTrack).data;
 
 		if (playerId) {
 			await this.#channel.request('handler.replaceTrack', this.#internal, {
@@ -588,7 +589,7 @@ export class Handler extends HandlerInterface {
 		}
 
 		// Store the new original track into our map and listen for events.
-		this.#mapLocalIdTracks.set(localId, track as FakeMediaStreamTrack);
+		this.#mapLocalIdTracks.set(localId, track as AiortcMediaStreamTrack);
 
 		track.addEventListener('@enabledchange', () => {
 			// Ensure we are still sending this track.
@@ -724,7 +725,7 @@ export class Handler extends HandlerInterface {
 			await this.#channel.request(
 				'handler.setLocalDescription',
 				this.#internal,
-				offer as RTCSessionDescription
+				offer
 			);
 
 			this.#remoteSdp!.sendSctpAssociation({ offerMediaObject });
@@ -739,7 +740,7 @@ export class Handler extends HandlerInterface {
 			await this.#channel.request(
 				'handler.setRemoteDescription',
 				this.#internal,
-				answer as RTCSessionDescription
+				answer
 			);
 
 			this.#hasDataChannelMediaSection = true;
@@ -794,7 +795,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			offer as RTCSessionDescription
+			offer
 		);
 
 		let answer = await this.#channel.request(
@@ -822,7 +823,7 @@ export class Handler extends HandlerInterface {
 		answer = {
 			type: 'answer',
 			sdp: sdpTransform.write(localSdpObject),
-		} as RTCSessionDescription;
+		};
 
 		if (!this.#transportReady) {
 			await this.setupTransport({ localDtlsRole: 'client', localSdpObject });
@@ -836,17 +837,18 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			answer as RTCSessionDescription
+			answer
 		);
 
 		// Create fake remote tracks to be returned.
 		for (const options of optionsList) {
 			const { trackId, kind } = options;
 			const localId = mapLocalId.get(trackId)!;
-			const track = new FakeMediaStreamTrack({
+			const track: AiortcMediaStreamTrack = new FakeMediaStreamTrack({
 				kind,
 				id: trackId,
-				data: { remote: true }, // This let's us know that this is remote.
+				// This is for us to know that this is a remote track.
+				data: { remote: true },
 			});
 
 			// Store the remote track into the map.
@@ -896,7 +898,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			offer as RTCSessionDescription
+			offer
 		);
 
 		const answer = await this.#channel.request(
@@ -912,7 +914,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			answer as RTCSessionDescription
+			answer
 		);
 	}
 
@@ -953,7 +955,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			offer as RTCSessionDescription
+			offer
 		);
 
 		const answer = await this.#channel.request(
@@ -969,7 +971,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			answer as RTCSessionDescription
+			answer
 		);
 	}
 
@@ -1010,7 +1012,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setRemoteDescription',
 			this.#internal,
-			offer as RTCSessionDescription
+			offer
 		);
 
 		const answer = await this.#channel.request(
@@ -1026,7 +1028,7 @@ export class Handler extends HandlerInterface {
 		await this.#channel.request(
 			'handler.setLocalDescription',
 			this.#internal,
-			answer as RTCSessionDescription
+			answer
 		);
 	}
 
@@ -1120,7 +1122,7 @@ export class Handler extends HandlerInterface {
 			await this.#channel.request(
 				'handler.setRemoteDescription',
 				this.#internal,
-				offer as RTCSessionDescription
+				offer
 			);
 
 			const answer = await this.#channel.request(
@@ -1142,7 +1144,7 @@ export class Handler extends HandlerInterface {
 			await this.#channel.request(
 				'handler.setLocalDescription',
 				this.#internal,
-				answer as RTCSessionDescription
+				answer
 			);
 
 			this.#hasDataChannelMediaSection = true;

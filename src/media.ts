@@ -2,7 +2,7 @@ import * as os from 'node:os';
 import { v4 as uuidv4 } from 'uuid';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import { Channel } from './Channel';
-import { AiortcMediaStream } from './AiortcMediaStream';
+import { AiortcMediaStream, AiortcMediaStreamTrack } from './AiortcMediaStream';
 import { clone } from './utils';
 
 export type AiortcMediaStreamConstraints = {
@@ -49,7 +49,7 @@ export async function getUserMedia(
 	let videoPlayerInternal: MediaPlayerInternal | undefined;
 	let audioPlayerOptions: MediaPlayerOptions | undefined;
 	let videoPlayerOptions: MediaPlayerOptions | undefined;
-	const tracks: FakeMediaStreamTrack[] = [];
+	const tracks: AiortcMediaStreamTrack[] = [];
 
 	if (!audio && !video) {
 		throw new TypeError('at least audio or video constraints must be given');
@@ -254,13 +254,13 @@ export async function getUserMedia(
 	}
 
 	if (audioPlayerInternal) {
-		const track = new FakeMediaStreamTrack({
+		const track: AiortcMediaStreamTrack = new FakeMediaStreamTrack({
 			id: audioPlayerInternal.audioTrackId,
 			kind: 'audio',
-			data: { playerId: audioPlayerInternal.playerId },
+			data: { playerId: audioPlayerInternal.playerId, remote: false },
 		});
 
-		track.addEventListener('@stop', () => {
+		track.addEventListener('stopped', () => {
 			channel.notify('player.stopTrack', audioPlayerInternal, {
 				kind: 'audio',
 			});
@@ -270,13 +270,13 @@ export async function getUserMedia(
 	}
 
 	if (videoPlayerInternal) {
-		const track = new FakeMediaStreamTrack({
+		const track: AiortcMediaStreamTrack = new FakeMediaStreamTrack({
 			id: videoPlayerInternal.videoTrackId,
 			kind: 'video',
-			data: { playerId: videoPlayerInternal.playerId },
+			data: { playerId: videoPlayerInternal.playerId, remote: false },
 		});
 
-		track.addEventListener('@stop', () => {
+		track.addEventListener('stopped', () => {
 			channel.notify('player.stopTrack', videoPlayerInternal, {
 				kind: 'video',
 			});
@@ -287,7 +287,7 @@ export async function getUserMedia(
 
 	const stream = new AiortcMediaStream(tracks);
 
-	stream.addEventListener('@close', () => {
+	stream.addEventListener('close', () => {
 		if (audioPlayerInternal) {
 			channel.notify('player.close', audioPlayerInternal);
 		}

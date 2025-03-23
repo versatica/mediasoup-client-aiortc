@@ -241,6 +241,22 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
+	override addEventListener<K extends keyof RTCDataChannelEventMap>(
+		type: K,
+		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
+		options?: boolean | AddEventListenerOptions
+	): void {
+		super.addEventListener(type, listener as EventListener, options);
+	}
+
+	override removeEventListener<K extends keyof RTCDataChannelEventMap>(
+		type: K,
+		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
+		options?: boolean | EventListenerOptions
+	): void {
+		super.removeEventListener(type, listener as EventListener, options);
+	}
+
 	close(): void {
 		if (['closing', 'closed'].includes(this.#readyState)) {
 			return;
