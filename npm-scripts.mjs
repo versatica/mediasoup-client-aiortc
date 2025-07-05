@@ -223,6 +223,7 @@ function lintPython() {
 	installPythonDevDeps();
 
 	executeCmd(`cd worker && "${PYTHON}" -m flake8 --filename *.py && cd ..`);
+
 	executeCmd(
 		`cd worker && "${PYTHON}" -m mypy --exclude pip_deps --exclude pip_dev_deps . && cd ..`
 	);
@@ -245,8 +246,12 @@ function installNodeDeps() {
 
 	// Install/update deps.
 	executeCmd('npm ci --ignore-scripts');
+
 	// Update package-lock.json.
 	executeCmd('npm install --package-lock-only --ignore-scripts');
+
+	// Check vulnerabilities in deps.
+	executeCmd('npm audit');
 }
 
 function installPythonDeps() {
