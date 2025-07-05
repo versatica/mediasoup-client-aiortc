@@ -234,7 +234,6 @@ Mandatory if `source` is "url". Must be the URL of an HTTP stream.
 Specifies the device format used by `ffmpeg`.
 
 - Default values for `Darwin` platform:
-
   - "avfoundation" for audio.
   - "avfoundation" for video.
 
@@ -247,7 +246,6 @@ Specifies the device format used by `ffmpeg`.
 Specifies the device options used by `ffmpeg`.
 
 - Default values for `Darwin` platform:
-
   - `{}` for audio.
   - `{ framerate: "30", video_size: "640x480" }` for video.
 

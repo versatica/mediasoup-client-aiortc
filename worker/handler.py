@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 import base64
 import asyncio
 from aiortc import (
@@ -97,13 +97,16 @@ class Handler:
         await self._pc.close()
 
     def dump(self) -> Any:
+        transceivers: List[Dict[str, Any]] = []
+        sendTransceivers: List[Dict[str, Any]] = []
+
         result = {
             "id": self._handlerId,
             "signalingState": self._pc.signalingState,
             "iceConnectionState": self._pc.iceConnectionState,
             "iceGatheringState": self._pc.iceGatheringState,
-            "transceivers": [],
-            "sendTransceivers": []
+            "transceivers": transceivers,
+            "sendTransceivers": sendTransceivers
         }
 
         for transceiver in self._pc.getTransceivers():
@@ -120,14 +123,14 @@ class Handler:
                     "trackId": transceiver.receiver.track.id if transceiver.receiver.track else None
                 }
             }
-            result["transceivers"].append(transceiverInfo)
+            transceivers.append(transceiverInfo)
 
         for localId, transceiver in self._sendTransceivers.items():
             sendTransceiverInfo = {
                 "localId": localId,
                 "mid": transceiver.mid
             }
-            result["sendTransceivers"].append(sendTransceiverInfo)
+            sendTransceivers.append(sendTransceiverInfo)
 
         return result
 
