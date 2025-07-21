@@ -36,7 +36,7 @@ const PRETTIER_PATHS = [
 ].join(' ');
 
 const task = process.argv[2];
-const args = process.argv.slice(3).join(' ');
+const taskArgs = process.argv.slice(3).join(' ');
 
 // Set PYTHONPATH env since we use custom locations for locally installed PIP
 // deps.
@@ -49,7 +49,7 @@ if (IS_WINDOWS) {
 void run();
 
 async function run() {
-	logInfo(args ? `[args:"${args}"]` : '');
+	logInfo(taskArgs ? `[args:"${taskArgs}"]` : '');
 
 	switch (task) {
 		// As per NPM documentation (https://docs.npmjs.com/cli/v9/using-npm/scripts)
@@ -116,7 +116,7 @@ async function run() {
 
 		case 'coverage': {
 			replacePythonVersion();
-			executeCmd(`jest --coverage ${args}`);
+			executeCmd(`jest --coverage ${taskArgs}`);
 			executeCmd('open-cli coverage/lcov-report/index.html');
 
 			break;
@@ -134,7 +134,7 @@ async function run() {
 			executeCmd(`git tag -a ${PKG.version} -m '${PKG.version}'`);
 			executeCmd(`git push origin v${MAYOR_VERSION}`);
 			executeCmd(`git push origin '${PKG.version}'`);
-			executeCmd('npm publish');
+			executeInteractiveCmd('npm publish');
 
 			break;
 		}
@@ -238,7 +238,7 @@ function formatNode() {
 function test() {
 	logInfo('test()');
 
-	executeCmd(`jest --silent false --detectOpenHandles ${args}`);
+	executeCmd(`jest --silent false --detectOpenHandles ${taskArgs}`);
 }
 
 function installNodeDeps() {
@@ -262,13 +262,13 @@ function installPythonDeps() {
 	// However this may fail due to different PIP and OS versions, so let's do a
 	// best effort.
 	const res = executeCmd(
-		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" ${args} worker/`,
+		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" ${taskArgs} worker/`,
 		/* exitOnError */ false
 	);
 
 	if (!res) {
 		executeCmd(
-			`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" ${args} --break-system-packages worker/`,
+			`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" ${taskArgs} --break-system-packages worker/`,
 			/* exitOnError */ true
 		);
 	}
@@ -327,20 +327,32 @@ function executeCmd(command, exitOnError = true) {
 	}
 }
 
-function logInfo(message) {
+function executeInteractiveCmd(command) {
+	logInfo(`executeInteractiveCmd(): ${command}`);
+
+	try {
+		execSync(command, { stdio: 'inherit', env: process.env });
+	} catch (error) {
+		logError(`executeInteractiveCmd() failed, exiting: ${error}`);
+
+		exitWithError();
+	}
+}
+
+function logInfo(...args) {
 	// eslint-disable-next-line no-console
-	console.log(`npm-scripts \x1b[36m[INFO] [${task}]\x1b[0m`, message);
+	console.log(`npm-scripts.mjs \x1b[36m[INFO] [${task}]\x1b[0m`, ...args);
 }
 
 // eslint-disable-next-line no-unused-vars
-function logWarn(message) {
+function logWarn(...args) {
 	// eslint-disable-next-line no-console
-	console.warn(`npm-scripts \x1b[33m[WARN] [${task}]\x1b[0m`, message);
+	console.warn(`npm-scripts.mjs \x1b[33m[WARN] [${task}]\x1b\0m`, ...args);
 }
 
-function logError(message) {
+function logError(...args) {
 	// eslint-disable-next-line no-console
-	console.error(`npm-scripts \x1b[31m[ERROR] [${task}]\x1b[0m`, message);
+	console.error(`npm-scripts.mjs \x1b[31m[ERROR] [${task}]\x1b[0m`, ...args);
 }
 
 function exitWithError() {
