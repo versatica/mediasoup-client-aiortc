@@ -59,4 +59,4 @@ jobs:
         run: npm run lint
 
       - name: npm run test
-        run: npm run test -- --forceExit
+        run: npm run test
