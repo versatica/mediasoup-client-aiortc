@@ -9,7 +9,7 @@
 ## Requirements
 
 - Python 3.
-- Windows not supported.
+- Windows is not supported.
 
 ## Installation
 
