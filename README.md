@@ -25,7 +25,7 @@ The "postinstall" script in `package.json` will install the Python libraries (in
 PYTHON=/home/me/bin/python3.13 npm install mediasoup-client-aiortc
 ```
 
-Same once you run your Node.js application. **mediasoup-client-aiortc** will spawn Python processes and communicate with them via `UnixSocket`. You can override the `python` executable path by setting the `PYTHON` environment variable:
+Same thing once you run your Node.js application. **mediasoup-client-aiortc** will spawn Python processes and communicate with them via `UnixSocket`. You can override the `python` executable path by setting the `PYTHON` environment variable:
 
 ```bash
 PYTHON=/home/me/bin/python3.13 node my_app.js
