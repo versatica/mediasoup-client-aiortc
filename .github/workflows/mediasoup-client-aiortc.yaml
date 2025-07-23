@@ -1,6 +1,10 @@
 name: mediasoup-client-aiortc
 
-on: [pull_request, workflow_dispatch]
+on:
+  push:
+    branches: [v3]
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   # Cancel a currently running workflow from the same PR, branch or tag when a
@@ -19,13 +23,13 @@ jobs:
           - os: ubuntu-24.04
             node: 20
           - os: ubuntu-24.04
-            node: 22
+            node: 24
           - os: macos-13
             node: 18
           - os: macos-14
-            node: 20
-          - os: macos-15
             node: 22
+          - os: macos-15
+            node: 24
 
     runs-on: ${{ matrix.ci.os }}
 
@@ -48,7 +52,7 @@ jobs:
             ${{ matrix.ci.os }}-node-
 
       # Use --force since some dev dependency requires Node >= 18.
-      - name: npm ci
+      - name: npm ci --force --foreground-scripts
         run: npm ci --force --foreground-scripts
 
       - name: npm run lint
