@@ -56,19 +56,19 @@
 	"dependencies": {
 		"debug": "^4.4.1",
 		"fake-mediastreamtrack": "^2.1.2",
-		"mediasoup-client": "^3.12.5",
+		"mediasoup-client": "^3.13.0",
 		"netstring": "^0.3.0",
 		"sdp-transform": "^2.15.0",
 		"uuid": "^11.1.0"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.31.0",
+		"@eslint/js": "^9.32.0",
 		"@types/debug": "^4.1.12",
 		"@types/jest": "^30.0.0",
 		"@types/node": "^24.1.0",
 		"@types/sdp-transform": "^2.4.10",
 		"@types/uuid": "^10.0.0",
-		"eslint": "^9.31.0",
+		"eslint": "^9.32.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-jest": "^29.0.1",
 		"eslint-plugin-prettier": "^5.5.3",
