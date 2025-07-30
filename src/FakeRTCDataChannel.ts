@@ -13,7 +13,10 @@ export type FakeRTCDataChannelOptions = {
 	protocol?: string;
 };
 
-// https://github.com/versatica/mediasoup-client-aiortc/issues/24
+/**
+ * https://github.com/versatica/mediasoup-client-aiortc/issues/24
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 	// Internal data.
 	readonly #internal: { handlerId: string; dataChannelId: string };
@@ -381,3 +384,4 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		);
 	}
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

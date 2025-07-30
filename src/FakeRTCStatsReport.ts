@@ -3,6 +3,7 @@ export class FakeRTCStatsReport extends Map implements RTCStatsReport {
 	 * Given data must be an object whose keys are the id of each RTCStats and
 	 * their values the corresponding RTCStats objects.
 	 */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	constructor(data: { [key: string]: any }) {
 		super();
 

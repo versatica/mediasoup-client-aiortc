@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { EventEmitter, once } from 'node:events';
 import { Logger } from './Logger';
 
