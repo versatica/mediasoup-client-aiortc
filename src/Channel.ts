@@ -1,4 +1,4 @@
-import { type Duplex } from 'node:stream';
+import type { Duplex } from 'node:stream';
 // @ts-expect-error --- netstring doesn't have types.
 import * as netstring from 'netstring';
 import { Logger } from './Logger';

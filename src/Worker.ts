@@ -1,7 +1,7 @@
 import * as process from 'node:process';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { type Duplex } from 'node:stream';
+import type { Duplex } from 'node:stream';
 import { spawn, execSync, ChildProcess } from 'node:child_process';
 import { v4 as uuidv4 } from 'uuid';
 import type { HandlerFactory } from 'mediasoup-client/types';
