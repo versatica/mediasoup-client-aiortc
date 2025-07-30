@@ -1,26 +1,29 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as sdpTransform from 'sdp-transform';
+import type * as SdpTransform from 'sdp-transform';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import * as ortc from 'mediasoup-client/ortc';
 import * as sdpCommonUtils from 'mediasoup-client/handlers/sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from 'mediasoup-client/handlers/sdp/unifiedPlanUtils';
 import {
-	IceParameters,
-	DtlsRole,
-	RtpCapabilities,
-	RtpParameters,
-	SctpCapabilities,
-	SctpStreamParameters,
+	type HandlerFactory,
 	HandlerInterface,
-	HandlerRunOptions,
-	HandlerSendOptions,
-	HandlerSendResult,
-	HandlerReceiveOptions,
-	HandlerReceiveResult,
-	HandlerSendDataChannelOptions,
-	HandlerSendDataChannelResult,
-	HandlerReceiveDataChannelOptions,
-	HandlerReceiveDataChannelResult,
+	type HandlerOptions,
+	type HandlerSendOptions,
+	type HandlerSendResult,
+	type HandlerReceiveOptions,
+	type HandlerReceiveResult,
+	type HandlerSendDataChannelOptions,
+	type HandlerSendDataChannelResult,
+	type HandlerReceiveDataChannelOptions,
+	type HandlerReceiveDataChannelResult,
+	type IceParameters,
+	type DtlsRole,
+	type RtpCapabilities,
+	type MediaKind,
+	type RtpParameters,
+	type SctpCapabilities,
+	type SctpStreamParameters,
 } from 'mediasoup-client/types';
 import { RemoteSdp } from 'mediasoup-client/handlers/sdp/RemoteSdp';
 import { Logger } from './Logger';
@@ -46,14 +49,16 @@ export class Handler extends HandlerInterface {
 	// Running flag. It means that the handler has been told to the worker.
 	#running = false;
 	// Handler direction.
-	#direction?: 'send' | 'recv';
+	#direction: 'send' | 'recv';
 	// Remote SDP handler.
-	#remoteSdp?: RemoteSdp;
+	#remoteSdp: RemoteSdp;
 	// Generic sending RTP parameters for audio and video.
-	#sendingRtpParametersByKind?: { [key: string]: RtpParameters };
+	#sendingRtpParametersByKind: { [K in MediaKind]: RtpParameters };
 	// Generic sending RTP parameters for audio and video suitable for the SDP
 	// remote answer.
-	#sendingRemoteRtpParametersByKind?: { [key: string]: RtpParameters };
+	#sendingRemoteRtpParametersByKind: {
+		[K in MediaKind]: RtpParameters;
+	};
 	// Map of sending and receiving tracks indexed by localId.
 	readonly #mapLocalIdTracks: Map<string, AiortcMediaStreamTrack> = new Map();
 	// Map of MID indexed by local ids.
@@ -65,92 +70,51 @@ export class Handler extends HandlerInterface {
 	// Next DataChannel id.
 	#nextSendSctpStreamId = 0;
 
-	/**
-	 * Addicional events.
-	 *
-	 * @emits @close
-	 */
-	constructor({
-		internal,
-		channel,
-	}: {
-		internal: { handlerId: string };
-		channel: Channel;
-	}) {
-		super();
-
-		this.#internal = internal;
-		this.#channel = channel;
-	}
-
-	get closed(): boolean {
-		return this.#closed;
-	}
-
-	get name(): string {
-		return NAME;
-	}
-
-	close(): void {
-		logger.debug('close()');
-
-		if (this.#closed) {
-			return;
-		}
-
-		this.#closed = true;
-
-		// Deregister sending tracks events and emit 'ended' in remote tracks.
-		for (const track of this.#mapLocalIdTracks.values()) {
-			if (track.data.remote) {
-				track.remoteStop();
-			}
-		}
-
-		// Remove notification subscriptions.
-		this.#channel.removeAllListeners(this.#internal.handlerId);
-
-		// If running notify the worker.
-		if (this.#running) {
-			this.#channel.notify('handler.close', this.#internal);
-		}
-
-		// Tell the parent.
-		this.emit('@close');
-	}
-
-	async getNativeRtpCapabilities(): Promise<RtpCapabilities> {
-		logger.debug('getNativeRtpCapabilities()');
-
-		const sdp = await this.#channel.request('getRtpCapabilities');
-
-		const sdpObject = sdpTransform.parse(sdp);
-		const caps = sdpCommonUtils.extractRtpCapabilities({ sdpObject });
-
-		return caps;
-	}
-
-	async getNativeSctpCapabilities(): Promise<SctpCapabilities> {
-		logger.debug('getNativeSctpCapabilities()');
-
+	static createFactory(handlerId: string, channel: Channel): HandlerFactory {
 		return {
-			numStreams: SCTP_NUM_STREAMS,
+			name: NAME,
+			factory: (options: HandlerOptions): Handler =>
+				new Handler(options, handlerId, channel),
+			getNativeRtpCapabilities: async (): Promise<RtpCapabilities> => {
+				logger.debug('getNativeRtpCapabilities()');
+
+				const sdp = await channel.request('getRtpCapabilities');
+				const sdpObject = sdpTransform.parse(sdp);
+				const caps = sdpCommonUtils.extractRtpCapabilities({ sdpObject });
+
+				return caps;
+			},
+			getNativeSctpCapabilities: async (): Promise<SctpCapabilities> => {
+				logger.debug('getNativeSctpCapabilities()');
+
+				return {
+					numStreams: SCTP_NUM_STREAMS,
+				};
+			},
 		};
 	}
 
-	run({
-		direction,
-		iceParameters,
-		iceCandidates,
-		dtlsParameters,
-		sctpParameters,
-		iceServers,
-		iceTransportPolicy, // eslint-disable-line @typescript-eslint/no-unused-vars
-		additionalSettings, // eslint-disable-line @typescript-eslint/no-unused-vars
-		proprietaryConstraints, // eslint-disable-line @typescript-eslint/no-unused-vars
-		extendedRtpCapabilities,
-	}: HandlerRunOptions): void {
-		logger.debug('run()');
+	private constructor(
+		{
+			direction,
+			iceParameters,
+			iceCandidates,
+			dtlsParameters,
+			sctpParameters,
+			iceServers,
+			// iceTransportPolicy,
+			// additionalSettings,
+			extendedRtpCapabilities,
+		}: HandlerOptions,
+		handlerId: string,
+		channel: Channel
+	) {
+		super();
+
+		logger.debug('constructor()');
+
+		this.#internal = { handlerId };
+		this.#channel = channel;
 
 		this.#direction = direction;
 
@@ -199,6 +163,42 @@ export class Handler extends HandlerInterface {
 		this.#running = true;
 
 		this.handleWorkerNotifications();
+	}
+
+	get closed(): boolean {
+		return this.#closed;
+	}
+
+	get name(): string {
+		return NAME;
+	}
+
+	close(): void {
+		logger.debug('close()');
+
+		if (this.#closed) {
+			return;
+		}
+
+		this.#closed = true;
+
+		// Deregister sending tracks events and emit 'ended' in remote tracks.
+		for (const track of this.#mapLocalIdTracks.values()) {
+			if (track.data.remote) {
+				track.remoteStop();
+			}
+		}
+
+		// Remove notification subscriptions.
+		this.#channel.removeAllListeners(this.#internal.handlerId);
+
+		// If running notify the worker.
+		if (this.#running) {
+			this.#channel.notify('handler.close', this.#internal);
+		}
+
+		// Tell the parent.
+		this.emit('@close');
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -256,7 +256,7 @@ export class Handler extends HandlerInterface {
 		}
 
 		const sendingRtpParameters = clone<RtpParameters>(
-			this.#sendingRtpParametersByKind![track.kind]!
+			this.#sendingRtpParametersByKind[track.kind as MediaKind]
 		);
 
 		// This may throw.
@@ -266,7 +266,7 @@ export class Handler extends HandlerInterface {
 		);
 
 		const sendingRemoteRtpParameters =
-			this.#sendingRemoteRtpParametersByKind![track.kind]!;
+			this.#sendingRemoteRtpParametersByKind[track.kind as MediaKind];
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
@@ -312,7 +312,7 @@ export class Handler extends HandlerInterface {
 
 		const offerMediaObject = localSdpObject.media.find(
 			m => String(m.mid) === String(mid)
-		);
+		)!;
 
 		// Set MID.
 		sendingRtpParameters.mid = mid;
@@ -327,7 +327,7 @@ export class Handler extends HandlerInterface {
 			offerMediaObject,
 		});
 
-		this.#remoteSdp!.send({
+		this.#remoteSdp.send({
 			offerMediaObject,
 			reuseMid: '', // May be in the future.
 			offerRtpParameters: sendingRtpParameters,
@@ -335,7 +335,7 @@ export class Handler extends HandlerInterface {
 			codecOptions,
 		});
 
-		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
+		const answer = { type: 'answer', sdp: this.#remoteSdp.getSdp() };
 
 		logger.debug(
 			'send() | calling handler.setRemoteDescription() [answer:%o]',
@@ -407,7 +407,7 @@ export class Handler extends HandlerInterface {
 			localId,
 		});
 
-		this.#remoteSdp!.disableMediaSection(mid);
+		this.#remoteSdp.disableMediaSection(mid);
 
 		const offer = await this.#channel.request(
 			'handler.createOffer',
@@ -425,7 +425,7 @@ export class Handler extends HandlerInterface {
 			offer
 		);
 
-		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
+		const answer = { type: 'answer', sdp: this.#remoteSdp.getSdp() };
 
 		logger.debug(
 			'stopSending() | calling handler.setRemoteDescription() [answer:%o]',
@@ -477,7 +477,7 @@ export class Handler extends HandlerInterface {
 			offer
 		);
 
-		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
+		const answer = { type: 'answer', sdp: this.#remoteSdp.getSdp() };
 
 		logger.debug(
 			'pauseSending() | calling handler.setRemoteDescription() [answer:%o]',
@@ -529,7 +529,7 @@ export class Handler extends HandlerInterface {
 			offer
 		);
 
-		const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
+		const answer = { type: 'answer', sdp: this.#remoteSdp.getSdp() };
 
 		logger.debug(
 			'stopSending() | calling handler.setRemoteDescription() [answer:%o]',
@@ -621,8 +621,12 @@ export class Handler extends HandlerInterface {
 		throw new UnsupportedError('not implemented');
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async setRtpEncodingParameters(localId: string, params: any): Promise<void> {
+	async setRtpEncodingParameters(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		localId: string,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		params: Partial<RTCRtpEncodingParameters>
+	): Promise<void> {
 		throw new UnsupportedError('not implemented');
 	}
 
@@ -710,8 +714,8 @@ export class Handler extends HandlerInterface {
 
 			const localSdpObject = sdpTransform.parse(offer.sdp);
 			const offerMediaObject = localSdpObject.media.find(
-				(m: any) => m.type === 'application'
-			);
+				m => m.type === 'application'
+			)!;
 
 			if (!this.#transportReady) {
 				await this.setupTransport({ localDtlsRole: 'server', localSdpObject });
@@ -728,9 +732,9 @@ export class Handler extends HandlerInterface {
 				offer
 			);
 
-			this.#remoteSdp!.sendSctpAssociation({ offerMediaObject });
+			this.#remoteSdp.sendSctpAssociation({ offerMediaObject });
 
-			const answer = { type: 'answer', sdp: this.#remoteSdp!.getSdp() };
+			const answer = { type: 'answer', sdp: this.#remoteSdp.getSdp() };
 
 			logger.debug(
 				'sendDataChannel() | calling handler.setRemoteDescription() [answer:%o]',
@@ -776,7 +780,7 @@ export class Handler extends HandlerInterface {
 
 			mapLocalId.set(trackId, localId);
 
-			this.#remoteSdp!.receive({
+			this.#remoteSdp.receive({
 				mid: localId,
 				kind,
 				offerRtpParameters: rtpParameters,
@@ -785,7 +789,7 @@ export class Handler extends HandlerInterface {
 			});
 		}
 
-		const offer = { type: 'offer', sdp: this.#remoteSdp!.getSdp() };
+		const offer = { type: 'offer', sdp: this.#remoteSdp.getSdp() };
 
 		logger.debug(
 			'receive() | calling handler.setRemoteDescription() [offer:%o]',
@@ -809,8 +813,8 @@ export class Handler extends HandlerInterface {
 			const { trackId, rtpParameters } = options;
 			const localId = mapLocalId.get(trackId);
 			const answerMediaObject = localSdpObject.media.find(
-				(m: any) => String(m.mid) === localId
-			);
+				m => String(m.mid) === localId
+			)!;
 
 			// May need to modify codec parameters in the answer based on codec
 			// parameters in the offer.
@@ -885,10 +889,10 @@ export class Handler extends HandlerInterface {
 				throw new Error('associated MID not found');
 			}
 
-			this.#remoteSdp!.closeMediaSection(mid);
+			this.#remoteSdp.closeMediaSection(mid);
 		}
 
-		const offer = { type: 'offer', sdp: this.#remoteSdp!.getSdp() };
+		const offer = { type: 'offer', sdp: this.#remoteSdp.getSdp() };
 
 		logger.debug(
 			'stopReceiving() | calling handler.setRemoteDescription() [offer:%o]',
@@ -1110,9 +1114,9 @@ export class Handler extends HandlerInterface {
 		// If this is the first DataChannel we need to create the SDP offer with
 		// m=application section.
 		if (!this.#hasDataChannelMediaSection) {
-			this.#remoteSdp!.receiveSctpAssociation();
+			this.#remoteSdp.receiveSctpAssociation();
 
-			const offer = { type: 'offer', sdp: this.#remoteSdp!.getSdp() };
+			const offer = { type: 'offer', sdp: this.#remoteSdp.getSdp() };
 
 			logger.debug(
 				'receiveDataChannel() | calling handler.setRemoteDescription() [offer:%o]',
@@ -1158,7 +1162,7 @@ export class Handler extends HandlerInterface {
 		localSdpObject,
 	}: {
 		localDtlsRole: DtlsRole;
-		localSdpObject?: any;
+		localSdpObject?: SdpTransform.SessionDescription;
 	}): Promise<void> {
 		if (!localSdpObject) {
 			const offer = await this.#channel.request(
@@ -1178,7 +1182,7 @@ export class Handler extends HandlerInterface {
 		dtlsParameters.role = localDtlsRole;
 
 		// Update the remote DTLS role in the SDP.
-		this.#remoteSdp!.updateDtlsRole(
+		this.#remoteSdp.updateDtlsRole(
 			localDtlsRole === 'client' ? 'server' : 'client'
 		);
 
@@ -1207,6 +1211,7 @@ export class Handler extends HandlerInterface {
 	}
 
 	private handleWorkerNotifications(): void {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		this.#channel.on(this.#internal.handlerId, (event: string, data?: any) => {
 			switch (event) {
 				case 'signalingstatechange': {

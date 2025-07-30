@@ -1,4 +1,4 @@
-import { Duplex } from 'node:stream';
+import { type Duplex } from 'node:stream';
 // @ts-expect-error --- netstring doesn't have types.
 import * as netstring from 'netstring';
 import { Logger } from './Logger';
@@ -14,6 +14,7 @@ const logger = new Logger('Channel');
 interface Sent {
 	id: number;
 	method: string;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	resolve: (data?: any) => void;
 	reject: (error: Error) => void;
 	timer: ReturnType<typeof setTimeout>;
@@ -32,12 +33,12 @@ export class Channel extends EnhancedEventEmitter {
 	// Buffer for reading messages from the worker.
 	#recvBuffer?: Buffer;
 
-	constructor({ socket, pid }: { socket: any; pid: number }) {
+	constructor({ socket, pid }: { socket: Duplex; pid: number }) {
 		super();
 
 		logger.debug('constructor()');
 
-		this.#socket = socket as Duplex;
+		this.#socket = socket;
 
 		// Read Channel responses/notifications from the worker.
 		this.#socket.on('data', (buffer: Buffer) => {
@@ -144,6 +145,7 @@ export class Channel extends EnhancedEventEmitter {
 		} catch (error) {}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async request(method: string, internal?: object, data?: any): Promise<any> {
 		if (this.#nextId < 4294967295) {
 			++this.#nextId;
@@ -211,6 +213,7 @@ export class Channel extends EnhancedEventEmitter {
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	notify(event: string, internal?: object, data?: any): any {
 		logger.debug('notify() [event:%s]', event);
 
@@ -241,6 +244,7 @@ export class Channel extends EnhancedEventEmitter {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private processMessage(msg: any): void {
 		// If a response retrieve its associated request.
 		if (msg.id) {

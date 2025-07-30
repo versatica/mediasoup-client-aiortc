@@ -1,9 +1,10 @@
 import * as process from 'node:process';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { type Duplex } from 'node:stream';
 import { spawn, execSync, ChildProcess } from 'node:child_process';
 import { v4 as uuidv4 } from 'uuid';
-import { HandlerFactory } from 'mediasoup-client/types';
+import type { HandlerFactory } from 'mediasoup-client/types';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';
 import { Channel } from './Channel';
@@ -107,7 +108,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 		this.#pid = this.#child.pid!;
 
 		this.#channel = new Channel({
-			socket: this.#child.stdio[3],
+			socket: this.#child.stdio[3]! as Duplex,
 			pid: this.#pid,
 		});
 
@@ -289,6 +290,7 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 		this.#channel.close();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async dump(): Promise<any> {
 		logger.debug('dump()');
 
@@ -312,18 +314,10 @@ export class Worker extends EnhancedEventEmitter<WorkerEvents> {
 	createHandlerFactory(): HandlerFactory {
 		logger.debug('createHandlerFactory()');
 
-		return (): Handler => {
-			const internal = { handlerId: uuidv4() };
-			const handler = new Handler({
-				internal,
-				channel: this.#channel,
-			});
+		const handlerId: string = uuidv4();
+		const channel: Channel = this.#channel;
 
-			this.#handlers.add(handler);
-			handler.on('@close', () => this.#handlers.delete(handler));
-
-			return handler;
-		};
+		return Handler.createFactory(handlerId, channel);
 	}
 }
 
