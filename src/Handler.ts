@@ -5,27 +5,29 @@ import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import * as ortc from 'mediasoup-client/ortc';
 import * as sdpCommonUtils from 'mediasoup-client/handlers/sdp/commonUtils';
 import * as sdpUnifiedPlanUtils from 'mediasoup-client/handlers/sdp/unifiedPlanUtils';
-import {
-	type HandlerFactory,
+import type {
+	HandlerFactory,
 	HandlerInterface,
-	type HandlerOptions,
-	type HandlerSendOptions,
-	type HandlerSendResult,
-	type HandlerReceiveOptions,
-	type HandlerReceiveResult,
-	type HandlerSendDataChannelOptions,
-	type HandlerSendDataChannelResult,
-	type HandlerReceiveDataChannelOptions,
-	type HandlerReceiveDataChannelResult,
-	type IceParameters,
-	type DtlsRole,
-	type RtpCapabilities,
-	type MediaKind,
-	type RtpParameters,
-	type SctpCapabilities,
-	type SctpStreamParameters,
+	HandlerEvents,
+	HandlerOptions,
+	HandlerSendOptions,
+	HandlerSendResult,
+	HandlerReceiveOptions,
+	HandlerReceiveResult,
+	HandlerSendDataChannelOptions,
+	HandlerSendDataChannelResult,
+	HandlerReceiveDataChannelOptions,
+	HandlerReceiveDataChannelResult,
+	IceParameters,
+	DtlsRole,
+	RtpCapabilities,
+	MediaKind,
+	RtpParameters,
+	SctpCapabilities,
+	SctpStreamParameters,
 } from 'mediasoup-client/types';
 import { RemoteSdp } from 'mediasoup-client/handlers/sdp/RemoteSdp';
+import { EnhancedEventEmitter } from 'mediasoup-client/enhancedEvents';
 import { Logger } from './Logger';
 import { Channel } from './Channel';
 import type { AiortcMediaStreamTrack } from './AiortcMediaStream';
@@ -39,7 +41,10 @@ const logger = new Logger('Handler');
 const NAME = 'Aiortc';
 const SCTP_NUM_STREAMS = { OS: 65535, MIS: 65535 };
 
-export class Handler extends HandlerInterface {
+export class Handler
+	extends EnhancedEventEmitter<HandlerEvents>
+	implements HandlerInterface
+{
 	// Internal data.
 	readonly #internal: { handlerId: string };
 	// Channel instance.
@@ -173,7 +178,7 @@ export class Handler extends HandlerInterface {
 		return NAME;
 	}
 
-	close(): void {
+	override close(): void {
 		logger.debug('close()');
 
 		if (this.#closed) {
@@ -199,6 +204,9 @@ export class Handler extends HandlerInterface {
 
 		// Tell the parent.
 		this.emit('@close');
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars

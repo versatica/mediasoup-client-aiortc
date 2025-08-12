@@ -119,7 +119,7 @@ export class Channel extends EnhancedEventEmitter {
 		);
 	}
 
-	close(): void {
+	override close(): void {
 		if (this.#closed) {
 			return;
 		}
@@ -143,6 +143,9 @@ export class Channel extends EnhancedEventEmitter {
 		try {
 			this.#socket.destroy();
 		} catch (error) {}
+
+		// Invoke close() in EnhancedEventEmitter classes.
+		super.close();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
