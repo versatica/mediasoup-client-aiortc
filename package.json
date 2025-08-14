@@ -56,7 +56,7 @@
 	"dependencies": {
 		"debug": "^4.4.1",
 		"fake-mediastreamtrack": "^2.1.2",
-		"mediasoup-client": "^3.14.2",
+		"mediasoup-client": "^3.15.1",
 		"netstring": "^0.3.0",
 		"sdp-transform": "^2.15.0",
 		"uuid": "^11.1.0"

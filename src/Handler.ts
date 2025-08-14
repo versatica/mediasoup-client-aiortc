@@ -22,7 +22,7 @@ import type {
 	DtlsRole,
 	RtpCapabilities,
 	MediaKind,
-	RtpParameters,
+	ExtendedRtpCapabilities,
 	SctpCapabilities,
 	SctpStreamParameters,
 } from 'mediasoup-client/types';
@@ -33,7 +33,6 @@ import { Channel } from './Channel';
 import type { AiortcMediaStreamTrack } from './AiortcMediaStream';
 import { FakeRTCStatsReport } from './FakeRTCStatsReport';
 import { FakeRTCDataChannel } from './FakeRTCDataChannel';
-import { clone } from './utils';
 import { UnsupportedError } from './errors';
 
 const logger = new Logger('Handler');
@@ -57,13 +56,10 @@ export class Handler
 	#direction: 'send' | 'recv';
 	// Remote SDP handler.
 	#remoteSdp: RemoteSdp;
-	// Generic sending RTP parameters for audio and video.
-	#sendingRtpParametersByKind: { [K in MediaKind]: RtpParameters };
-	// Generic sending RTP parameters for audio and video suitable for the SDP
-	// remote answer.
-	#sendingRemoteRtpParametersByKind: {
-		[K in MediaKind]: RtpParameters;
-	};
+	// Callback to request sending extended RTP capabilities on demand.
+	#getSendExtendedRtpCapabilities: (
+		nativeRtpCapabilities: RtpCapabilities
+	) => ExtendedRtpCapabilities;
 	// Map of sending and receiving tracks indexed by localId.
 	readonly #mapLocalIdTracks: Map<string, AiortcMediaStreamTrack> = new Map();
 	// Map of MID indexed by local ids.
@@ -85,9 +81,10 @@ export class Handler
 
 				const sdp = await channel.request('getRtpCapabilities');
 				const sdpObject = sdpTransform.parse(sdp);
-				const caps = sdpCommonUtils.extractRtpCapabilities({ sdpObject });
+				const nativeRtpCapabilities =
+					Handler.getLocalRtpCapabilities(sdpObject);
 
-				return caps;
+				return nativeRtpCapabilities;
 			},
 			getNativeSctpCapabilities: async (): Promise<SctpCapabilities> => {
 				logger.debug('getNativeSctpCapabilities()');
@@ -97,6 +94,16 @@ export class Handler
 				};
 			},
 		};
+	}
+
+	private static getLocalRtpCapabilities(
+		localSdpObject: SdpTransform.SessionDescription
+	): RtpCapabilities {
+		const nativeRtpCapabilities = sdpCommonUtils.extractRtpCapabilities({
+			sdpObject: localSdpObject,
+		});
+
+		return nativeRtpCapabilities;
 	}
 
 	private constructor(
@@ -109,7 +116,7 @@ export class Handler
 			iceServers,
 			// iceTransportPolicy,
 			// additionalSettings,
-			extendedRtpCapabilities,
+			getSendExtendedRtpCapabilities,
 		}: HandlerOptions,
 		handlerId: string,
 		channel: Channel
@@ -135,21 +142,7 @@ export class Handler
 			sctpParameters,
 		});
 
-		this.#sendingRtpParametersByKind = {
-			audio: ortc.getSendingRtpParameters('audio', extendedRtpCapabilities),
-			video: ortc.getSendingRtpParameters('video', extendedRtpCapabilities),
-		};
-
-		this.#sendingRemoteRtpParametersByKind = {
-			audio: ortc.getSendingRemoteRtpParameters(
-				'audio',
-				extendedRtpCapabilities
-			),
-			video: ortc.getSendingRemoteRtpParameters(
-				'video',
-				extendedRtpCapabilities
-			),
-		};
+		this.#getSendExtendedRtpCapabilities = getSendExtendedRtpCapabilities;
 
 		const options = {
 			rtcConfiguration: { iceServers },
@@ -263,8 +256,27 @@ export class Handler
 			);
 		}
 
-		const sendingRtpParameters = clone<RtpParameters>(
-			this.#sendingRtpParametersByKind[track.kind as MediaKind]
+		let offer = await this.#channel.request(
+			'handler.createOffer',
+			this.#internal
+		);
+
+		let localSdpObject = sdpTransform.parse(offer.sdp);
+
+		if (localSdpObject.extmapAllowMixed) {
+			this.#remoteSdp.setSessionExtmapAllowMixed();
+		}
+
+		const nativeRtpCapabilities =
+			Handler.getLocalRtpCapabilities(localSdpObject);
+		const sendExtendedRtpCapabilities = this.#getSendExtendedRtpCapabilities(
+			nativeRtpCapabilities
+		);
+
+		// Generic sending RTP parameters.
+		const sendingRtpParameters = ortc.getSendingRtpParameters(
+			track.kind as MediaKind,
+			sendExtendedRtpCapabilities
 		);
 
 		// This may throw.
@@ -273,21 +285,17 @@ export class Handler
 			codec
 		);
 
-		const sendingRemoteRtpParameters =
-			this.#sendingRemoteRtpParametersByKind[track.kind as MediaKind];
+		// Generic sending RTP parameters suitable for the SDP remote answer.
+		const sendingRemoteRtpParameters = ortc.getSendingRemoteRtpParameters(
+			track.kind as MediaKind,
+			sendExtendedRtpCapabilities
+		);
 
 		// This may throw.
 		sendingRemoteRtpParameters.codecs = ortc.reduceCodecs(
 			sendingRemoteRtpParameters.codecs,
 			codec
 		);
-
-		let offer = await this.#channel.request(
-			'handler.createOffer',
-			this.#internal
-		);
-
-		let localSdpObject = sdpTransform.parse(offer.sdp);
 
 		if (!this.#transportReady) {
 			await this.setupTransport({ localDtlsRole: 'server', localSdpObject });
