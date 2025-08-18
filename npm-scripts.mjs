@@ -129,12 +129,7 @@ async function run() {
 		}
 
 		case 'release': {
-			checkRelease();
-			executeCmd(`git commit -am '${PKG.version}'`);
-			executeCmd(`git tag -a ${PKG.version} -m '${PKG.version}'`);
-			executeCmd(`git push origin v${MAYOR_VERSION}`);
-			executeCmd(`git push origin '${PKG.version}'`);
-			executeInteractiveCmd('npm publish');
+			release();
 
 			break;
 		}
@@ -294,11 +289,17 @@ function checkRelease() {
 	replacePythonVersion();
 	lintNode();
 	lintPython();
+}
 
-	// Tests fail sometimes due to OS/network stuff.
-	if (process.env.SKIP_TEST !== 'true') {
-		test();
-	}
+function release() {
+	logInfo('release()');
+
+	checkRelease();
+	executeCmd(`git commit -am '${PKG.version}'`);
+	executeCmd(`git tag -a ${PKG.version} -m '${PKG.version}'`);
+	executeCmd(`git push origin v${MAYOR_VERSION}`);
+	executeCmd(`git push origin '${PKG.version}'`);
+	executeInteractiveCmd('npm publish');
 }
 
 /**
