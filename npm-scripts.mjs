@@ -289,6 +289,11 @@ function checkRelease() {
 	replacePythonVersion();
 	lintNode();
 	lintPython();
+
+	// Tests fail sometimes due to OS/network stuff.
+	if (process.env.SKIP_TEST !== 'true') {
+		test();
+	}
 }
 
 function release() {
