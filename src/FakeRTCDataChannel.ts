@@ -16,7 +16,6 @@ export type FakeRTCDataChannelOptions = {
 /**
  * https://github.com/versatica/mediasoup-client-aiortc/issues/24
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 	// Internal data.
 	readonly #internal: { handlerId: string; dataChannelId: string };
@@ -35,13 +34,13 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 	#bufferedAmountLowThreshold;
 	#binaryType: BinaryType = 'arraybuffer';
 	// Events.
-	#onopen: ((this: FakeRTCDataChannel, ev: Event) => any) | null = null;
-	#onclosing: ((this: FakeRTCDataChannel, ev: Event) => any) | null = null;
-	#onclose: ((this: FakeRTCDataChannel, ev: Event) => any) | null = null;
-	#onmessage: ((this: FakeRTCDataChannel, ev: Event) => any) | null = null;
-	#onbufferedamountlow: ((this: FakeRTCDataChannel, ev: Event) => any) | null =
+	#onopen: ((this: RTCDataChannel, ev: Event) => void) | null = null;
+	#onclosing: ((this: RTCDataChannel, ev: Event) => void) | null = null;
+	#onclose: ((this: RTCDataChannel, ev: Event) => void) | null = null;
+	#onmessage: ((this: RTCDataChannel, ev: Event) => void) | null = null;
+	#onbufferedamountlow: ((this: RTCDataChannel, ev: Event) => void) | null =
 		null;
-	#onerror: ((this: FakeRTCDataChannel, ev: Event) => any) | null = null;
+	#onerror: ((this: RTCDataChannel, ev: Event) => void) | null = null;
 
 	constructor(
 		internal: { handlerId: string; dataChannelId: string },
@@ -140,11 +139,11 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		logger.warn('binaryType setter not implemented, using "arraybuffer"');
 	}
 
-	get onopen(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this.#onopen as ((this: RTCDataChannel, ev: Event) => any) | null;
+	get onopen(): ((this: RTCDataChannel, ev: Event) => void) | null {
+		return this.#onopen;
 	}
 
-	set onopen(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+	set onopen(handler: ((this: RTCDataChannel, ev: Event) => void) | null) {
 		if (this.#onopen) {
 			this.removeEventListener('open', this.#onopen);
 		}
@@ -156,13 +155,11 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
-	get onclosing(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this.#onclosing as ((this: RTCDataChannel, ev: Event) => any) | null;
+	get onclosing(): ((this: RTCDataChannel, ev: Event) => void) | null {
+		return this.#onclosing;
 	}
 
-	set onclosing(
-		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
-	) {
+	set onclosing(handler: ((this: RTCDataChannel, ev: Event) => void) | null) {
 		if (this.#onclosing) {
 			this.removeEventListener('closing', this.#onclosing);
 		}
@@ -174,11 +171,11 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
-	get onclose(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this.#onclose as ((this: RTCDataChannel, ev: Event) => any) | null;
+	get onclose(): ((this: RTCDataChannel, ev: Event) => void) | null {
+		return this.#onclose;
 	}
 
-	set onclose(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+	set onclose(handler: ((this: RTCDataChannel, ev: Event) => void) | null) {
 		if (this.#onclose) {
 			this.removeEventListener('close', this.#onclose);
 		}
@@ -190,13 +187,11 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
-	get onmessage(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this.#onmessage as ((this: RTCDataChannel, ev: Event) => any) | null;
+	get onmessage(): ((this: RTCDataChannel, ev: Event) => void) | null {
+		return this.#onmessage;
 	}
 
-	set onmessage(
-		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
-	) {
+	set onmessage(handler: ((this: RTCDataChannel, ev: Event) => void) | null) {
 		if (this.#onmessage) {
 			this.removeEventListener('message', this.#onmessage);
 		}
@@ -208,14 +203,14 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
-	get onbufferedamountlow(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this.#onbufferedamountlow as
-			| ((this: RTCDataChannel, ev: Event) => any)
-			| null;
+	get onbufferedamountlow():
+		| ((this: RTCDataChannel, ev: Event) => void)
+		| null {
+		return this.#onbufferedamountlow;
 	}
 
 	set onbufferedamountlow(
-		handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null
+		handler: ((this: RTCDataChannel, ev: Event) => void) | null
 	) {
 		if (this.#onbufferedamountlow) {
 			this.removeEventListener('bufferedamountlow', this.#onbufferedamountlow);
@@ -228,11 +223,11 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		}
 	}
 
-	get onerror(): ((this: RTCDataChannel, ev: Event) => any) | null {
-		return this.#onerror as ((this: RTCDataChannel, ev: Event) => any) | null;
+	get onerror(): ((this: RTCDataChannel, ev: Event) => void) | null {
+		return this.#onerror;
 	}
 
-	set onerror(handler: ((this: FakeRTCDataChannel, ev: Event) => any) | null) {
+	set onerror(handler: ((this: RTCDataChannel, ev: Event) => void) | null) {
 		if (this.#onerror) {
 			this.removeEventListener('error', this.#onerror);
 		}
@@ -246,7 +241,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 
 	override addEventListener<K extends keyof RTCDataChannelEventMap>(
 		type: K,
-		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
+		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => void,
 		options?: boolean | AddEventListenerOptions
 	): void {
 		super.addEventListener(type, listener as EventListener, options);
@@ -254,7 +249,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 
 	override removeEventListener<K extends keyof RTCDataChannelEventMap>(
 		type: K,
-		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => any,
+		listener: (this: FakeRTCDataChannel, ev: RTCDataChannelEventMap[K]) => void,
 		options?: boolean | EventListenerOptions
 	): void {
 		super.removeEventListener(type, listener as EventListener, options);
@@ -307,6 +302,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 	private handleWorkerNotifications(): void {
 		this.#channel.on(
 			this.#internal.dataChannelId,
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(event: string, data?: any) => {
 				switch (event) {
 					case 'open': {
@@ -384,4 +380,3 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 		);
 	}
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
