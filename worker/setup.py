@@ -10,7 +10,7 @@ setuptools.setup(
     license="ISC",
     packages=setuptools.find_packages(),
     install_requires=[
-        "aiortc>=1.10.1",
+        "aiortc>=1.13.0",
         "pynetstring"
     ],
 )
