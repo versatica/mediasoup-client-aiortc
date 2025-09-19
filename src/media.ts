@@ -1,5 +1,5 @@
 import * as os from 'node:os';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from '@lukeed/uuid/secure';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import { Channel } from './Channel';
 import { AiortcMediaStream, AiortcMediaStreamTrack } from './AiortcMediaStream';

@@ -3,7 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import type { Duplex } from 'node:stream';
 import { spawn, execSync, ChildProcess } from 'node:child_process';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from '@lukeed/uuid/secure';
 import type { HandlerFactory } from 'mediasoup-client/types';
 import { Logger } from './Logger';
 import { EnhancedEventEmitter } from './enhancedEvents';

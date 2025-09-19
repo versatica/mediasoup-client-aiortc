@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from '@lukeed/uuid';
 import { types as mediasoupClientTypes } from 'mediasoup-client';
 
 export function generateRouterRtpCapabilities(): mediasoupClientTypes.RtpCapabilities {

@@ -54,12 +54,12 @@
 		"release": "node npm-scripts.mjs release"
 	},
 	"dependencies": {
+		"@lukeed/uuid": "^2.0.1",
 		"debug": "^4.4.3",
-		"fake-mediastreamtrack": "^2.1.4",
-		"mediasoup-client": "^3.16.2",
+		"fake-mediastreamtrack": "^2.1.5",
+		"mediasoup-client": "^3.16.3",
 		"netstring": "^0.3.0",
-		"sdp-transform": "^2.15.0",
-		"uuid": "^11.1.0"
+		"sdp-transform": "^2.15.0"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.35.0",
@@ -67,7 +67,6 @@
 		"@types/jest": "^30.0.0",
 		"@types/node": "^24.5.2",
 		"@types/sdp-transform": "^2.15.0",
-		"@types/uuid": "^10.0.0",
 		"eslint": "^9.35.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-jest": "^29.0.1",

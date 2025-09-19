@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from '@lukeed/uuid/secure';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 
 export type AiortcMediaStreamTrack = FakeMediaStreamTrack<{
