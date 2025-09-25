@@ -1,6 +1,6 @@
 {
 	"name": "mediasoup-client-aiortc",
-	"version": "3.14.6",
+	"version": "3.14.7",
 	"description": "mediasoup-client handler for aiortc Python library",
 	"contributors": [
 		"José Luis Millán <jmillan@aliax.net> (https://github.com/jmillan)",
@@ -56,8 +56,8 @@
 	"dependencies": {
 		"@lukeed/uuid": "^2.0.1",
 		"debug": "^4.4.3",
-		"fake-mediastreamtrack": "^2.2.0",
-		"mediasoup-client": "^3.16.5",
+		"fake-mediastreamtrack": "^2.2.1",
+		"mediasoup-client": "^3.16.7",
 		"netstring": "^0.3.0",
 		"sdp-transform": "^2.15.0"
 	},
