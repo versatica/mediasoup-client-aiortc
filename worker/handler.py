@@ -162,7 +162,7 @@ class Handler:
         elif request.method == "handler.setLocalDescription":
             data = request.data
             if isinstance(data, RTCSessionDescription):
-                raise TypeError("request data not a RTCSessionDescription")
+                raise TypeError("request data is not a RTCSessionDescription")
 
             description = RTCSessionDescription(**data)
             await self._pc.setLocalDescription(description)
@@ -170,7 +170,7 @@ class Handler:
         elif request.method == "handler.setRemoteDescription":
             data = request.data
             if isinstance(data, RTCSessionDescription):
-                raise TypeError("request data not a RTCSessionDescription")
+                raise TypeError("request data is not a RTCSessionDescription")
 
             description = RTCSessionDescription(**data)
             await self._pc.setRemoteDescription(description)

@@ -48,7 +48,7 @@ if __name__ == "__main__":
         player = players[playerId]
         track = player.audio if kind == "audio" else player.video
         if not track:
-            raise Exception("no track found")
+            raise Exception(f"no local track found [playerId:{playerId}, kind:{kind}]")
 
         return track
 
@@ -58,9 +58,9 @@ if __name__ == "__main__":
     def getRemoteTrack(trackId: str, kind: str) -> MediaStreamTrack:
         track = recvTracks.get(trackId)
         if not track:
-            raise Exception("no track found")
+            raise Exception(f"no remote track found [trackId:{trackId}, kind:{kind}]")
         if track.kind != kind:
-            raise Exception("no matching track.kind")
+            raise Exception(f"found remote track has non matching kind '{track.kind}' [trackId:{trackId}, kind:{kind}]")
 
         return track
 
