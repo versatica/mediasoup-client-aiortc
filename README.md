@@ -307,6 +307,6 @@ See the list of [open issues](https://github.com/versatica/mediasoup-client-aior
 [npm-shield-mediasoup-client-aiortc]: https://img.shields.io/npm/v/mediasoup-client-aiortc.svg
 [npm-mediasoup-client-aiortc]: https://npmjs.org/package/mediasoup-client-aiortc
 [github-actions-shield-mediasoup-client-aiortc]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-client-aiortc.yaml/badge.svg
-[github-actions-mediasoup-client-aiortc]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-client.yaml
+[github-actions-mediasoup-client-aiortc]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-client-aiortc.yaml
 [opencollective-shield-mediasoup]: https://img.shields.io/opencollective/all/mediasoup.svg
 [opencollective-mediasoup]: https://opencollective.com/mediasoup/
