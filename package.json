@@ -50,6 +50,8 @@
 		"format:node": "node npm-scripts.mjs format:node",
 		"test": "node npm-scripts.mjs test",
 		"coverage": "node npm-scripts.mjs coverage",
+		"docker:build": "node npm-scripts.mjs docker:build",
+		"docker:run": "node npm-scripts.mjs docker:run",
 		"release:check": "node npm-scripts.mjs release:check",
 		"release": "node npm-scripts.mjs release"
 	},
@@ -57,7 +59,7 @@
 		"@lukeed/uuid": "^2.0.1",
 		"debug": "^4.4.3",
 		"fake-mediastreamtrack": "^2.2.1",
-		"mediasoup-client": "^3.18.0",
+		"mediasoup-client": "^3.18.1",
 		"netstring": "^0.3.0",
 		"sdp-transform": "^3.0.0"
 	},

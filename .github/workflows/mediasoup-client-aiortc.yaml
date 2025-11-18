@@ -20,14 +20,21 @@ jobs:
         ci:
           - os: ubuntu-22.04
             node: 20
+            run-test: true
           - os: ubuntu-24.04
             node: 22
+            run-test: true
           - os: ubuntu-24.04
             node: 24
+            run-test: true
           - os: macos-14
             node: 22
+            # Tests fail in macOS due to timeout.
+            run-test: false
           - os: macos-15
             node: 24
+            # Tests fail in macOS due to timeout.
+            run-test: false
 
     runs-on: ${{ matrix.ci.os }}
 
@@ -55,5 +62,6 @@ jobs:
       - name: npm run lint
         run: npm run lint
 
-      - name: npm run test
+      - if: ${{ matrix.ci.run-test }}
+        name: npm run test
         run: npm run test

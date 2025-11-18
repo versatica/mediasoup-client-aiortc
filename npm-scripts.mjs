@@ -122,6 +122,22 @@ async function run() {
 			break;
 		}
 
+		case 'docker:build': {
+			executeCmd(
+				'docker build -f Dockerfile --tag mediasoup-client-aiort/docker:latest .'
+			);
+
+			break;
+		}
+
+		case 'docker:run': {
+			executeInteractiveCmd(
+				'docker run --name=mediasoupClientAiortcDocker -it --rm --privileged --cap-add SYS_PTRACE -v "./:/mediasoup-client-aiortc" mediasoup-client-aiort/docker:latest'
+			);
+
+			break;
+		}
+
 		case 'release:check': {
 			checkRelease();
 
