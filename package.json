@@ -59,7 +59,7 @@
 		"@lukeed/uuid": "^2.0.1",
 		"debug": "^4.4.3",
 		"fake-mediastreamtrack": "^2.2.1",
-		"mediasoup-client": "^3.18.0",
+		"mediasoup-client": "^3.18.1",
 		"netstring": "^0.3.0",
 		"sdp-transform": "^3.0.0"
 	},
