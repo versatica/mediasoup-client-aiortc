@@ -8,7 +8,7 @@
 
 ## Requirements
 
-- Python 3.
+- Python >= 3.10.
 - Windows is not supported.
 
 ## Installation
@@ -22,13 +22,13 @@ npm install mediasoup-client-aiortc
 The "postinstall" script in `package.json` will install the Python libraries (including **aiortc**). You can override the path to `python` executable by setting the `PYTHON` environment variable:
 
 ```bash
-PYTHON=/home/me/bin/python3.13 npm install mediasoup-client-aiortc
+PYTHON=/PATH_TO/python3.14 npm install mediasoup-client-aiortc
 ```
 
 Same thing once you run your Node.js application. **mediasoup-client-aiortc** will spawn Python processes and communicate with them via `UnixSocket`. You can override the `python` executable path by setting the `PYTHON` environment variable:
 
 ```bash
-PYTHON=/home/me/bin/python3.13 node my_app.js
+PYTHON=/PATH_TO/python3.14 node my_app.js
 ```
 
 ## API
