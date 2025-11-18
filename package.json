@@ -50,6 +50,8 @@
 		"format:node": "node npm-scripts.mjs format:node",
 		"test": "node npm-scripts.mjs test",
 		"coverage": "node npm-scripts.mjs coverage",
+		"docker:build": "node npm-scripts.mjs docker:build",
+		"docker:run": "node npm-scripts.mjs docker:run",
 		"release:check": "node npm-scripts.mjs release:check",
 		"release": "node npm-scripts.mjs release"
 	},
