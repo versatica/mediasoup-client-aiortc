@@ -157,6 +157,7 @@ const config = tsEslint.config(
 			'@typescript-eslint/no-empty-function': 0,
 			'@typescript-eslint/require-await': 0,
 			'@typescript-eslint/restrict-template-expressions': 0,
+			'@typescript-eslint/no-redundant-type-constituents': 0,
 		},
 	},
 	{
