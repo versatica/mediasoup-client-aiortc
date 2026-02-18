@@ -341,6 +341,7 @@ export class Handler
 		// Set RTP encodings by parsing the SDP offer.
 		sendingRtpParameters.encodings = sdpUnifiedPlanUtils.getRtpEncodings({
 			offerMediaObject,
+			codecs: sendingRtpParameters.codecs,
 		});
 
 		this.#remoteSdp.send({
