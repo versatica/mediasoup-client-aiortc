@@ -1,3 +1,8 @@
+import {
+	debug as consoleDebug,
+	warn as consoleWarn,
+	error as consoleError,
+} from 'node:console';
 import debug from 'debug';
 
 const APP_NAME = 'mediasoup-client-aiortc';
@@ -18,11 +23,9 @@ export class Logger {
 			this._error = debug(`${APP_NAME}:ERROR`);
 		}
 
-		/* eslint-disable no-console */
-		this._debug.log = console.info.bind(console);
-		this._warn.log = console.warn.bind(console);
-		this._error.log = console.error.bind(console);
-		/* eslint-enable no-console */
+		this._debug.log = consoleDebug;
+		this._warn.log = consoleWarn;
+		this._error.log = consoleError;
 	}
 
 	get debug(): debug.Debugger {
