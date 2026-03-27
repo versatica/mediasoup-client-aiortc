@@ -18,9 +18,6 @@ jobs:
       fail-fast: false
       matrix:
         ci:
-          - os: ubuntu-22.04
-            node: 20
-            run-test: true
           - os: ubuntu-24.04
             node: 22
             run-test: true
