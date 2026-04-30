@@ -65,3 +65,6 @@ jobs:
       - if: ${{ matrix.ci.run-test }}
         name: npm run test
         run: npm run test
+        # TODO: Remove
+        env:
+          DEBUG: 'mediasoup*'
