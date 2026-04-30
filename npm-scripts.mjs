@@ -7,7 +7,7 @@ import { execSync } from 'node:child_process';
 const PKG = JSON.parse(fs.readFileSync('./package.json').toString());
 const IS_WINDOWS = os.platform() === 'win32';
 const MAYOR_VERSION = PKG.version.split('.')[0];
-const PYTHON = getPython();
+const [PYTHON, PYTHON_VERSION] = getPython();
 const PIP_DEPS_DIR = path.resolve('worker/pip_deps');
 const PIP_DEV_DEPS_DIR = path.resolve('worker/pip_dev_deps');
 
@@ -170,7 +170,11 @@ function getPython() {
 		}
 	}
 
-	return python;
+	const pythonVersion = execSync(`${python} --version`)
+		.toString()
+		.match(/\d\S*/)[0];
+
+	return [python, pythonVersion];
 }
 
 function replacePythonVersion() {
@@ -229,7 +233,7 @@ function lintNode() {
 }
 
 function lintPython() {
-	logInfo('lintPython()');
+	logInfo(`lintPython() [python version:${PYTHON_VERSION}]`);
 
 	installPythonDevDeps();
 
@@ -247,7 +251,7 @@ function formatNode() {
 }
 
 function test() {
-	logInfo('test()');
+	logInfo(`test() [python version:${PYTHON_VERSION}]`);
 
 	executeCmd(`jest --silent false --detectOpenHandles ${taskArgs}`);
 }
@@ -266,7 +270,7 @@ function installNodeDeps() {
 }
 
 function installPythonDeps() {
-	logInfo('installPythonDeps()');
+	logInfo(`installPythonDeps() [python version:${PYTHON_VERSION}]`);
 
 	// Install PIP deps into custom location, so we don't depend on system-wide
 	// installation.

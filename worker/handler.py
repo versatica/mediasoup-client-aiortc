@@ -8,7 +8,7 @@ from aiortc import (
     RTCSessionDescription,
     RTCStatsReport
 )
-from aiortc import RTCDataChannel  # noqa: F401
+from aiortc import RTCDataChannel, RTCSctpTransport  # noqa: F401
 
 from channel import Request, Notification, Channel
 from logger import Logger
@@ -393,7 +393,8 @@ class Handler:
                 # status fields
                 "readyState": dataChannel.readyState,
                 "bufferedAmount": dataChannel.bufferedAmount,
-                "bufferedAmountLowThreshold": dataChannel.bufferedAmountLowThreshold
+                "bufferedAmountLowThreshold": dataChannel.bufferedAmountLowThreshold,
+                "maxMessageSize": RTCSctpTransport.getCapabilities().maxMessageSize
             }
 
         else:

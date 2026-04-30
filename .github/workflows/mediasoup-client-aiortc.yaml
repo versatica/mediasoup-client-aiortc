@@ -62,13 +62,6 @@ jobs:
       - name: npm run lint
         run: npm run lint
 
-      # TODO: Remove
-      - name: Python version
-        run: python3 --version
-
       - if: ${{ matrix.ci.run-test }}
         name: npm run test
         run: npm run test
-        # TODO: Remove
-        env:
-          DEBUG: 'mediasoup*'

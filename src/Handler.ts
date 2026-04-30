@@ -70,6 +70,8 @@ export class Handler
 	#hasDataChannelMediaSection = false;
 	// Next DataChannel id.
 	#nextSendSctpStreamId = 0;
+	// Discovered max DataChannel message size.
+	#maxDataChannelMessageSize: number | undefined = undefined;
 
 	static createFactory(handlerId: string, channel: Channel): HandlerFactory {
 		return {
@@ -693,6 +695,8 @@ export class Handler
 			options
 		);
 
+		this.#maxDataChannelMessageSize = result.maxMessageSize;
+
 		const dataChannel = new FakeRTCDataChannel(
 			internal,
 			this.#channel,
@@ -1101,6 +1105,8 @@ export class Handler
 			options
 		);
 
+		this.#maxDataChannelMessageSize = result.maxMessageSize;
+
 		const dataChannel = new FakeRTCDataChannel(
 			internal,
 			this.#channel,
@@ -1168,8 +1174,7 @@ export class Handler
 	}
 
 	getDataChannelMaxMessageSize(): number | undefined {
-		// TODO
-		return 1000000;
+		return this.#maxDataChannelMessageSize;
 	}
 
 	private async setupTransport({
