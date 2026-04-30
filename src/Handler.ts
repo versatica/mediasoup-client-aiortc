@@ -666,11 +666,7 @@ export class Handler
 	}
 
 	async sendDataChannel({
-		ordered,
-		maxPacketLifeTime,
-		maxRetransmits,
-		label,
-		protocol,
+		sctpStreamParameters,
 	}: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult> {
 		this.assertSendDirection();
 
@@ -682,11 +678,11 @@ export class Handler
 		const options = {
 			negotiated: true,
 			id: this.#nextSendSctpStreamId,
-			ordered,
-			maxPacketLifeTime: maxPacketLifeTime ?? null, // Important.
-			maxRetransmits: maxRetransmits ?? null, // Important.
-			label,
-			protocol,
+			ordered: sctpStreamParameters.ordered,
+			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime ?? null, // Important.
+			maxRetransmits: sctpStreamParameters.maxRetransmits ?? null, // Important.
+			protocol: sctpStreamParameters.protocol,
+			label: sctpStreamParameters.label,
 		};
 
 		logger.debug('sendDataChannel() [options:%o]', options);
@@ -767,17 +763,14 @@ export class Handler
 			this.#hasDataChannelMediaSection = true;
 		}
 
-		const sctpStreamParameters: SctpStreamParameters = {
+		const newSctpStreamParameters: SctpStreamParameters = {
 			streamId: result.streamId,
 			ordered: result.ordered,
 			maxPacketLifeTime: result.maxPacketLifeTime ?? undefined,
 			maxRetransmits: result.maxRetransmits ?? undefined,
 		};
 
-		return {
-			dataChannel,
-			sctpStreamParameters,
-		};
+		return { dataChannel, sctpStreamParameters: newSctpStreamParameters };
 	}
 
 	async receive(
@@ -1172,6 +1165,11 @@ export class Handler
 		}
 
 		return { dataChannel };
+	}
+
+	getDataChannelMaxMessageSize(): number | undefined {
+		// TODO
+		return 1000000;
 	}
 
 	private async setupTransport({
