@@ -39,7 +39,8 @@ if __name__ == "__main__":
     recvTracks = dict()  # type: Dict[str, MediaStreamTrack]
 
     # get/create event loop
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
     # create channel
     channel = Channel(CHANNEL_FD)

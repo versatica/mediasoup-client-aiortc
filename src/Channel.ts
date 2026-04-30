@@ -46,10 +46,7 @@ export class Channel extends EnhancedEventEmitter {
 				this.#recvBuffer = buffer;
 			} else {
 				this.#recvBuffer = Buffer.concat(
-					[
-						this.#recvBuffer as Uint8Array<ArrayBufferLike>,
-						buffer as Uint8Array<ArrayBufferLike>,
-					],
+					[this.#recvBuffer, buffer],
 					this.#recvBuffer.length + buffer.length
 				);
 			}

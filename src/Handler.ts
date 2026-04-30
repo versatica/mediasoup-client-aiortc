@@ -70,6 +70,8 @@ export class Handler
 	#hasDataChannelMediaSection = false;
 	// Next DataChannel id.
 	#nextSendSctpStreamId = 0;
+	// Discovered max DataChannel message size.
+	#maxDataChannelMessageSize: number | undefined = undefined;
 
 	static createFactory(handlerId: string, channel: Channel): HandlerFactory {
 		return {
@@ -666,11 +668,7 @@ export class Handler
 	}
 
 	async sendDataChannel({
-		ordered,
-		maxPacketLifeTime,
-		maxRetransmits,
-		label,
-		protocol,
+		sctpStreamParameters,
 	}: HandlerSendDataChannelOptions): Promise<HandlerSendDataChannelResult> {
 		this.assertSendDirection();
 
@@ -682,11 +680,11 @@ export class Handler
 		const options = {
 			negotiated: true,
 			id: this.#nextSendSctpStreamId,
-			ordered,
-			maxPacketLifeTime: maxPacketLifeTime ?? null, // Important.
-			maxRetransmits: maxRetransmits ?? null, // Important.
-			label,
-			protocol,
+			ordered: sctpStreamParameters.ordered,
+			maxPacketLifeTime: sctpStreamParameters.maxPacketLifeTime ?? null, // Important.
+			maxRetransmits: sctpStreamParameters.maxRetransmits ?? null, // Important.
+			protocol: sctpStreamParameters.protocol,
+			label: sctpStreamParameters.label,
 		};
 
 		logger.debug('sendDataChannel() [options:%o]', options);
@@ -696,6 +694,8 @@ export class Handler
 			internal,
 			options
 		);
+
+		this.#maxDataChannelMessageSize = result.maxMessageSize;
 
 		const dataChannel = new FakeRTCDataChannel(
 			internal,
@@ -767,17 +767,14 @@ export class Handler
 			this.#hasDataChannelMediaSection = true;
 		}
 
-		const sctpStreamParameters: SctpStreamParameters = {
+		const newSctpStreamParameters: SctpStreamParameters = {
 			streamId: result.streamId,
 			ordered: result.ordered,
 			maxPacketLifeTime: result.maxPacketLifeTime ?? undefined,
 			maxRetransmits: result.maxRetransmits ?? undefined,
 		};
 
-		return {
-			dataChannel,
-			sctpStreamParameters,
-		};
+		return { dataChannel, sctpStreamParameters: newSctpStreamParameters };
 	}
 
 	async receive(
@@ -1108,6 +1105,8 @@ export class Handler
 			options
 		);
 
+		this.#maxDataChannelMessageSize = result.maxMessageSize;
+
 		const dataChannel = new FakeRTCDataChannel(
 			internal,
 			this.#channel,
@@ -1172,6 +1171,10 @@ export class Handler
 		}
 
 		return { dataChannel };
+	}
+
+	getDataChannelMaxMessageSize(): number | undefined {
+		return this.#maxDataChannelMessageSize;
 	}
 
 	private async setupTransport({
