@@ -18,18 +18,21 @@ jobs:
       fail-fast: false
       matrix:
         ci:
-          - os: ubuntu-24.04
+          - os: ubuntu-22.04
             node: 22
             run-test: true
           - os: ubuntu-24.04
             node: 24
             run-test: true
+          - os: ubuntu-26.04
+            node: 26
+            run-test: true
           - os: macos-14
-            node: 22
+            node: 24
             # Tests fail in macOS due to timeout.
             run-test: false
           - os: macos-15
-            node: 24
+            node: 26
             # Tests fail in macOS due to timeout.
             run-test: false
 
