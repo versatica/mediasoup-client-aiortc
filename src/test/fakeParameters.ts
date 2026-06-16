@@ -172,9 +172,8 @@ export function generateTransportRemoteParameters(): mediasoupClientTypes.Transp
 		},
 		sctpParameters: {
 			port: 5000,
-			OS: 2048,
-			MIS: 2048,
-			maxMessageSize: 2000000,
+			maxSendMessageSize: 2048,
+			maxReceiveMessageSize: 2048,
 		},
 	};
 }

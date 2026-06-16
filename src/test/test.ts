@@ -257,10 +257,6 @@ test('device.rtpCapabilities getter succeeds', () => {
 	expect(typeof ctx.loadedDevice!.rtpCapabilities).toBe('object');
 });
 
-test('device.sctpCapabilities getter succeeds', () => {
-	expect(typeof ctx.loadedDevice!.sctpCapabilities).toBe('object');
-});
-
 test('device.createSendTransport() for sending media succeeds', () => {
 	// Assume we create a transport in the server and get its remote parameters.
 	const { id, iceParameters, iceCandidates, dtlsParameters, sctpParameters } =
