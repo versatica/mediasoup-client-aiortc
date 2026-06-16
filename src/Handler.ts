@@ -23,7 +23,6 @@ import type {
 	RtpCapabilities,
 	MediaKind,
 	ExtendedRtpCapabilities,
-	SctpCapabilities,
 	SctpStreamParameters,
 } from 'mediasoup-client/types';
 import { RemoteSdp } from 'mediasoup-client/handlers/sdp/RemoteSdp';
@@ -87,13 +86,6 @@ export class Handler
 					Handler.getLocalRtpCapabilities(sdpObject);
 
 				return nativeRtpCapabilities;
-			},
-			getNativeSctpCapabilities: async (): Promise<SctpCapabilities> => {
-				logger.debug('getNativeSctpCapabilities()');
-
-				return {
-					numStreams: SCTP_NUM_STREAMS,
-				};
 			},
 		};
 	}
