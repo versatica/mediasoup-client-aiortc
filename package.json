@@ -41,6 +41,7 @@
 	"scripts": {
 		"prepare": "node npm-scripts.mjs prepare",
 		"postinstall": "node npm-scripts.mjs postinstall",
+		"prepublishOnly": "node npm-scripts.mjs prepublishOnly",
 		"typescript:build": "node npm-scripts.mjs typescript:build",
 		"typescript:watch": "node npm-scripts.mjs typescript:watch",
 		"lint": "npm run lint:node && npm run lint:python",
@@ -52,6 +53,7 @@
 		"coverage": "node npm-scripts.mjs coverage",
 		"docker:build": "node npm-scripts.mjs docker:build",
 		"docker:run": "node npm-scripts.mjs docker:run",
+		"publish:dry-run": "node npm-scripts.mjs publish:dry-run",
 		"release:check": "node npm-scripts.mjs release:check",
 		"release": "node npm-scripts.mjs release"
 	},
@@ -75,6 +77,7 @@
 		"eslint-plugin-prettier": "^5.5.6",
 		"globals": "^17.7.0",
 		"jest": "^30.4.2",
+		"knip": "^6.21.0",
 		"open-cli": "^9.0.0",
 		"prettier": "^3.8.5",
 		"ts-jest": "^29.4.11",

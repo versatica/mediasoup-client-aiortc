@@ -2,6 +2,8 @@
 
 [![][npm-shield-mediasoup-client-aiortc]][npm-mediasoup-client-aiortc]
 [![][github-actions-shield-mediasoup-client-aiortc]][github-actions-mediasoup-client-aiortc]
+[![][github-actions-shield-mediasoup-client-aiortc-npm-publish]][github-actions-mediasoup-client-aiortc-npm-publish]
+[![][github-actions-shield-mediasoup-website-update]][github-actions-mediasoup-website-update]
 [![][opencollective-shield-mediasoup]][opencollective-mediasoup]
 
 [mediasoup-client](https://github.com/versatica/mediasoup-client/) handler for [aiortc](https://github.com/aiortc/aiortc/) Python library. Suitable for building Node.js applications that connect to a mediasoup server using WebRTC and exchange real audio, video and DataChannel messages with it in both directions.
@@ -308,5 +310,9 @@ See the list of [open issues](https://github.com/versatica/mediasoup-client-aior
 [npm-mediasoup-client-aiortc]: https://npmjs.org/package/mediasoup-client-aiortc
 [github-actions-shield-mediasoup-client-aiortc]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-client-aiortc.yaml/badge.svg?branch=v3
 [github-actions-mediasoup-client-aiortc]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-client-aiortc.yaml?query=branch%3Av3
+[github-actions-shield-mediasoup-client-aiortc-npm-publish]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-client-aiortc-npm-publish.yaml/badge.svg
+[github-actions-mediasoup-client-aiortc-npm-publish]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-client-aiortc-npm-publish.yaml
+[github-actions-shield-mediasoup-website-update]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-website-update.yaml/badge.svg
+[github-actions-mediasoup-website-update]: https://github.com/versatica/mediasoup-client-aiortc/actions/workflows/mediasoup-website-update.yaml
 [opencollective-shield-mediasoup]: https://img.shields.io/opencollective/all/mediasoup.svg
 [opencollective-mediasoup]: https://opencollective.com/mediasoup/
