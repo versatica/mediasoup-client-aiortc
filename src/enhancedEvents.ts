@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { EventEmitter, once } from 'node:events';
+import { EventEmitter } from 'node:events';
 import { Logger } from './Logger';
 
 const enhancedEventEmitterLogger = new Logger('EnhancedEventEmitter');
@@ -136,21 +136,4 @@ export class EnhancedEventEmitter<
 	): ((...args: any[]) => void)[] {
 		return super.rawListeners(eventName);
 	}
-}
-
-/**
- * TypeScript version of events.once():
- *   https://nodejs.org/api/events.html#eventsonceemitter-name-options
- *
- * Usage example:
- * ```ts
- * await enhancedOnce<ConsumerEvents>(videoConsumer, 'producerpause');
- * ````
- */
-export async function enhancedOnce<E extends Events = Events>(
-	emmiter: EnhancedEventEmitter<E>,
-	eventName: keyof E & string,
-	options?: any
-): Promise<any[]> {
-	return once(emmiter, eventName, options);
 }

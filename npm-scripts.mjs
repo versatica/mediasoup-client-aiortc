@@ -3,28 +3,29 @@ import os from 'node:os';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import pkg from './package.json' with { type: 'json' };
 
-const PKG = JSON.parse(fs.readFileSync('./package.json').toString());
 const IS_WINDOWS = os.platform() === 'win32';
-const MAYOR_VERSION = PKG.version.split('.')[0];
+// Main Git branch is 'v' concatenated with the major SEMVER number of the
+// "version" field in package.json.
+const MAIN_BRANCH = `v${pkg.version.split('.')[0]}`;
 const [PYTHON, PYTHON_VERSION] = getPython();
 const PIP_DEPS_DIR = path.resolve('worker/pip_deps');
 const PIP_DEV_DEPS_DIR = path.resolve('worker/pip_dev_deps');
 
-// Paths for ESLint to check. Converted to string for convenience.
+// Paths for ESLint to check.
 const ESLINT_PATHS = [
 	'eslint.config.mjs',
 	'jest.config.mjs',
 	'npm-scripts.mjs',
 	'src',
-].join(' ');
+];
 
-// Paths for ESLint to ignore. Converted to string argument for convenience.
-const ESLINT_IGNORE_PATTERN_ARGS = []
-	.map(entry => `--ignore-pattern ${entry}`)
-	.join(' ');
+// Paths for ESLint to ignore.
+const ESLINT_IGNORE_PATHS = [];
 
-// Paths for Prettier to check/write. Converted to string for convenience.
+// Paths for Prettier to check/write.
+// NOTE: Prettier ignores paths in .gitignore.
 const PRETTIER_PATHS = [
 	'README.md',
 	'eslint.config.mjs',
@@ -33,7 +34,7 @@ const PRETTIER_PATHS = [
 	'package.json',
 	'tsconfig.json',
 	'src',
-].join(' ');
+];
 
 const task = process.argv[2];
 const taskArgs = process.argv.slice(3).join(' ');
@@ -71,20 +72,25 @@ async function run() {
 		}
 
 		case 'postinstall': {
-			installPythonDeps();
+			installPythonDeps({ args: taskArgs });
+
+			break;
+		}
+
+		case 'prepublishOnly': {
+			prepublishOnly();
 
 			break;
 		}
 
 		case 'typescript:build': {
-			buildTypescript({ force: true });
-			replacePythonVersion();
+			buildTypescript({ force: true, args: taskArgs });
 
 			break;
 		}
 
 		case 'typescript:watch': {
-			watchTypescript();
+			watchTypescript({ args: taskArgs });
 
 			break;
 		}
@@ -108,16 +114,13 @@ async function run() {
 		}
 
 		case 'test': {
-			replacePythonVersion();
 			test();
 
 			break;
 		}
 
 		case 'coverage': {
-			replacePythonVersion();
-			executeCmd(`jest --coverage ${taskArgs}`);
-			executeCmd('open-cli coverage/lcov-report/index.html');
+			coverageNode({ args: taskArgs });
 
 			break;
 		}
@@ -138,6 +141,12 @@ async function run() {
 			break;
 		}
 
+		case 'publish:dry-run': {
+			publishDryRun();
+
+			break;
+		}
+
 		case 'release:check': {
 			checkRelease();
 
@@ -145,7 +154,7 @@ async function run() {
 		}
 
 		case 'release': {
-			release();
+			release({ args: taskArgs });
 
 			break;
 		}
@@ -182,7 +191,7 @@ function replacePythonVersion() {
 
 	const file = 'worker/setup.py';
 	const text = fs.readFileSync(file, { encoding: 'utf8' });
-	const result = text.replace(/version=".*"/g, `version="${PKG.version}"`);
+	const result = text.replace(/version=".*"/g, `version="${pkg.version}"`);
 
 	fs.writeFileSync(file, result, { encoding: 'utf8' });
 }
@@ -194,11 +203,12 @@ function deleteNodeLib() {
 
 	logInfo('deleteNodeLib()');
 
-	fs.rmSync('node/lib', { recursive: true, force: true });
+	fs.rmSync('lib', { recursive: true, force: true });
 }
 
-function buildTypescript({ force }) {
-	if (!force && fs.existsSync('node/lib')) {
+function buildTypescript({ force, args = '' }) {
+	// Skip JavaScript code generation if the output already exists, unless forced.
+	if (!force && fs.existsSync('lib')) {
 		return;
 	}
 
@@ -207,15 +217,15 @@ function buildTypescript({ force }) {
 	deleteNodeLib();
 
 	// Generate .js CommonJS code and .d.ts TypeScript declaration files in lib/.
-	executeCmd('tsc');
+	executeCmd(`tsc ${args}`);
 }
 
-function watchTypescript() {
+function watchTypescript({ args = '' } = {}) {
 	logInfo('watchTypescript()');
 
 	deleteNodeLib();
 
-	executeCmd('tsc --watch');
+	executeCmd(`tsc --watch ${args}`);
 }
 
 function lintNode() {
@@ -225,11 +235,20 @@ function lintNode() {
 	// rules.
 	executeCmd('eslint-config-prettier eslint.config.mjs');
 
+	const eslintIgnorePatternArgs = ESLINT_IGNORE_PATHS.map(
+		entry => `--ignore-pattern ${entry}`
+	).join(' ');
+	const eslintFiles = ESLINT_PATHS.join(' ');
+
 	executeCmd(
-		`eslint -c eslint.config.mjs --max-warnings 0 ${ESLINT_IGNORE_PATTERN_ARGS} ${ESLINT_PATHS}`
+		`eslint -c eslint.config.mjs --max-warnings 0 ${eslintIgnorePatternArgs} ${eslintFiles}`
 	);
 
-	executeCmd(`prettier --check ${PRETTIER_PATHS}`);
+	const prettierFiles = PRETTIER_PATHS.join(' ');
+
+	executeCmd(`prettier --check ${prettierFiles}`);
+
+	executeCmd('knip --config knip.config.mjs --treat-config-hints-as-errors');
 }
 
 function lintPython() {
@@ -247,13 +266,22 @@ function lintPython() {
 function formatNode() {
 	logInfo('formatNode()');
 
-	executeCmd(`prettier --write ${PRETTIER_PATHS}`);
+	const prettierFiles = PRETTIER_PATHS.join(' ');
+
+	executeCmd(`prettier --write ${prettierFiles}`);
 }
 
-function test() {
-	logInfo(`test() [python version:${PYTHON_VERSION}]`);
+function test({ args = '' } = {}) {
+	logInfo('test()');
 
-	executeCmd(`jest --silent false --detectOpenHandles ${taskArgs}`);
+	executeCmd(`jest --silent false --detectOpenHandles ${args}`);
+}
+
+function coverageNode({ args = '' } = {}) {
+	logInfo('coverageNode()');
+
+	executeCmd(`jest --coverage ${args}`);
+	executeCmd('open-cli coverage/lcov-report/index.html');
 }
 
 function installNodeDeps() {
@@ -269,7 +297,7 @@ function installNodeDeps() {
 	executeCmd('npm audit --omit dev');
 }
 
-function installPythonDeps() {
+function installPythonDeps({ args = '' } = {}) {
 	logInfo(`installPythonDeps() [python version:${PYTHON_VERSION}]`);
 
 	// Install PIP deps into custom location, so we don't depend on system-wide
@@ -277,14 +305,14 @@ function installPythonDeps() {
 	// However this may fail due to different PIP and OS versions, so let's do a
 	// best effort.
 	const res = executeCmd(
-		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" ${taskArgs} worker/`,
-		/* exitOnError */ false
+		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" ${args} worker/`,
+		{ exitOnError: false }
 	);
 
 	if (!res) {
 		executeCmd(
-			`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" ${taskArgs} --break-system-packages worker/`,
-			/* exitOnError */ true
+			`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEPS_DIR}" ${args} --break-system-packages worker/`,
+			{ exitOnError: true }
 		);
 	}
 }
@@ -295,9 +323,45 @@ function installPythonDevDeps() {
 	// Install PIP dev deps into custom location, so we don't depend on system-wide
 	// installation.
 	executeCmd(
-		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEV_DEPS_DIR}" flake8 mypy`,
-		/* exitOnError */ true
+		`"${PYTHON}" -m pip install --upgrade --no-user --target="${PIP_DEV_DEPS_DIR}" flake8 mypy`
 	);
+}
+
+/**
+ * `prepublishOnly` is run by NPM only on `npm publish` (not on `npm pack`,
+ * `npm install` or `npm ci`). We use it to forbid publishing
+ * mediasoup-client-aiortc from a local machine. The package must only be
+ * published by the `mediasoup-client-aiortc-npm-publish` workflow, which runs
+ * inside GitHub Actions (where GITHUB_ACTIONS environment variable is set to
+ * 'true') and uses OIDC trusted publishing.
+ */
+function prepublishOnly() {
+	logInfo('prepublishOnly()');
+
+	if (process.env.GITHUB_ACTIONS !== 'true') {
+		logError(
+			"prepublishOnly() | refusing to 'npm publish' outside of GitHub Actions: mediasoup-client-aiortc is published only by the mediasoup-client-aiortc-npm-publish workflow (triggered by pushing a release tag via 'npm run release')"
+		);
+
+		exitWithError();
+	}
+}
+
+function publishDryRun() {
+	logInfo('publishDryRun()');
+
+	// NOTE: We use `npm pack --dry-run` rather than `npm publish --dry-run`
+	// because the latter contacts the registry and fails with "You cannot
+	// publish over the previously published versions" whenever the version in
+	// package.json is already published (which is the usual state between
+	// releases), making it useless in CI.
+	//
+	// `npm pack --dry-run` still runs the `prepare` script (TypeScript build)
+	// and assembles the tarball exactly as a real publish would, reporting its
+	// contents without writing any file or contacting the registry. Useful to
+	// validate the `files` list in package.json and that the package builds
+	// before tagging a release.
+	executeCmd('npm pack --dry-run --loglevel warn');
 }
 
 function checkRelease() {
@@ -306,7 +370,6 @@ function checkRelease() {
 	installNodeDeps();
 	installPythonDeps();
 	buildTypescript({ force: true });
-	replacePythonVersion();
 	lintNode();
 	lintPython();
 
@@ -314,30 +377,94 @@ function checkRelease() {
 	if (process.env.SKIP_TEST !== 'true') {
 		test();
 	}
+
+	// Validate packaging (the `files` list in package.json) before the
+	// irreversible release steps (git push, GitHub release, npm publish).
+	publishDryRun();
 }
 
-function release() {
+function release({ args = '' } = {}) {
 	logInfo('release()');
 
+	const version = args.trim();
+
+	if (!/^\d+\.\d+\.\d+$/.test(version)) {
+		logError(
+			`release() | a SEMVER 'x.y.z' argument is required, but got '${version}'`
+		);
+
+		exitWithError();
+	}
+
+	// Must be on the main branch.
+	const branch = execSync('git rev-parse --abbrev-ref HEAD', {
+		encoding: 'utf-8',
+	}).trim();
+
+	if (branch !== MAIN_BRANCH) {
+		logError(
+			`release() | must be on '${MAIN_BRANCH}' branch, but it is on '${branch}' branch`
+		);
+
+		exitWithError();
+	}
+
+	// Clean working tree required before bumping the version.
+	checkGitClean();
+
+	// Lint, test, build, publish dry-run.
 	checkRelease();
-	executeCmd(`git commit -am '${PKG.version}'`);
-	executeCmd(`git tag -a ${PKG.version} -m '${PKG.version}'`);
-	executeCmd(`git push origin v${MAYOR_VERSION}`);
-	executeCmd(`git push origin '${PKG.version}'`);
-	executeInteractiveCmd('npm publish');
+
+	// Bump the version in package.json + package-lock.json.
+	executeCmd(`npm version ${version} --no-git-tag-version`);
+
+	// Also replace the version in the transpiled JS.
+	replacePythonVersion();
+
+	// Commit the bump, tag it, and push both. The pushed tag triggers
+	// `mediasoup-client-aiortc-npm-publish` workflow, which checks, creates the
+	// GitHub release and publishes to NPM.
+	//
+	// The commit message carries a "[no-ci]" marker so the regular branch CI
+	// workflow skips this commit.
+	//
+	// NOTE: "[no-ci]" (with a hyphen) is a custom marker, NOT GitHub's native
+	// "[skip ci]"/"[no ci]" (which would also skip
+	// `mediasoup-client-aiortc-npm-publish` workflow, since the tag push shares
+	// this same commit).
+	executeCmd(`git commit -am 'release ${version} [no-ci]'`);
+	executeCmd(`git tag -a ${version} -m '${version}'`);
+	executeCmd(`git push origin ${MAIN_BRANCH}`);
+	executeCmd(`git push origin '${version}'`);
 }
 
-/**
- * Returns true if the command succeeded, 0 otherwise.
- *
- * If exitOnError is set and command fails, then process is terminated with
- * error.
- */
-function executeCmd(command, exitOnError = true) {
-	logInfo(`executeCmd(): ${command}`);
+function checkGitClean() {
+	logInfo('checkGitClean()');
+
+	const status = execSync('git status --porcelain', {
+		encoding: 'utf-8',
+		stdio: ['ignore', 'pipe', 'ignore'],
+	});
+
+	if (status.trim()) {
+		logError(
+			'checkGitClean() | Git working tree is not clean, commit or stash your changes first'
+		);
+
+		exitWithError();
+	}
+}
+
+function executeCmd(command, { cwd, exitOnError = true } = {}) {
+	logInfo(
+		`executeCmd(): ${command} [exitOnError:${exitOnError}${cwd ? `, cwd:${cwd}` : ''}]`
+	);
 
 	try {
-		execSync(command, { stdio: ['ignore', process.stdout, process.stderr] });
+		execSync(command, {
+			cwd,
+			stdio: ['ignore', process.stdout, process.stderr],
+		});
 
 		return true;
 	} catch (error) {
@@ -353,15 +480,25 @@ function executeCmd(command, exitOnError = true) {
 	}
 }
 
-function executeInteractiveCmd(command) {
-	logInfo(`executeInteractiveCmd(): ${command}`);
+function executeInteractiveCmd(command, { cwd, exitOnError = true } = {}) {
+	logInfo(
+		`executeInteractiveCmd(): ${command} [exitOnError:${exitOnError}${cwd ? `, cwd:${cwd}` : ''}]`
+	);
 
 	try {
-		execSync(command, { stdio: 'inherit', env: process.env });
-	} catch (error) {
-		logError(`executeInteractiveCmd() failed, exiting: ${error}`);
+		execSync(command, { cwd, stdio: 'inherit', env: process.env });
 
-		exitWithError();
+		return true;
+	} catch (error) {
+		if (exitOnError) {
+			logError(`executeInteractiveCmd() failed, exiting: ${error}`);
+
+			exitWithError();
+		} else {
+			logInfo(`executeInteractiveCmd() failed, ignoring: ${error}`);
+
+			return false;
+		}
 	}
 }
 
