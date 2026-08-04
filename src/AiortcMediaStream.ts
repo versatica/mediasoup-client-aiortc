@@ -17,11 +17,9 @@ export class AiortcMediaStream extends EventTarget implements MediaStream {
 	readonly #tracks: Map<string, AiortcMediaStreamTrack> = new Map();
 	// Events.
 	#onaddtrack:
-		| ((this: AiortcMediaStream, ev: MediaStreamTrackEvent) => any)
-		| null = null;
+		((this: AiortcMediaStream, ev: MediaStreamTrackEvent) => any) | null = null;
 	#onremovetrack:
-		| ((this: AiortcMediaStream, ev: MediaStreamTrackEvent) => any)
-		| null = null;
+		((this: AiortcMediaStream, ev: MediaStreamTrackEvent) => any) | null = null;
 	// Custom events.
 	#onclose: ((this: AiortcMediaStream, ev: Event) => any) | null = null;
 
@@ -46,11 +44,9 @@ export class AiortcMediaStream extends EventTarget implements MediaStream {
 	}
 
 	get onaddtrack():
-		| ((this: MediaStream, ev: MediaStreamTrackEvent) => any)
-		| null {
+		((this: MediaStream, ev: MediaStreamTrackEvent) => any) | null {
 		return this.#onaddtrack as
-			| ((this: MediaStream, ev: MediaStreamTrackEvent) => any)
-			| null;
+			((this: MediaStream, ev: MediaStreamTrackEvent) => any) | null;
 	}
 
 	set onaddtrack(
@@ -68,11 +64,9 @@ export class AiortcMediaStream extends EventTarget implements MediaStream {
 	}
 
 	get onremovetrack():
-		| ((this: MediaStream, ev: MediaStreamTrackEvent) => any)
-		| null {
+		((this: MediaStream, ev: MediaStreamTrackEvent) => any) | null {
 		return this.#onremovetrack as
-			| ((this: MediaStream, ev: MediaStreamTrackEvent) => any)
-			| null;
+			((this: MediaStream, ev: MediaStreamTrackEvent) => any) | null;
 	}
 
 	set onremovetrack(

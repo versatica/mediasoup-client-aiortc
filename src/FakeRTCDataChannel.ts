@@ -204,8 +204,7 @@ export class FakeRTCDataChannel extends EventTarget implements RTCDataChannel {
 	}
 
 	get onbufferedamountlow():
-		| ((this: RTCDataChannel, ev: Event) => void)
-		| null {
+		((this: RTCDataChannel, ev: Event) => void) | null {
 		return this.#onbufferedamountlow;
 	}
 
