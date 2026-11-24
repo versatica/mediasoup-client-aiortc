@@ -77,12 +77,6 @@ export function generateRouterRtpCapabilities(): mediasoupClientTypes.RtpCapabil
 				preferredEncrypt: false,
 			},
 			{
-				kind: 'video',
-				uri: 'urn:ietf:params:rtp-hdrext:toffset',
-				preferredId: 2,
-				preferredEncrypt: false,
-			},
-			{
 				kind: 'audio',
 				uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
 				preferredId: 3,

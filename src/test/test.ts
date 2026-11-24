@@ -368,7 +368,7 @@ test(
 		expect(Array.isArray(encodings)).toBe(true);
 		expect(encodings!.length).toBe(1);
 		expect(typeof encodings![0]!).toBe('object');
-		expect(Object.keys(encodings![0]!)).toEqual(['ssrc', 'dtx']);
+		expect(Object.keys(encodings![0]!)).toEqual(['ssrc']);
 		expect(typeof encodings![0]!.ssrc).toBe('number');
 
 		rtcp = audioProducer.rtpParameters.rtcp;
@@ -575,7 +575,7 @@ test(
 		expect(Array.isArray(encodings)).toBe(true);
 		expect(encodings!.length).toBe(1);
 		expect(typeof encodings![0]).toBe('object');
-		expect(Object.keys(encodings![0]!)).toEqual(['ssrc', 'dtx']);
+		expect(Object.keys(encodings![0]!)).toEqual(['ssrc']);
 		expect(typeof encodings![0]!.ssrc).toBe('number');
 
 		rtcp = ctx.audioProducer!.rtpParameters.rtcp;
@@ -647,7 +647,7 @@ test(
 		expect(Array.isArray(encodings)).toBe(true);
 		expect(encodings!.length).toBe(1);
 		expect(typeof encodings![0]).toBe('object');
-		expect(Object.keys(encodings![0]!)).toEqual(['ssrc', 'rtx', 'dtx']);
+		expect(Object.keys(encodings![0]!)).toEqual(['ssrc', 'rtx']);
 		expect(typeof encodings![0]!.ssrc).toBe('number');
 		expect(typeof encodings![0]!.rtx).toBe('object');
 		expect(Object.keys(encodings![0]!.rtx!)).toEqual(['ssrc']);
